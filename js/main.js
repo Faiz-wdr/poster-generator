@@ -36,22 +36,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const row = document.createElement("div");
     row.className = "result-list-item";
     
-    const firstGroup = result.placements && result.placements[0] ? result.placements[0] : null;
     let winnersList = "";
-    if (firstGroup && firstGroup.winners) {
-      firstGroup.winners.forEach(w => {
-        if (winnersList) winnersList += " & ";
-        winnersList += w.name + (w.team ? ` (${w.team})` : "");
-      });
-    }
-    const displayWinners = winnersList || "[ No Placements Selections ]";
+    const winners = result.winners || [];
+    
+    // Filter first place winners ("01" or "1")
+    const firstPlaceWinners = winners.filter(w => w.position === "01" || w.position === "1");
+    // Fallback to first winner in array if no explicit first place found
+    const topWinners = firstPlaceWinners.length > 0 ? firstPlaceWinners : (winners.length > 0 ? [winners[0]] : []);
+    
+    topWinners.forEach(w => {
+      if (winnersList) winnersList += " & ";
+      winnersList += w.name + (w.team ? ` (${w.team})` : "");
+    });
+    
+    const displayWinners = winnersList || "[ No Winners Registered ]";
 
     row.innerHTML = `
       <div class="result-list-main">
         <span class="badge badge-primary result-list-category">${result.category}</span>
         <div class="result-list-title-wrap">
           <div class="result-list-title">${result.programName}</div>
-          <div class="result-list-winner">🥇 1st Place: <strong>${displayWinners}</strong></div>
+          <div class="result-list-winner">🥇 Top Winner(s): <strong>${displayWinners}</strong></div>
         </div>
       </div>
       <button class="btn btn-outline btn-sm">View Poster</button>
@@ -67,22 +72,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("poster-modal");
     if (!modal) return;
 
-    // Show modal
     modal.style.display = "flex";
 
     const modalPosterWrap = document.getElementById("modal-poster-wrap");
 
-    // Load templates
     const templates = db.getTemplates();
     if (templates.length === 0) return;
 
     let activeTemplateIndex = 0;
     let activeTemplate = templates[activeTemplateIndex];
 
-    // Render initially inside modal preview container
     posterEngine.render(modalPosterWrap, result, activeTemplate);
 
-    // Wire "Next Template" cycling button - clear old listener by replacing button clone
     const nextTemplateBtn = document.getElementById("btn-modal-next-template");
     if (nextTemplateBtn) {
       const newNextBtn = nextTemplateBtn.cloneNode(true);
@@ -95,7 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Wire Download action button - clear old listener by replacing button clone
     const downloadBtn = document.getElementById("btn-modal-download");
     if (downloadBtn) {
       const newDownloadBtn = downloadBtn.cloneNode(true);
@@ -106,7 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Force scale refresh since modal display block/flex might toggle container size
     setTimeout(() => {
       if (modalPosterWrap && modalPosterWrap._adjustScaleFn) {
         modalPosterWrap._adjustScaleFn();
@@ -120,7 +119,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const templates = db.getTemplates();
     const settings = db.getSettings();
 
-    // Render Bento Stats (Safeguarded because these elements are removed in public homepage)
     const homeStatResults = document.getElementById("home-stat-results");
     if (homeStatResults) homeStatResults.innerText = results.length;
     
@@ -134,14 +132,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const homeStatInstitution = document.getElementById("home-stat-institution");
     if (homeStatInstitution) homeStatInstitution.innerText = settings.institutionName || "Arts Academy";
 
-    // Dynamic hero featured poster preview card
     const heroPreviewWrap = document.getElementById("hero-poster-preview-wrap");
     if (heroPreviewWrap && results.length > 0 && templates.length > 0) {
-      // Pick first result as featured item
       posterEngine.render(heroPreviewWrap, results[0], templates[0]);
     }
 
-    // Render Latest Results List (Max 3 items)
     const latestListContainer = document.getElementById("home-results-list");
     if (latestListContainer) {
       latestListContainer.innerHTML = "";
@@ -157,7 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Render Horizontal Template Slider (Safeguarded)
     const tempSlider = document.getElementById("home-template-slider");
     if (tempSlider) {
       tempSlider.innerHTML = "";
@@ -190,16 +184,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeGalleryCategory = "All";
 
   function initGalleryPage() {
-    // Render dynamic list
     renderGalleryList();
 
-    // Attach search event
     const searchInput = document.getElementById("gallery-search");
     if (searchInput) {
       searchInput.addEventListener("input", renderGalleryList);
     }
 
-    // Category Filter pill listeners
     const pills = document.querySelectorAll("#gallery-category-filters .filter-pill");
     pills.forEach(pill => {
       pill.addEventListener("click", () => {
@@ -223,19 +214,19 @@ document.addEventListener("DOMContentLoaded", () => {
     
     let results = db.getResults();
 
-    // Apply category pill filter
     if (activeGalleryCategory !== "All") {
       results = results.filter(r => r.category === activeGalleryCategory);
     }
 
-    // Apply keyword search
     if (searchVal) {
       results = results.filter(r => 
         r.programName.toLowerCase().includes(searchVal) ||
-        r.firstPlace.toLowerCase().includes(searchVal) ||
-        r.secondPlace.toLowerCase().includes(searchVal) ||
-        r.thirdPlace.toLowerCase().includes(searchVal) ||
-        r.category.toLowerCase().includes(searchVal)
+        r.category.toLowerCase().includes(searchVal) ||
+        (r.winners || []).some(w => 
+          w.name.toLowerCase().includes(searchVal) ||
+          w.position.toLowerCase().includes(searchVal) ||
+          w.team.toLowerCase().includes(searchVal)
+        )
       );
     }
 
@@ -268,46 +259,49 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Populate descriptive winner profile details on right side
     document.getElementById("detail-badge-category").innerText = result.category;
     document.getElementById("detail-program-name").innerText = result.programName;
     
     const winnersListContainer = document.getElementById("detail-winners-list");
     if (winnersListContainer) {
       winnersListContainer.innerHTML = "";
-      const placements = result.placements || [];
+      const winners = result.winners || [];
       
-      placements.forEach((g, idx) => {
+      winners.forEach((w, idx) => {
         const item = document.createElement("div");
-        item.className = `winner-item winner-item-${idx < 3 ? idx + 1 : 'others'}`;
-        item.style.alignItems = "flex-start";
         
-        let placeLabel = g.rank;
-        let titleLabel = g.rank;
+        let placeNum = w.position || "01";
+        let medalLabel = placeNum;
+        let rankClass = "others";
+        let titleLabel = `Winner Position ${placeNum}`;
         
-        let medalLabel = "🏆";
-        if (g.rank.toLowerCase().includes("first") || g.rank.toLowerCase().includes("1st")) {
+        if (placeNum === "01" || placeNum === "1") {
           medalLabel = "1st";
-        } else if (g.rank.toLowerCase().includes("second") || g.rank.toLowerCase().includes("2nd")) {
+          rankClass = "1";
+          titleLabel = "First Place";
+        } else if (placeNum === "02" || placeNum === "2") {
           medalLabel = "2nd";
-        } else if (g.rank.toLowerCase().includes("third") || g.rank.toLowerCase().includes("3rd")) {
+          rankClass = "2";
+          titleLabel = "Second Place";
+        } else if (placeNum === "03" || placeNum === "3") {
           medalLabel = "3rd";
+          rankClass = "3";
+          titleLabel = "Third Place";
         } else {
-          medalLabel = "Prize";
+          medalLabel = placeNum;
+          rankClass = "others";
+          titleLabel = `Position ${placeNum}`;
         }
 
-        let winnersHtml = "";
-        g.winners.forEach(w => {
-          if (winnersHtml) winnersHtml += "<br>";
-          winnersHtml += `<div class="winner-name" style="font-size: 1.05rem; font-weight: 800;">${w.name}${w.team ? ` <span style="font-size: 0.8em; font-weight: 600; opacity: 0.85;">(${w.team})</span>` : ""}</div>`;
-        });
-
+        item.className = `winner-item winner-item-${rankClass}`;
+        item.style.alignItems = "flex-start";
+        
         item.innerHTML = `
-          <div class="winner-place winner-place-${idx < 3 ? idx + 1 : 'others'}" style="font-size: 0.9rem; font-weight: 800; text-transform: uppercase;">${medalLabel}</div>
+          <div class="winner-place winner-place-${rankClass}" style="font-size: 0.9rem; font-weight: 800; text-transform: uppercase;">${medalLabel}</div>
           <div style="flex-grow: 1;">
             <div style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">${titleLabel}</div>
             <div style="display: flex; flex-direction: column; gap: 4px;">
-              ${winnersHtml}
+              <div class="winner-name" style="font-size: 1.05rem; font-weight: 800;">${w.name}${w.team ? ` <span style="font-size: 0.8em; font-weight: 600; opacity: 0.85;">(${w.team})</span>` : ""}</div>
             </div>
           </div>
         `;
@@ -315,17 +309,14 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Load templates for live template picker
     const templates = db.getTemplates();
     const pickerWrap = document.getElementById("detail-template-picker");
     const posterWrap = document.getElementById("detail-poster-wrap");
     
     let activeTemplate = templates[0];
     
-    // Initial high-fidelity canvas render
     posterEngine.render(posterWrap, result, activeTemplate);
 
-    // Build the visual selector thumbnails list
     pickerWrap.innerHTML = "";
     templates.forEach(t => {
       const slide = document.createElement("div");
@@ -345,20 +336,16 @@ document.addEventListener("DOMContentLoaded", () => {
       slide.appendChild(label);
       pickerWrap.appendChild(slide);
 
-      // Slide click swapper logic
       slide.addEventListener("click", () => {
-        // Toggle active thumbnail styling
         const allSlides = pickerWrap.querySelectorAll(".template-slide");
         allSlides.forEach(s => s.classList.remove("active"));
         slide.classList.add("active");
 
-        // Instant preview swap
         activeTemplate = t;
         posterEngine.render(posterWrap, result, activeTemplate);
       });
     });
 
-    // Wire Detail download action button
     const downloadBtn = document.getElementById("btn-detail-download");
     if (downloadBtn) {
       downloadBtn.addEventListener("click", () => {
@@ -366,7 +353,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Quick Admin Edit Shortcut
     const editBtn = document.getElementById("btn-admin-edit");
     if (editBtn) {
       editBtn.addEventListener("click", () => {
@@ -374,7 +360,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Quick Admin Delete Shortcut
     const deleteBtn = document.getElementById("btn-admin-delete");
     if (deleteBtn) {
       deleteBtn.addEventListener("click", () => {

@@ -3,15 +3,27 @@
  */
 
 const posterEngine = {
-  // Fields to render — placement_1..6 are independent editable layers
-  FIELDS: ['programName', 'category', 'placement_1', 'placement_2', 'placement_3', 'placement_4', 'placement_5', 'placement_6'],
+  // Fields to render — all winner elements are independent editable layers
+  FIELDS: [
+    'programName', 'category',
+    'winner_1_pos', 'winner_1_name', 'winner_1_team',
+    'winner_2_pos', 'winner_2_name', 'winner_2_team',
+    'winner_3_pos', 'winner_3_name', 'winner_3_team',
+    'winner_4_pos', 'winner_4_name', 'winner_4_team',
+    'winner_5_pos', 'winner_5_name', 'winner_5_team',
+    'winner_6_pos', 'winner_6_name', 'winner_6_team'
+  ],
 
   // Human-readable label for field IDs
   getFieldLabel(fKey) {
     if (fKey === 'programName') return 'Program Name';
     if (fKey === 'category') return 'Category';
-    const m = fKey.match(/^placement_(\d+)$/);
-    if (m) return `Placement ${m[1]}`;
+    const m = fKey.match(/^winner_(\d+)_(pos|name|team)$/);
+    if (m) {
+      const idx = m[1];
+      const type = m[2] === 'pos' ? 'Position' : m[2] === 'name' ? 'Name' : 'Team';
+      return `Winner ${idx} ${type}`;
+    }
     return fKey;
   },
 
@@ -21,43 +33,29 @@ const posterEngine = {
       return value ? value.toUpperCase() : "";
     }
 
-    // Handle placement_N fields
-    const placementMatch = fieldName.match(/^placement_(\d+)$/);
-    if (placementMatch) {
-      const idx = parseInt(placementMatch[1]) - 1; // 0-indexed
-      const placements = result && result.placements ? result.placements : [];
-      const group = placements[idx];
+    const winnerMatch = fieldName.match(/^winner_(\d+)_(pos|name|team)$/);
+    if (winnerMatch) {
+      const idx = parseInt(winnerMatch[1]) - 1; // 0-indexed
+      const type = winnerMatch[2]; // 'pos', 'name', 'team'
+      const winners = result && result.winners ? result.winners : [];
+      const w = winners[idx];
+      if (!w || !w.name) return ""; // Hide if no winner data exists
 
-      if (!group || !group.rank || !group.winners || group.winners.length === 0) {
-        // In editor mode, show placeholder; in poster mode, show nothing
-        return `<div style="opacity:0;height:0;overflow:hidden;">-</div>`;
-      }
-
-      // Rank header
-      let html = `<div style="display:block;width:100%;box-sizing:border-box;text-align:inherit;">`;
-      html += `<div style="font-size:0.72em;font-weight:800;text-transform:uppercase;letter-spacing:0.14em;opacity:0.85;margin-bottom:6px;text-align:inherit;color:inherit;">${group.rank}</div>`;
-
-      // Winner rows
-      group.winners.forEach(w => {
-        if (!w.name) return;
-        const teamLabel = w.team
-          ? `<span style="font-size:0.68em;font-weight:600;opacity:0.75;text-transform:uppercase;margin-left:7px;display:inline-block;">(${w.team})</span>`
-          : "";
-        html += `<div style="font-size:1em;font-weight:800;line-height:1.35;margin-bottom:3px;text-align:inherit;color:inherit;">${w.name}${teamLabel}</div>`;
-      });
-
-      html += `</div>`;
-      return html;
+      if (type === 'pos') return w.position || "";
+      if (type === 'name') return w.name || "";
+      if (type === 'team') return w.team || "";
     }
 
     return value || "";
   },
 
-  // Editor placeholder content for empty placement slots
+  // Editor placeholder content for empty slots
   getEditorPlaceholderForField(fKey) {
-    const m = fKey.match(/^placement_(\d+)$/);
+    const m = fKey.match(/^winner_(\d+)_(pos|name|team)$/);
     if (m) {
-      return `<div style="opacity:0.35;font-style:italic;font-size:0.8em;padding:10px 0;text-align:inherit;">[ Placement ${m[1]} ]</div>`;
+      const idx = m[1];
+      const type = m[2] === 'pos' ? 'Pos' : m[2] === 'name' ? 'Name' : 'Team';
+      return `<div style="opacity:0.35;font-style:italic;font-size:0.8em;padding:10px 0;text-align:inherit;">[ W${idx} ${type} ]</div>`;
     }
     return `<div style="opacity:0.35;font-style:italic;font-size:0.8em;padding:10px 0;">${fKey}</div>`;
   },
@@ -65,7 +63,7 @@ const posterEngine = {
   /**
    * Renders a poster inside a parent container element
    * @param {HTMLElement} container - Responsive wrapper element
-   * @param {Object} result - Result record {programName, category, firstPlace, ...}
+   * @param {Object} result - Result record {programName, category, winners: [...]}
    * @param {Object} template - Template schema {id, name, background, fields: {...}}
    * @param {Object} opts - Optional settings {editable: false, onSelectField: null, activeFieldId: null}
    */
@@ -98,24 +96,35 @@ const posterEngine = {
       fieldDiv.className = "poster-field";
       fieldDiv.dataset.field = fKey;
       
-      // For placement fields: check if this slot has data
-      const isPlacementField = /^placement_\d+$/.test(fKey);
-      const placementIdx = isPlacementField ? parseInt(fKey.split('_')[1]) - 1 : -1;
-      const placements = result && result.placements ? result.placements : [];
-      const hasPlacementData = isPlacementField && placements[placementIdx] && 
-                               placements[placementIdx].rank && 
-                               placements[placementIdx].winners && 
-                               placements[placementIdx].winners.length > 0;
+      // Visibility and data checks
+      const isVisible = fDef.visible !== false;
+      const isWinnerField = /^winner_/.test(fKey);
+      
+      let hasWinnerData = false;
+      if (isWinnerField) {
+        const m = fKey.match(/^winner_(\d+)_/);
+        const idx = m ? parseInt(m[1]) - 1 : -1;
+        const winners = result && result.winners ? result.winners : [];
+        hasWinnerData = idx >= 0 && winners[idx] && winners[idx].name;
+      }
 
-      // In poster mode (not editable): hide empty placement slots entirely
-      if (!opts.editable && isPlacementField && !hasPlacementData) {
-        return; // Skip rendering this field entirely
+      // Poster mode (non-editable): hide invisible layers OR empty winner slots entirely
+      if (!opts.editable) {
+        if (!isVisible) return;
+        if (isWinnerField && !hasWinnerData) return;
       }
 
       // Highlight selection if active in editor
       if (opts.editable) {
         if (opts.activeFieldId === fKey || (opts.selectedFieldIds && opts.selectedFieldIds.includes(fKey))) {
           fieldDiv.classList.add("selected-field");
+        }
+        
+        // Highlight hidden field style visually in editor
+        if (!isVisible) {
+          fieldDiv.classList.add("hidden-field");
+          fieldDiv.style.opacity = "0.3";
+          fieldDiv.style.border = "1px dashed rgba(239, 68, 68, 0.5)";
         }
         
         // Add click listener to select this field in editor
@@ -134,14 +143,8 @@ const posterEngine = {
       fieldDiv.style.color = fDef.color || "#111827";
       fieldDiv.style.textAlign = fDef.align || "center";
 
-      // Placement fields: align content to top so they stack cleanly
-      if (isPlacementField) {
-        fieldDiv.style.alignItems = "flex-start";
-        fieldDiv.style.justifyContent = "flex-start";
-      } else {
-        fieldDiv.style.justifyContent = fDef.align === "left" ? "flex-start" : fDef.align === "right" ? "flex-end" : "center";
-      }
-      
+      // Center vertically using flex layouts aligned to text alignment setting
+      fieldDiv.style.justifyContent = fDef.align === "left" ? "flex-start" : fDef.align === "right" ? "flex-end" : "center";
       fieldDiv.style.textShadow = "none";
       
       // Inner text element for auto-wrapping & resizing calculations
@@ -152,11 +155,11 @@ const posterEngine = {
       textSpan.style.letterSpacing = fKey === 'category' ? "0.08em" : "normal";
 
       // Determine content
-      if (isPlacementField) {
-        if (hasPlacementData || opts.editable) {
+      if (isWinnerField) {
+        if (hasWinnerData || opts.editable) {
           textSpan.innerHTML = this.getLabelForField(fKey, "", result);
           // If in editable mode and no data, overlay a placeholder
-          if (opts.editable && !hasPlacementData) {
+          if (opts.editable && !hasWinnerData) {
             textSpan.innerHTML = this.getEditorPlaceholderForField(fKey);
           }
         }
@@ -180,9 +183,6 @@ const posterEngine = {
     // Perform responsive scaling sizing
     const adjustScale = () => {
       const containerWidth = container.clientWidth || 320;
-      const containerHeight = container.clientHeight || 400;
-      
-      // Keep ratio 4/5
       const scale = containerWidth / 1080;
       canvas.style.transform = `scale(${scale})`;
     };
@@ -201,7 +201,7 @@ const posterEngine = {
     
     // Bind to window resize
     window.addEventListener("resize", adjustScale);
-    container._adjustScaleFn = adjustScale; // Save pointer to unbind if needed
+    container._adjustScaleFn = adjustScale; // Save pointer to unbind
   },
 
   /**
@@ -264,8 +264,7 @@ const posterEngine = {
     `;
     document.body.appendChild(overlay);
     
-    // To ensure perfectly crisp renders, we create a temporary clone of the canvas
-    // placed exactly off-screen with transform scale reset to 1.
+    // Create cloned offscreen canvas at full scale
     const clone = activeCanvas.cloneNode(true);
     clone.style.transform = "none";
     clone.style.position = "fixed";
@@ -279,6 +278,14 @@ const posterEngine = {
     const selectedOutline = clone.querySelector(".selected-field");
     if (selectedOutline) selectedOutline.classList.remove("selected-field");
     
+    // Hide visual editor dashes on cloned fields
+    const hiddenFields = clone.querySelectorAll(".hidden-field");
+    hiddenFields.forEach(hf => {
+      hf.style.opacity = "0";
+      hf.style.border = "none";
+      hf.style.display = "none";
+    });
+
     document.body.appendChild(clone);
     
     // Wait for DOM to attach clone

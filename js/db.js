@@ -25,14 +25,26 @@ const DEFAULT_TEMPLATES = [
       </svg>
     `.trim())}`,
     fields: {
-      programName: { left: 90,  top: 200, width: 900, height: 160, fontSize: 72, color: "#7C3AED", align: "center", shadow: false },
-      category:    { left: 290, top: 380, width: 500, height: 60,  fontSize: 32, color: "#EC4899", align: "center", shadow: false },
-      placement_1: { left: 140, top: 470, width: 800, height: 130, fontSize: 32, color: "#7C3AED", align: "center", shadow: false },
-      placement_2: { left: 140, top: 615, width: 800, height: 130, fontSize: 32, color: "#7C3AED", align: "center", shadow: false },
-      placement_3: { left: 140, top: 760, width: 800, height: 130, fontSize: 32, color: "#7C3AED", align: "center", shadow: false },
-      placement_4: { left: 140, top: 905, width: 800, height: 110, fontSize: 28, color: "#7C3AED", align: "center", shadow: false },
-      placement_5: { left: 140, top: 1030, width: 800, height: 100, fontSize: 26, color: "#7C3AED", align: "center", shadow: false },
-      placement_6: { left: 140, top: 1145, width: 800, height: 90,  fontSize: 24, color: "#7C3AED", align: "center", shadow: false }
+      programName:   { left: 90,  top: 200, width: 900, height: 160, fontSize: 72, color: "#7C3AED", align: "center", shadow: false, visible: true },
+      category:      { left: 290, top: 380, width: 500, height: 60,  fontSize: 32, color: "#EC4899", align: "center", shadow: false, visible: true },
+      winner_1_pos:  { left: 140, top: 480, width: 90,  height: 80,  fontSize: 32, color: "#F59E0B", align: "left",   shadow: false, visible: true },
+      winner_1_name: { left: 250, top: 480, width: 500, height: 80,  fontSize: 32, color: "#7C3AED", align: "left",   shadow: false, visible: true },
+      winner_1_team: { left: 770, top: 480, width: 170, height: 80,  fontSize: 26, color: "#6B7280", align: "right",  shadow: false, visible: true },
+      winner_2_pos:  { left: 140, top: 610, width: 90,  height: 80,  fontSize: 32, color: "#F59E0B", align: "left",   shadow: false, visible: true },
+      winner_2_name: { left: 250, top: 610, width: 500, height: 80,  fontSize: 32, color: "#7C3AED", align: "left",   shadow: false, visible: true },
+      winner_2_team: { left: 770, top: 610, width: 170, height: 80,  fontSize: 26, color: "#6B7280", align: "right",  shadow: false, visible: true },
+      winner_3_pos:  { left: 140, top: 740, width: 90,  height: 80,  fontSize: 32, color: "#F59E0B", align: "left",   shadow: false, visible: true },
+      winner_3_name: { left: 250, top: 740, width: 500, height: 80,  fontSize: 32, color: "#7C3AED", align: "left",   shadow: false, visible: true },
+      winner_3_team: { left: 770, top: 740, width: 170, height: 80,  fontSize: 26, color: "#6B7280", align: "right",  shadow: false, visible: true },
+      winner_4_pos:  { left: 140, top: 870, width: 90,  height: 80,  fontSize: 28, color: "#F59E0B", align: "left",   shadow: false, visible: true },
+      winner_4_name: { left: 250, top: 870, width: 500, height: 80,  fontSize: 28, color: "#7C3AED", align: "left",   shadow: false, visible: true },
+      winner_4_team: { left: 770, top: 870, width: 170, height: 80,  fontSize: 24, color: "#6B7280", align: "right",  shadow: false, visible: true },
+      winner_5_pos:  { left: 140, top: 1000, width: 90,  height: 80,  fontSize: 26, color: "#F59E0B", align: "left",   shadow: false, visible: true },
+      winner_5_name: { left: 250, top: 1000, width: 500, height: 80,  fontSize: 26, color: "#7C3AED", align: "left",   shadow: false, visible: true },
+      winner_5_team: { left: 770, top: 1000, width: 170, height: 80,  fontSize: 22, color: "#6B7280", align: "right",  shadow: false, visible: true },
+      winner_6_pos:  { left: 140, top: 1130, width: 90,  height: 80,  fontSize: 24, color: "#F59E0B", align: "left",   shadow: false, visible: true },
+      winner_6_name: { left: 250, top: 1130, width: 500, height: 80,  fontSize: 24, color: "#7C3AED", align: "left",   shadow: false, visible: true },
+      winner_6_team: { left: 770, top: 1130, width: 170, height: 80,  fontSize: 20, color: "#6B7280", align: "right",  shadow: false, visible: true }
     }
   },
   {
@@ -64,14 +76,26 @@ const DEFAULT_TEMPLATES = [
       </svg>
     `.trim())}`,
     fields: {
-      programName: { left: 80,  top: 150, width: 920, height: 180, fontSize: 80, color: "#111827", align: "center", shadow: false },
-      category:    { left: 290, top: 350, width: 500, height: 60,  fontSize: 30, color: "#06B6D4", align: "center", shadow: false },
-      placement_1: { left: 100, top: 440, width: 880, height: 130, fontSize: 30, color: "#7C3AED", align: "center", shadow: false },
-      placement_2: { left: 100, top: 585, width: 880, height: 130, fontSize: 30, color: "#7C3AED", align: "center", shadow: false },
-      placement_3: { left: 100, top: 730, width: 880, height: 130, fontSize: 30, color: "#7C3AED", align: "center", shadow: false },
-      placement_4: { left: 100, top: 875, width: 880, height: 110, fontSize: 26, color: "#7C3AED", align: "center", shadow: false },
-      placement_5: { left: 100, top: 1000, width: 880, height: 100, fontSize: 24, color: "#7C3AED", align: "center", shadow: false },
-      placement_6: { left: 100, top: 1115, width: 880, height: 90,  fontSize: 22, color: "#7C3AED", align: "center", shadow: false }
+      programName:   { left: 80,  top: 150, width: 920, height: 180, fontSize: 80, color: "#111827", align: "center", shadow: false, visible: true },
+      category:      { left: 290, top: 350, width: 500, height: 60,  fontSize: 30, color: "#06B6D4", align: "center", shadow: false, visible: true },
+      winner_1_pos:  { left: 100, top: 450, width: 90,  height: 80,  fontSize: 30, color: "#06B6D4", align: "left",   shadow: false, visible: true },
+      winner_1_name: { left: 210, top: 450, width: 540, height: 80,  fontSize: 30, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_1_team: { left: 770, top: 450, width: 210, height: 80,  fontSize: 24, color: "#EC4899", align: "right",  shadow: false, visible: true },
+      winner_2_pos:  { left: 100, top: 580, width: 90,  height: 80,  fontSize: 30, color: "#06B6D4", align: "left",   shadow: false, visible: true },
+      winner_2_name: { left: 210, top: 580, width: 540, height: 80,  fontSize: 30, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_2_team: { left: 770, top: 580, width: 210, height: 80,  fontSize: 24, color: "#EC4899", align: "right",  shadow: false, visible: true },
+      winner_3_pos:  { left: 100, top: 710, width: 90,  height: 80,  fontSize: 30, color: "#06B6D4", align: "left",   shadow: false, visible: true },
+      winner_3_name: { left: 210, top: 710, width: 540, height: 80,  fontSize: 30, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_3_team: { left: 770, top: 710, width: 210, height: 80,  fontSize: 24, color: "#EC4899", align: "right",  shadow: false, visible: true },
+      winner_4_pos:  { left: 100, top: 840, width: 90,  height: 80,  fontSize: 26, color: "#06B6D4", align: "left",   shadow: false, visible: true },
+      winner_4_name: { left: 210, top: 840, width: 540, height: 80,  fontSize: 26, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_4_team: { left: 770, top: 840, width: 210, height: 80,  fontSize: 22, color: "#EC4899", align: "right",  shadow: false, visible: true },
+      winner_5_pos:  { left: 100, top: 970, width: 90,  height: 80,  fontSize: 24, color: "#06B6D4", align: "left",   shadow: false, visible: true },
+      winner_5_name: { left: 210, top: 970, width: 540, height: 80,  fontSize: 24, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_5_team: { left: 770, top: 970, width: 210, height: 80,  fontSize: 20, color: "#EC4899", align: "right",  shadow: false, visible: true },
+      winner_6_pos:  { left: 100, top: 1100, width: 90,  height: 80,  fontSize: 22, color: "#06B6D4", align: "left",   shadow: false, visible: true },
+      winner_6_name: { left: 210, top: 1100, width: 540, height: 80,  fontSize: 22, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_6_team: { left: 770, top: 1100, width: 210, height: 80,  fontSize: 18, color: "#EC4899", align: "right",  shadow: false, visible: true }
     }
   },
   {
@@ -101,14 +125,26 @@ const DEFAULT_TEMPLATES = [
       </svg>
     `.trim())}`,
     fields: {
-      programName: { left: 100, top: 190, width: 880, height: 160, fontSize: 76, color: "#F59E0B", align: "center", shadow: false },
-      category:    { left: 290, top: 370, width: 500, height: 60,  fontSize: 28, color: "#EC4899", align: "center", shadow: false },
-      placement_1: { left: 100, top: 460, width: 880, height: 125, fontSize: 28, color: "#111827", align: "center", shadow: false },
-      placement_2: { left: 100, top: 600, width: 880, height: 125, fontSize: 28, color: "#111827", align: "center", shadow: false },
-      placement_3: { left: 100, top: 740, width: 880, height: 125, fontSize: 28, color: "#111827", align: "center", shadow: false },
-      placement_4: { left: 100, top: 880, width: 880, height: 105, fontSize: 24, color: "#111827", align: "center", shadow: false },
-      placement_5: { left: 100, top: 1000, width: 880, height: 95,  fontSize: 22, color: "#111827", align: "center", shadow: false },
-      placement_6: { left: 100, top: 1110, width: 880, height: 85,  fontSize: 20, color: "#111827", align: "center", shadow: false }
+      programName:   { left: 100, top: 190, width: 880, height: 160, fontSize: 76, color: "#F59E0B", align: "center", shadow: false, visible: true },
+      category:      { left: 290, top: 370, width: 500, height: 60,  fontSize: 28, color: "#EC4899", align: "center", shadow: false, visible: true },
+      winner_1_pos:  { left: 100, top: 470, width: 90,  height: 80,  fontSize: 28, color: "#EC4899", align: "left",   shadow: false, visible: true },
+      winner_1_name: { left: 210, top: 470, width: 540, height: 80,  fontSize: 28, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_1_team: { left: 770, top: 470, width: 210, height: 80,  fontSize: 22, color: "#F59E0B", align: "right",  shadow: false, visible: true },
+      winner_2_pos:  { left: 100, top: 600, width: 90,  height: 80,  fontSize: 28, color: "#EC4899", align: "left",   shadow: false, visible: true },
+      winner_2_name: { left: 210, top: 600, width: 540, height: 80,  fontSize: 28, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_2_team: { left: 770, top: 600, width: 210, height: 80,  fontSize: 22, color: "#F59E0B", align: "right",  shadow: false, visible: true },
+      winner_3_pos:  { left: 100, top: 730, width: 90,  height: 80,  fontSize: 28, color: "#EC4899", align: "left",   shadow: false, visible: true },
+      winner_3_name: { left: 210, top: 730, width: 540, height: 80,  fontSize: 28, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_3_team: { left: 770, top: 730, width: 210, height: 80,  fontSize: 22, color: "#F59E0B", align: "right",  shadow: false, visible: true },
+      winner_4_pos:  { left: 100, top: 860, width: 90,  height: 80,  fontSize: 24, color: "#EC4899", align: "left",   shadow: false, visible: true },
+      winner_4_name: { left: 210, top: 860, width: 540, height: 80,  fontSize: 24, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_4_team: { left: 770, top: 860, width: 210, height: 80,  fontSize: 18, color: "#F59E0B", align: "right",  shadow: false, visible: true },
+      winner_5_pos:  { left: 100, top: 990, width: 90,  height: 80,  fontSize: 22, color: "#EC4899", align: "left",   shadow: false, visible: true },
+      winner_5_name: { left: 210, top: 990, width: 540, height: 80,  fontSize: 22, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_5_team: { left: 770, top: 990, width: 210, height: 80,  fontSize: 16, color: "#F59E0B", align: "right",  shadow: false, visible: true },
+      winner_6_pos:  { left: 100, top: 1120, width: 90,  height: 80,  fontSize: 20, color: "#EC4899", align: "left",   shadow: false, visible: true },
+      winner_6_name: { left: 210, top: 1120, width: 540, height: 80,  fontSize: 20, color: "#111827", align: "left",   shadow: false, visible: true },
+      winner_6_team: { left: 770, top: 1120, width: 210, height: 80,  fontSize: 14, color: "#F59E0B", align: "right",  shadow: false, visible: true }
     }
   }
 ];
@@ -118,25 +154,10 @@ const DEFAULT_RESULTS = [
     id: "result-1",
     programName: "Classical Violin Symphony Solo",
     category: "Music",
-    placements: [
-      {
-        rank: "First Place",
-        winners: [
-          { name: "Audrey Hepburn", team: "Wandoor" }
-        ]
-      },
-      {
-        rank: "Second Place",
-        winners: [
-          { name: "Liam Henderson", team: "Emangad" }
-        ]
-      },
-      {
-        rank: "Third Place",
-        winners: [
-          { name: "Zoe Patel", team: "Kuttiyil" }
-        ]
-      }
+    winners: [
+      { position: "01", name: "Audrey Hepburn", team: "Wandoor" },
+      { position: "02", name: "Liam Henderson", team: "Emangad" },
+      { position: "03", name: "Zoe Patel", team: "Kuttiyil" }
     ],
     created: "2026-05-24T18:30:00Z"
   },
@@ -144,20 +165,10 @@ const DEFAULT_RESULTS = [
     id: "result-2",
     programName: "Contemporary Fusion Ballet",
     category: "Dance",
-    placements: [
-      {
-        rank: "First Place",
-        winners: [
-          { name: "Mikhail Baryshnikov", team: "Vaniyambalam" },
-          { name: "Natalia Makarova", team: "Old Vaniyambalam" }
-        ]
-      },
-      {
-        rank: "Second Place",
-        winners: [
-          { name: "Elena Rostova", team: "Thekkumpuram" }
-        ]
-      }
+    winners: [
+      { position: "01", name: "Mikhail Baryshnikov", team: "Vaniyambalam" },
+      { position: "01", name: "Natalia Makarova", team: "Old Vaniyambalam" },
+      { position: "02", name: "Elena Rostova", team: "Thekkumpuram" }
     ],
     created: "2026-05-25T10:15:00Z"
   },
@@ -165,25 +176,10 @@ const DEFAULT_RESULTS = [
     id: "result-3",
     programName: "Dynamic Canvas Oil Painting",
     category: "Fine Arts",
-    placements: [
-      {
-        rank: "First Place",
-        winners: [
-          { name: "Leonardo Da Vinci", team: "Koorad" }
-        ]
-      },
-      {
-        rank: "Second Place",
-        winners: [
-          { name: "Vincent Van Gogh", team: "Wandoor" }
-        ]
-      },
-      {
-        rank: "Third Place",
-        winners: [
-          { name: "Georgia O'Keeffe", team: "Emangad" }
-        ]
-      }
+    winners: [
+      { position: "01", name: "Leonardo Da Vinci", team: "Koorad" },
+      { position: "02", name: "Vincent Van Gogh", team: "Wandoor" },
+      { position: "03", name: "Georgia O'Keeffe", team: "Emangad" }
     ],
     created: "2026-05-25T12:00:00Z"
   },
@@ -191,25 +187,10 @@ const DEFAULT_RESULTS = [
     id: "result-4",
     programName: "Shakespearean Dramatic Soliloquy",
     category: "Theatre",
-    placements: [
-      {
-        rank: "First Place",
-        winners: [
-          { name: "Benedict Cumberbatch", team: "Kuttiyil" }
-        ]
-      },
-      {
-        rank: "Second Place",
-        winners: [
-          { name: "Viola Davis", team: "Thekkumpuram" }
-        ]
-      },
-      {
-        rank: "Third Place",
-        winners: [
-          { name: "Ian McKellen", team: "Vaniyambalam" }
-        ]
-      }
+    winners: [
+      { position: "01", name: "Benedict Cumberbatch", team: "Kuttiyil" },
+      { position: "02", name: "Viola Davis", team: "Thekkumpuram" },
+      { position: "03", name: "Ian McKellen", team: "Vaniyambalam" }
     ],
     created: "2026-05-25T14:40:00Z"
   }
@@ -255,29 +236,38 @@ const db = {
         const defaultT = DEFAULT_TEMPLATES.find(dt => dt.id === t.id) || DEFAULT_TEMPLATES[0];
         if (!t.fields) t.fields = {};
 
-        // Migrate: add placement_1..6 if missing
-        for (let i = 1; i <= 6; i++) {
-          const pk = `placement_${i}`;
-          if (!t.fields[pk]) {
-            t.fields[pk] = defaultT.fields[pk]
-              ? { ...defaultT.fields[pk] }
-              : { left: 140, top: 460 + (i - 1) * 140, width: 800, height: 120, fontSize: 30, color: "#7C3AED", align: "center", shadow: false };
-            migrated = true;
-          }
-        }
-
-        // Clean up obsolete fields (winnerSection + old winner keys)
-        const obsoleteKeys = [
+        // Migrate: check if there are deprecated fields, and if so, remove them and copy fresh fields
+        const deprecatedKeys = [
+          'placement_1', 'placement_2', 'placement_3', 'placement_4', 'placement_5', 'placement_6',
           'winnerSection',
-          'winner_1_name', 'winner_1_team', 'winner_2_name', 'winner_2_team',
-          'winner_3_name', 'winner_3_team', 'winner_4_name', 'winner_4_team',
-          'winner_5_name', 'winner_5_team',
           'firstPlace', 'firstPlaceTeam', 'secondPlace', 'secondPlaceTeam',
           'thirdPlace', 'thirdPlaceTeam'
         ];
-        obsoleteKeys.forEach(k => {
-          if (t.fields[k]) {
+
+        let hasDeprecated = deprecatedKeys.some(k => t.fields[k] !== undefined);
+        if (hasDeprecated) {
+          deprecatedKeys.forEach(k => {
             delete t.fields[k];
+          });
+          
+          // Seed new split winner fields
+          Object.keys(defaultT.fields).forEach(k => {
+            if (k.startsWith("winner_")) {
+              t.fields[k] = { ...defaultT.fields[k] };
+            }
+          });
+          migrated = true;
+        }
+
+        // Add missing new fields from default template
+        Object.keys(defaultT.fields).forEach(k => {
+          if (!t.fields[k]) {
+            t.fields[k] = { ...defaultT.fields[k] };
+            migrated = true;
+          }
+          // Ensure visible attribute is present
+          if (t.fields[k].visible === undefined) {
+            t.fields[k].visible = true;
             migrated = true;
           }
         });
@@ -323,7 +313,7 @@ const db = {
         id: "result_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9),
         programName: resultData.programName,
         category: resultData.category,
-        placements: resultData.placements || [],
+        winners: resultData.winners || [],
         created: new Date().toISOString()
       };
       results.unshift(newResult);

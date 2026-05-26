@@ -4,7 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wandoor Sector Sahityotsav | Results</title>
+  <title>Arts Program Result Poster Generator</title>
+  <meta name="description"
+    content="This is a web-based platform designed for schools, colleges, cultural organizations, and event committees to create and publish arts program result posters. Instantly preview and download results using multiple professionally designed templates with flexible rankings, real-time generation, and high-quality social media ready exports.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="css/style.css">
   <!-- html2canvas CDN for detail rendering support if needed -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -23,7 +26,6 @@
       <nav class="nav-links" id="desktop-nav">
         <a href="index.html" class="active">Home</a>
         <a href="gallery.html">Results Gallery</a>
-        <a href="admin.html">Admin Dashboard</a>
       </nav>
 
       <button class="nav-mobile-toggle" id="public-hamburger">
@@ -37,7 +39,6 @@
     <div class="mobile-nav-panel" id="mobile-nav">
       <a href="index.html" class="active">Home</a>
       <a href="gallery.html">Results Gallery</a>
-      <a href="admin.html">Admin Dashboard</a>
     </div>
   </header>
 
@@ -56,14 +57,11 @@
         <h1 style="max-width: 800px; margin-left: auto; margin-right: auto;">Arts Result Posters</h1>
         <p style="max-width: 680px; margin-left: auto; margin-right: auto;">
           Celebrate artistic excellence. Instantly overlay competition results on premium pre-designed templates,
-          customize typography alignments in real-time, and download professional 1080 × 1350 high-res posters.
+          customize typography alignments in real-time, and download professional posters.
         </p>
         <div class="hero-actions" style="justify-content: center; width: 100%;">
           <a href="gallery.html" class="btn btn-primary">
             Browse Results Gallery
-          </a>
-          <a href="admin.html" class="btn btn-outline">
-            Open Creator Panel
           </a>
         </div>
       </div>
@@ -108,11 +106,11 @@
         style="display: flex; gap: 12px; width: 100%; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
         <button class="btn btn-outline" id="btn-modal-next-template"
           style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
-          🔄 Next Template →
+          Next Template →
         </button>
         <button class="btn btn-primary" id="btn-modal-download"
           style="font-weight: 700; display: flex; align-items: center; gap: 8px;">
-          ⬇️ Download Poster
+          Download Poster ⬇
         </button>
       </div>
     </div>
@@ -141,7 +139,6 @@
           <ul>
             <li><a href="index.html">Home</a></li>
             <li><a href="gallery.html">Results Gallery</a></li>
-            <li><a href="admin.html">Admin Creator</a></li>
           </ul>
         </div>
 
@@ -177,6 +174,36 @@
         mobileNav.classList.toggle("open");
         publicHamburger.classList.toggle("open");
       });
+    }
+
+    // Secret Long Press on Logo to Redirect to Admin Dashboard
+    const logoGroup = document.querySelector(".logo-group");
+    if (logoGroup) {
+      let pressTimer = null;
+      
+      const startPress = (e) => {
+        if (e.type === "touchstart") {
+          e.preventDefault();
+        }
+        clearTimeout(pressTimer);
+        pressTimer = setTimeout(() => {
+          window.location.href = "admin.html";
+        }, 1200); // 1.2 seconds hold
+      };
+      
+      const endPress = () => {
+        clearTimeout(pressTimer);
+      };
+      
+      // Desktop Mouse triggers
+      logoGroup.addEventListener("mousedown", startPress);
+      logoGroup.addEventListener("mouseup", endPress);
+      logoGroup.addEventListener("mouseleave", endPress);
+      
+      // Mobile Touch triggers
+      logoGroup.addEventListener("touchstart", startPress, { passive: false });
+      logoGroup.addEventListener("touchend", endPress);
+      logoGroup.addEventListener("touchcancel", endPress);
     }
   </script>
   <!-- Load main script -->

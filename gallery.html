@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Results Gallery | Arts Program Result Posters</title>
+  <title>Results Gallery | Arts Program Result Poster Generator</title>
+  <meta name="description" content="Browse the gallery of recent arts program competition winners, view interactive results, and download custom designed posters.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -20,7 +22,6 @@
       <nav class="nav-links" id="desktop-nav">
         <a href="index.html">Home</a>
         <a href="gallery.html" class="active">Results Gallery</a>
-        <a href="admin.html">Admin Dashboard</a>
       </nav>
 
       <button class="nav-mobile-toggle" id="public-hamburger">
@@ -34,7 +35,6 @@
     <div class="mobile-nav-panel" id="mobile-nav">
       <a href="index.html">Home</a>
       <a href="gallery.html" class="active">Results Gallery</a>
-      <a href="admin.html">Admin Dashboard</a>
     </div>
   </header>
 
@@ -115,7 +115,6 @@
           <ul>
             <li><a href="index.html">Home</a></li>
             <li><a href="gallery.html">Results Gallery</a></li>
-            <li><a href="admin.html">Admin Creator</a></li>
           </ul>
         </div>
 
@@ -150,6 +149,36 @@
         mobileNav.classList.toggle("open");
         publicHamburger.classList.toggle("open");
       });
+    }
+
+    // Secret Long Press on Logo to Redirect to Admin Dashboard
+    const logoGroup = document.querySelector(".logo-group");
+    if (logoGroup) {
+      let pressTimer = null;
+      
+      const startPress = (e) => {
+        if (e.type === "touchstart") {
+          e.preventDefault();
+        }
+        clearTimeout(pressTimer);
+        pressTimer = setTimeout(() => {
+          window.location.href = "admin.html";
+        }, 1200); // 1.2 seconds hold
+      };
+      
+      const endPress = () => {
+        clearTimeout(pressTimer);
+      };
+      
+      // Desktop Mouse triggers
+      logoGroup.addEventListener("mousedown", startPress);
+      logoGroup.addEventListener("mouseup", endPress);
+      logoGroup.addEventListener("mouseleave", endPress);
+      
+      // Mobile Touch triggers
+      logoGroup.addEventListener("touchstart", startPress, { passive: false });
+      logoGroup.addEventListener("touchend", endPress);
+      logoGroup.addEventListener("touchcancel", endPress);
     }
   </script>
   <script src="js/main.js"></script>
