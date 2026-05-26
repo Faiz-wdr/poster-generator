@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Poster Details | Arts Program Result Posters</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <!-- GLOBAL PREMIUM NAVIGATION -->
+  <header>
+    <div class="container nav-flex">
+      <a href="index.html" class="logo-group">
+        <div class="logo-icon">A</div>
+        <div class="logo-text">Arts Posters</div>
+      </a>
+      
+      <nav class="nav-links" id="desktop-nav">
+        <a href="index.html">Home</a>
+        <a href="gallery.html">Results Gallery</a>
+        <a href="admin.html">Admin Dashboard</a>
+      </nav>
+
+      <button class="nav-mobile-toggle" id="public-hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-nav-panel" id="mobile-nav">
+      <a href="index.html">Home</a>
+      <a href="gallery.html">Results Gallery</a>
+      <a href="admin.html">Admin Dashboard</a>
+    </div>
+  </header>
+
+  <!-- RESULT DETAIL SPLIT SECTION -->
+  <main class="container section-padding" style="padding-top: 40px;">
+    
+    <!-- Breadcrumb -->
+    <div style="margin-bottom: 24px;">
+      <a href="gallery.html" style="font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 6px;">
+        ← Back to Results Gallery
+      </a>
+    </div>
+
+    <div class="detail-grid">
+      <!-- Left Column: Large Live Canvas Preview -->
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="poster-preview-container" id="detail-poster-wrap">
+          <!-- Rendered dynamically by posterEngine -->
+        </div>
+        
+        <div style="display: flex; flex-direction: column; width: 100%; max-width: 480px; gap: 12px; margin-top: 24px;">
+          <button class="btn btn-primary" id="btn-detail-download" style="width: 100%;">
+            ⬇️ Download Poster (High-Res JPG)
+          </button>
+          
+          <!-- Admin helper buttons -->
+          <div style="display: flex; gap: 12px;" id="admin-actions-shortcut">
+            <button class="btn btn-outline btn-sm" id="btn-admin-edit" style="flex-grow: 1; padding: 12px;">
+              ✏️ Edit Result Details
+            </button>
+            <button class="btn btn-outline btn-sm btn-danger" id="btn-admin-delete" style="flex-grow: 1; padding: 12px; color: #EF4444; border-color: #FEE2E2;">
+              🗑️ Delete Result
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Winner Profiles & Template Picker -->
+      <div class="detail-sidebar">
+        <span class="badge badge-primary" id="detail-badge-category" style="margin-bottom: 12px;">Category</span>
+        <h1 id="detail-program-name">Program Name</h1>
+        
+        <div class="detail-divider"></div>
+        
+        <h3 style="font-size: 1.15rem; margin-bottom: 16px; color: var(--text-secondary);">🎖️ Placement Standings</h3>
+        
+        <!-- Placement stand cards container -->
+        <div id="detail-winners-list" style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="winner-item winner-item-1">
+            <div class="winner-place winner-place-1">1st</div>
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">First Place Champion</div>
+              <div class="winner-name" id="detail-winner-1">First Place Name</div>
+            </div>
+          </div>
+
+          <div class="winner-item winner-item-2">
+            <div class="winner-place winner-place-2">2nd</div>
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Second Place Winner</div>
+              <div class="winner-name" id="detail-winner-2">Second Place Name</div>
+            </div>
+          </div>
+
+          <div class="winner-item winner-item-3">
+            <div class="winner-place winner-place-3">3rd</div>
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Third Place Winner</div>
+              <div class="winner-name" id="detail-winner-3">Third Place Name</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-divider"></div>
+        
+        <!-- Live Swapping Template Picker -->
+        <div>
+          <h3 style="font-size: 1.15rem; margin-bottom: 8px;">🎨 Apply Brand Layout Style</h3>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px;">Click any layout thumbnail below to instantly apply event graphics and typography structures.</p>
+          
+          <div class="template-slider-container" style="margin: 0;">
+            <div class="template-slider" id="detail-template-picker" style="padding-bottom: 12px;">
+              <!-- Populated dynamically via js/main.js -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- GLOBAL FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-logo-desc">
+          <div class="logo-group">
+            <div class="logo-icon" style="color: #111827; background: white;">A</div>
+            <div class="logo-text" style="background: white; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Arts Posters</div>
+          </div>
+          <p>
+            An elite, responsive generation system for overlaying competition results onto brand assets and printing pixel-perfect posters.
+          </p>
+        </div>
+        
+        <div class="footer-links-col">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="gallery.html">Results Gallery</a></li>
+            <li><a href="admin.html">Admin Creator</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <h4>Templates</h4>
+          <ul>
+            <li><a href="admin.html?tab=templates">Classic Elite</a></li>
+            <li><a href="admin.html?tab=templates">Cyber Pulse</a></li>
+            <li><a href="admin.html?tab=templates">Sunset Glow</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 Arts Result Posters Generator. All rights reserved.</p>
+        <p>Built with pure HTML, Modern CSS, and Vanilla JavaScript</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Core Scripts -->
+  <script src="js/db.js"></script>
+  <script src="js/engine.js"></script>
+  
+  <!-- Client JavaScript Drawer binding -->
+  <script>
+    const publicHamburger = document.getElementById("public-hamburger");
+    const mobileNav = document.getElementById("mobile-nav");
+    
+    if (publicHamburger && mobileNav) {
+      publicHamburger.addEventListener("click", () => {
+        mobileNav.classList.toggle("open");
+        publicHamburger.classList.toggle("open");
+      });
+    }
+  </script>
+  <script src="js/main.js"></script>
+</body>
+</html>

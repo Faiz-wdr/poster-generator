@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results Gallery | Arts Program Result Posters</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <!-- GLOBAL PREMIUM NAVIGATION -->
+  <header>
+    <div class="container nav-flex">
+      <a href="index.html" class="logo-group">
+        <div class="logo-icon">A</div>
+        <div class="logo-text">Arts Posters</div>
+      </a>
+      
+      <nav class="nav-links" id="desktop-nav">
+        <a href="index.html">Home</a>
+        <a href="gallery.html" class="active">Results Gallery</a>
+        <a href="admin.html">Admin Dashboard</a>
+      </nav>
+
+      <button class="nav-mobile-toggle" id="public-hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-nav-panel" id="mobile-nav">
+      <a href="index.html">Home</a>
+      <a href="gallery.html" class="active">Results Gallery</a>
+      <a href="admin.html">Admin Dashboard</a>
+    </div>
+  </header>
+
+  <!-- GALLERY MAIN PORTAL CONTENT -->
+  <main class="container section-padding" style="padding-top: 50px;">
+    
+    <!-- Title Area -->
+    <div style="margin-bottom: 40px; text-align: center;">
+      <span class="badge badge-primary" style="margin-bottom: 12px;">Public Portal</span>
+      <h1>Results Showcase Gallery</h1>
+      <p style="color: var(--text-secondary); max-width: 600px; margin: 8px auto 0 auto;">
+        Browse, search, and download high-resolution result posters from our recent arts competitions and events.
+      </p>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <section class="search-filter-bar">
+      <div class="search-input-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="search-icon" style="width: 20px; height: 20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <input type="text" id="gallery-search" placeholder="Search program names, winners, or categories...">
+      </div>
+      
+      <div class="filter-pills" id="gallery-category-filters">
+        <button class="filter-pill active" data-category="All">All Categories</button>
+        <button class="filter-pill" data-category="Music">Music</button>
+        <button class="filter-pill" data-category="Dance">Dance</button>
+        <button class="filter-pill" data-category="Fine Arts">Fine Arts</button>
+        <button class="filter-pill" data-category="Theatre">Theatre</button>
+      </div>
+    </section>
+
+    <!-- Results List -->
+    <div class="results-list-container" id="gallery-results-list">
+      <!-- Populated dynamically via js/main.js -->
+    </div>
+  </main>
+
+  <!-- DYNAMIC POSTER PREVIEW POPUP MODAL -->
+  <div id="poster-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 500px; padding: 30px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+      <button class="modal-close-btn" id="btn-close-modal">&times;</button>
+      
+      <!-- Big Live Poster Preview -->
+      <div class="poster-preview-container" id="modal-poster-wrap" style="width: 100%; max-width: 400px; margin: 0 auto;">
+        <!-- Rendered by posterEngine -->
+      </div>
+      
+      <!-- Controls Row Below Poster -->
+      <div class="modal-controls" style="display: flex; gap: 12px; width: 100%; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
+        <button class="btn btn-outline" id="btn-modal-next-template" style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
+          🔄 Next Template →
+        </button>
+        <button class="btn btn-primary" id="btn-modal-download" style="font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          ⬇️ Download Poster
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- GLOBAL FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-logo-desc">
+          <div class="logo-group">
+            <div class="logo-icon" style="color: #111827; background: white;">A</div>
+            <div class="logo-text" style="background: white; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Arts Posters</div>
+          </div>
+          <p>
+            An elite, responsive generation system for overlaying competition results onto brand assets and printing pixel-perfect posters.
+          </p>
+        </div>
+        
+        <div class="footer-links-col">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="gallery.html">Results Gallery</a></li>
+            <li><a href="admin.html">Admin Creator</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <h4>Templates</h4>
+          <ul>
+            <li><a href="admin.html?tab=templates">Classic Elite</a></li>
+            <li><a href="admin.html?tab=templates">Cyber Pulse</a></li>
+            <li><a href="admin.html?tab=templates">Sunset Glow</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 Arts Result Posters Generator. All rights reserved.</p>
+        <p>Built with pure HTML, Modern CSS, and Vanilla JavaScript</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Core Scripts -->
+  <script src="js/db.js"></script>
+  <script src="js/engine.js"></script>
+  
+  <!-- Client JavaScript Drawer binding -->
+  <script>
+    const publicHamburger = document.getElementById("public-hamburger");
+    const mobileNav = document.getElementById("mobile-nav");
+    
+    if (publicHamburger && mobileNav) {
+      publicHamburger.addEventListener("click", () => {
+        mobileNav.classList.toggle("open");
+        publicHamburger.classList.toggle("open");
+      });
+    }
+  </script>
+  <script src="js/main.js"></script>
+</body>
+</html>
