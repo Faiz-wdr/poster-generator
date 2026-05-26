@@ -153,7 +153,7 @@ const DEFAULT_RESULTS = [
   {
     id: "result-1",
     programName: "Classical Violin Symphony Solo",
-    category: "Music",
+    category: "Junior",
     winners: [
       { position: "01", name: "Audrey Hepburn", team: "Wandoor" },
       { position: "02", name: "Liam Henderson", team: "Emangad" },
@@ -164,7 +164,7 @@ const DEFAULT_RESULTS = [
   {
     id: "result-2",
     programName: "Contemporary Fusion Ballet",
-    category: "Dance",
+    category: "High School",
     winners: [
       { position: "01", name: "Mikhail Baryshnikov", team: "Vaniyambalam" },
       { position: "01", name: "Natalia Makarova", team: "Old Vaniyambalam" },
@@ -175,7 +175,7 @@ const DEFAULT_RESULTS = [
   {
     id: "result-3",
     programName: "Dynamic Canvas Oil Painting",
-    category: "Fine Arts",
+    category: "Higher Secondary",
     winners: [
       { position: "01", name: "Leonardo Da Vinci", team: "Koorad" },
       { position: "02", name: "Vincent Van Gogh", team: "Wandoor" },
@@ -186,7 +186,7 @@ const DEFAULT_RESULTS = [
   {
     id: "result-4",
     programName: "Shakespearean Dramatic Soliloquy",
-    category: "Theatre",
+    category: "Senior",
     winners: [
       { position: "01", name: "Benedict Cumberbatch", team: "Kuttiyil" },
       { position: "02", name: "Viola Davis", team: "Thekkumpuram" },
@@ -276,8 +276,30 @@ const db = {
         this._setItem("templates", templates);
       }
     }
-    if (!this._getItem("results")) {
+    let results = this._getItem("results");
+    if (!results) {
       this._setItem("results", DEFAULT_RESULTS);
+    } else {
+      let resultsMigrated = false;
+      const categoryMap = {
+        "music": "Junior",
+        "dance": "High School",
+        "fine arts": "Higher Secondary",
+        "theatre": "Senior",
+        "literature": "Campus"
+      };
+      results.forEach(r => {
+        if (r && r.category) {
+          const lowerCat = r.category.toLowerCase().trim();
+          if (categoryMap[lowerCat]) {
+            r.category = categoryMap[lowerCat];
+            resultsMigrated = true;
+          }
+        }
+      });
+      if (resultsMigrated) {
+        this._setItem("results", results);
+      }
     }
     if (!this._getItem("settings")) {
       this._setItem("settings", {

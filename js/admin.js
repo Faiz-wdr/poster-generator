@@ -2,7 +2,7 @@
  * Admin Dashboard Controller
  */
 
-document.addEventListener("DOMContentLoaded", () => {
+function runAdminController() {
   // --- STATE VARIABLES ---
   let activeTab = "dashboard";
   let currentEditorTemplate = null;
@@ -1343,4 +1343,10 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     switchTab(startTab);
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", runAdminController);
+} else {
+  runAdminController();
+}

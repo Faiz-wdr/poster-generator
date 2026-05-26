@@ -2,7 +2,7 @@
  * Client Public Controller - Arts Result Posters Portal
  */
 
-document.addEventListener("DOMContentLoaded", () => {
+function runMainController() {
   // --- PAGE DETECTION ROUTER ---
   const isHome = document.getElementById("home-results-list") !== null;
   const isGallery = document.getElementById("gallery-results-list") !== null;
@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- COMMON DYNAMIC ASSETS COMPONENT ---
   // Helper to create a premium results list item dynamically
   function createResultRow(result) {
+    if (!result) return document.createElement("div");
     const row = document.createElement("div");
     row.className = "result-list-item";
     
@@ -40,22 +41,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const winners = result.winners || [];
     
     // Filter first place winners ("01" or "1")
-    const firstPlaceWinners = winners.filter(w => w.position === "01" || w.position === "1");
+    const firstPlaceWinners = winners.filter(w => w && (w.position === "01" || w.position === "1"));
     // Fallback to first winner in array if no explicit first place found
-    const topWinners = firstPlaceWinners.length > 0 ? firstPlaceWinners : (winners.length > 0 ? [winners[0]] : []);
+    const topWinners = firstPlaceWinners.length > 0 ? firstPlaceWinners : (winners.length > 0 && winners[0] ? [winners[0]] : []);
     
     topWinners.forEach(w => {
-      if (winnersList) winnersList += " & ";
-      winnersList += w.name + (w.team ? ` (${w.team})` : "");
+      if (w) {
+        if (winnersList) winnersList += " & ";
+        winnersList += (w.name || "") + (w.team ? ` (${w.team})` : "");
+      }
     });
     
     const displayWinners = winnersList || "[ No Winners Registered ]";
 
     row.innerHTML = `
       <div class="result-list-main">
-        <span class="badge badge-primary result-list-category">${result.category}</span>
+        <span class="badge badge-primary result-list-category">${result.category || "General"}</span>
         <div class="result-list-title-wrap">
-          <div class="result-list-title">${result.programName}</div>
+          <div class="result-list-title">${result.programName || "[ Unnamed Program ]"}</div>
           <div class="result-list-winner">🥇 Top Winner(s): <strong>${displayWinners}</strong></div>
         </div>
       </div>
@@ -122,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const homeStatResults = document.getElementById("home-stat-results");
     if (homeStatResults) homeStatResults.innerText = results.length;
     
-    const cats = new Set(results.map(r => r.category));
+    const cats = new Set(results.map(r => r ? (r.category || "") : ""));
     const homeStatCategories = document.getElementById("home-stat-categories");
     if (homeStatCategories) homeStatCategories.innerText = cats.size || 0;
     
@@ -204,41 +207,51 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderGalleryList() {
-    const listContainer = document.getElementById("gallery-results-list");
-    if (!listContainer) return;
+    try {
+      const listContainer = document.getElementById("gallery-results-list");
+      if (!listContainer) return;
 
-    listContainer.innerHTML = "";
-    
-    const searchInput = document.getElementById("gallery-search");
-    const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
-    
-    let results = db.getResults();
+      listContainer.innerHTML = "";
+      
+      const searchInput = document.getElementById("gallery-search");
+      const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : "";
+      
+      let results = db.getResults() || [];
 
-    if (activeGalleryCategory !== "All") {
-      results = results.filter(r => r.category === activeGalleryCategory);
+      if (activeGalleryCategory !== "All") {
+        results = results.filter(r => r && r.category === activeGalleryCategory);
+      }
+
+      if (searchVal) {
+        results = results.filter(r => 
+          r && (
+            (r.programName || "").toLowerCase().includes(searchVal) ||
+            (r.category || "").toLowerCase().includes(searchVal) ||
+            (r.winners || []).some(w => 
+              w && (
+                (w.name || "").toLowerCase().includes(searchVal) ||
+                (w.position || "").toLowerCase().includes(searchVal) ||
+                (w.team || "").toLowerCase().includes(searchVal)
+              )
+            )
+          )
+        );
+      }
+
+      if (results.length === 0) {
+        listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 80px 0; font-weight: 600; width: 100%;">No result posters match your search.</div>`;
+        return;
+      }
+
+      results.forEach(r => {
+        if (r) {
+          const row = createResultRow(r);
+          listContainer.appendChild(row);
+        }
+      });
+    } catch (err) {
+      console.error("Error in renderGalleryList:", err);
     }
-
-    if (searchVal) {
-      results = results.filter(r => 
-        r.programName.toLowerCase().includes(searchVal) ||
-        r.category.toLowerCase().includes(searchVal) ||
-        (r.winners || []).some(w => 
-          w.name.toLowerCase().includes(searchVal) ||
-          w.position.toLowerCase().includes(searchVal) ||
-          w.team.toLowerCase().includes(searchVal)
-        )
-      );
-    }
-
-    if (results.length === 0) {
-      listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 80px 0; font-weight: 600; width: 100%;">No result posters match your search.</div>`;
-      return;
-    }
-
-    results.forEach(r => {
-      const row = createResultRow(r);
-      listContainer.appendChild(row);
-    });
   }
 
   // --- 3. DYNAMIC RESULT DETAIL PAGE ---
@@ -371,4 +384,10 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", runMainController);
+} else {
+  runMainController();
+}
