@@ -198,214 +198,451 @@ const DEFAULT_RESULTS = [
 
 const db = {
   // --- UTILS ---
-  _getItem(key) {
-    try {
-      const data = localStorage.getItem(DB_PREFIX + key);
-      return data ? JSON.parse(data) : null;
-    } catch (e) {
-      console.error("Error reading from LocalStorage:", e);
-      return null;
-    }
+  isConfigured() {
+    return supabase !== null;
   },
 
-  _setItem(key, val) {
-    try {
-      localStorage.setItem(DB_PREFIX + key, JSON.stringify(val));
-      return true;
-    } catch (e) {
-      console.error("Error writing to LocalStorage:", e);
-      return false;
+  showDbError(action, errorObj) {
+    const msg = errorObj ? (errorObj.message || errorObj) : "Unknown error";
+    console.error(`Database Error during ${action}:`, errorObj);
+    
+    // Check if DOM is loaded
+    if (typeof document === 'undefined' || !document.body) return;
+    
+    let banner = document.getElementById("supabase-error-banner");
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "supabase-error-banner";
+      banner.style = "background: #FEE2E2; color: #991B1B; padding: 12px 20px; border-bottom: 2px solid #FCA5A5; font-family: system-ui, sans-serif; font-size: 0.9rem; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; gap: 8px;";
+      document.body.insertBefore(banner, document.body.firstChild);
     }
-  },
-
-  // --- INITIALIZATION ---
-  init() {
-    let templates = this._getItem("templates");
-    if (!templates) {
-      this._setItem("templates", DEFAULT_TEMPLATES);
-    } else {
-      // Self-healing migration
-      let migrated = false;
-      templates.forEach(t => {
-        // Fix old MIME type
-        if (t.background && t.background.startsWith("data:image/svg+xml;utf8,")) {
-          t.background = t.background.replace("data:image/svg+xml;utf8,", "data:image/svg+xml;charset=utf-8,");
-          migrated = true;
-        }
-
-        const defaultT = DEFAULT_TEMPLATES.find(dt => dt.id === t.id) || DEFAULT_TEMPLATES[0];
-        if (!t.fields) t.fields = {};
-
-        // Migrate: check if there are deprecated fields, and if so, remove them and copy fresh fields
-        const deprecatedKeys = [
-          'placement_1', 'placement_2', 'placement_3', 'placement_4', 'placement_5', 'placement_6',
-          'winnerSection',
-          'firstPlace', 'firstPlaceTeam', 'secondPlace', 'secondPlaceTeam',
-          'thirdPlace', 'thirdPlaceTeam'
-        ];
-
-        let hasDeprecated = deprecatedKeys.some(k => t.fields[k] !== undefined);
-        if (hasDeprecated) {
-          deprecatedKeys.forEach(k => {
-            delete t.fields[k];
-          });
-          
-          // Seed new split winner fields
-          Object.keys(defaultT.fields).forEach(k => {
-            if (k.startsWith("winner_")) {
-              t.fields[k] = { ...defaultT.fields[k] };
-            }
-          });
-          migrated = true;
-        }
-
-        // Add missing new fields from default template
-        Object.keys(defaultT.fields).forEach(k => {
-          if (!t.fields[k]) {
-            t.fields[k] = { ...defaultT.fields[k] };
-            migrated = true;
-          }
-          // Ensure visible attribute is present
-          if (t.fields[k].visible === undefined) {
-            t.fields[k].visible = true;
-            migrated = true;
-          }
-        });
-      });
-      if (migrated) {
-        this._setItem("templates", templates);
-      }
-    }
-    let results = this._getItem("results");
-    if (!results) {
-      this._setItem("results", DEFAULT_RESULTS);
-    } else {
-      let resultsMigrated = false;
-      const categoryMap = {
-        "music": "Junior",
-        "dance": "High School",
-        "fine arts": "Higher Secondary",
-        "theatre": "Senior",
-        "literature": "Campus"
-      };
-      results.forEach(r => {
-        if (r && r.category) {
-          const lowerCat = r.category.toLowerCase().trim();
-          if (categoryMap[lowerCat]) {
-            r.category = categoryMap[lowerCat];
-            resultsMigrated = true;
-          }
-        }
-      });
-      if (resultsMigrated) {
-        this._setItem("results", results);
-      }
-    }
-    if (!this._getItem("settings")) {
-      this._setItem("settings", {
-        institutionName: "National Academy of Creative Arts",
-        enableFirebasePlaceholder: false,
-        theme: "light-premium"
-      });
-    }
+    banner.innerHTML = `⚠️ <strong>Database Error (${action}):</strong> ${msg} (Check your Supabase Dashboard or RLS Policies)`;
   },
 
   // --- RESULTS API ---
-  getResults() {
-    this.init();
-    return this._getItem("results") || [];
-  },
-
-  getResult(id) {
-    const results = this.getResults();
-    return results.find(r => r.id === id) || null;
-  },
-
-  saveResult(resultData) {
-    const results = this.getResults();
-    if (resultData.id) {
-      // Edit existing
-      const idx = results.findIndex(r => r.id === resultData.id);
-      if (idx !== -1) {
-        results[idx] = { ...results[idx], ...resultData };
+  async getResults() {
+    if (!this.isConfigured()) {
+      let results = localStorage.getItem(DB_PREFIX + "results");
+      if (!results) {
+        localStorage.setItem(DB_PREFIX + "results", JSON.stringify(DEFAULT_RESULTS));
+        return DEFAULT_RESULTS;
       }
-    } else {
-      // Create new
-      const newResult = {
-        id: "result_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9),
-        programName: resultData.programName,
-        category: resultData.category,
-        winners: resultData.winners || [],
-        created: new Date().toISOString()
-      };
-      results.unshift(newResult);
-      resultData.id = newResult.id;
+      const list = JSON.parse(results);
+      list.sort((a, b) => new Date(b.created || 0) - new Date(a.created || 0));
+      return list;
     }
-    this._setItem("results", results);
-    return resultData;
+    
+    // Fetch results and join with placements
+    const { data, error } = await supabase
+      .from('results')
+      .select(`
+        id,
+        programName:program_name,
+        category,
+        created:created_at,
+        winners:placements (
+          position,
+          name,
+          team
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      this.showDbError("fetching results", error);
+      return [];
+    }
+
+    // Auto-seed mock results if database is completely empty
+    if (!data || data.length === 0) {
+      console.log("No results found in Supabase. Seeding default winners mock database...");
+      for (const r of DEFAULT_RESULTS) {
+        const { error: resErr } = await supabase.from('results').insert({
+          id: r.id,
+          program_name: r.programName,
+          category: r.category
+        });
+        if (resErr) {
+          console.error("Error seeding result:", resErr);
+          continue;
+        }
+        const placements = r.winners.map(w => ({
+          result_id: r.id,
+          position: w.position,
+          name: w.name,
+          team: w.team
+        }));
+        await supabase.from('placements').insert(placements);
+      }
+      return DEFAULT_RESULTS;
+    }
+
+    // Sort placements by position inside each result for uniform standing lists
+    if (data) {
+      data.forEach(r => {
+        if (r.winners) {
+          r.winners.sort((a, b) => (a.position || "").localeCompare(b.position || ""));
+        }
+      });
+    }
+
+    return data || [];
   },
 
-  deleteResult(id) {
-    let results = this.getResults();
-    results = results.filter(r => r.id !== id);
-    this._setItem("results", results);
+  async getResult(id) {
+    if (!this.isConfigured()) {
+      const results = await this.getResults();
+      return results.find(r => r.id === id) || null;
+    }
+
+    const { data, error } = await supabase
+      .from('results')
+      .select(`
+        id,
+        programName:program_name,
+        category,
+        created:created_at,
+        winners:placements (
+          position,
+          name,
+          team
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching result:", error);
+      return null;
+    }
+
+    if (data && data.winners) {
+      data.winners.sort((a, b) => (a.position || "").localeCompare(b.position || ""));
+    }
+
+    return data;
+  },
+
+  async saveResult(resultData) {
+    const id = resultData.id || "result_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+    
+    if (!this.isConfigured()) {
+      const results = await this.getResults();
+      
+      const newResult = {
+        ...resultData,
+        id,
+        created: resultData.created || new Date().toISOString()
+      };
+      
+      const idx = results.findIndex(r => r.id === id);
+      if (idx !== -1) {
+        results[idx] = newResult;
+      } else {
+        results.push(newResult);
+      }
+      
+      localStorage.setItem(DB_PREFIX + "results", JSON.stringify(results));
+      return newResult;
+    }
+
+    // 1. Upsert into results table
+    const resultRow = {
+      id: id,
+      program_name: resultData.programName,
+      category: resultData.category
+    };
+
+    const { error: resultErr } = await supabase
+      .from('results')
+      .upsert(resultRow);
+
+    if (resultErr) {
+      this.showDbError("saving results table", resultErr);
+      return null;
+    }
+
+    // 2. Clear existing placements for this result
+    const { error: delErr } = await supabase
+      .from('placements')
+      .delete()
+      .eq('result_id', id);
+
+    if (delErr) {
+      console.error("Error deleting placements:", delErr);
+      return null;
+    }
+
+    // 3. Insert newly added placements
+    const placements = (resultData.winners || []).map(w => ({
+      result_id: id,
+      position: w.position,
+      name: w.name,
+      team: w.team
+    }));
+
+    if (placements.length > 0) {
+      const { error: insErr } = await supabase
+        .from('placements')
+        .insert(placements);
+
+      if (insErr) {
+        this.showDbError("inserting placements table", insErr);
+        return null;
+      }
+    }
+
+    return { ...resultData, id };
+  },
+
+  async deleteResult(id) {
+    if (!this.isConfigured()) {
+      let results = await this.getResults();
+      results = results.filter(r => r.id !== id);
+      localStorage.setItem(DB_PREFIX + "results", JSON.stringify(results));
+      return true;
+    }
+
+    // Relational ON DELETE CASCADE automatically sweeps linked placements!
+    const { error } = await supabase
+      .from('results')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error("Error deleting result:", error);
+      return false;
+    }
     return true;
   },
 
   // --- TEMPLATES API ---
-  getTemplates() {
-    this.init();
-    return this._getItem("templates") || [];
-  },
-
-  getTemplate(id) {
-    const templates = this.getTemplates();
-    return templates.find(t => t.id === id) || null;
-  },
-
-  saveTemplate(templateData) {
-    const templates = this.getTemplates();
-    const idx = templates.findIndex(t => t.id === templateData.id);
-    if (idx !== -1) {
-      templates[idx] = { ...templates[idx], ...templateData };
-    } else {
-      templates.push(templateData);
+  async getTemplates() {
+    if (!this.isConfigured()) {
+      let templates = localStorage.getItem(DB_PREFIX + "templates");
+      if (!templates) {
+        localStorage.setItem(DB_PREFIX + "templates", JSON.stringify(DEFAULT_TEMPLATES));
+        return DEFAULT_TEMPLATES;
+      }
+      return JSON.parse(templates);
     }
-    this._setItem("templates", templates);
+
+    const { data, error } = await supabase
+      .from('templates')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      this.showDbError("fetching templates", error);
+      return [];
+    }
+
+    // Auto-seed templates table if database is completely empty
+    if (!data || data.length === 0) {
+      console.log("No templates found in Supabase. Seeding default visual templates...");
+      const { error: seedErr } = await supabase
+        .from('templates')
+        .insert(DEFAULT_TEMPLATES);
+
+      if (seedErr) {
+        console.error("Error seeding default templates:", seedErr);
+        return [];
+      }
+      return DEFAULT_TEMPLATES;
+    }
+
+    return data || [];
+  },
+
+  async getTemplate(id) {
+    if (!this.isConfigured()) {
+      const templates = await this.getTemplates();
+      return templates.find(t => t.id === id) || null;
+    }
+
+    const { data, error } = await supabase
+      .from('templates')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching template:", error);
+      return null;
+    }
+    return data;
+  },
+
+  async saveTemplate(templateData) {
+    if (!this.isConfigured()) {
+      const templates = await this.getTemplates();
+      const idx = templates.findIndex(t => t.id === templateData.id);
+      
+      const cleanTemplate = {
+        id: templateData.id,
+        name: templateData.name,
+        background: templateData.background,
+        fields: templateData.fields
+      };
+      
+      if (idx !== -1) {
+        templates[idx] = cleanTemplate;
+      } else {
+        templates.push(cleanTemplate);
+      }
+      
+      localStorage.setItem(DB_PREFIX + "templates", JSON.stringify(templates));
+      return templateData;
+    }
+
+    // Strip created_at to avoid database overwrite constraints
+    const cleanTemplate = {
+      id: templateData.id,
+      name: templateData.name,
+      background: templateData.background,
+      fields: templateData.fields
+    };
+
+    const { error } = await supabase
+      .from('templates')
+      .upsert(cleanTemplate);
+
+    if (error) {
+      this.showDbError("saving template", error);
+      return null;
+    }
     return templateData;
   },
 
-  deleteTemplate(id) {
-    let templates = this.getTemplates();
-    templates = templates.filter(t => t.id !== id);
-    this._setItem("templates", templates);
+  async deleteTemplate(id) {
+    if (!this.isConfigured()) {
+      let templates = await this.getTemplates();
+      templates = templates.filter(t => t.id !== id);
+      localStorage.setItem(DB_PREFIX + "templates", JSON.stringify(templates));
+      return true;
+    }
+
+    const { error } = await supabase
+      .from('templates')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error("Error deleting template:", error);
+      return false;
+    }
     return true;
+  },
+
+  // --- STORAGE IMAGE UPLOADS ---
+  async uploadTemplateBackground(file, fileName) {
+    if (!this.isConfigured()) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (err) => {
+          console.error("FileReader error:", err);
+          resolve(null);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const cleanName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+    const { data, error } = await supabase
+      .storage
+      .from('template-backgrounds')
+      .upload(cleanName, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) {
+      this.showDbError("uploading template background to storage", error);
+      return null;
+    }
+
+    // Resolve public URL for database storage
+    const { data: urlData } = supabase
+      .storage
+      .from('template-backgrounds')
+      .getPublicUrl(cleanName);
+
+    return urlData ? urlData.publicUrl : null;
   },
 
   // --- SETTINGS API ---
-  getSettings() {
-    this.init();
-    return this._getItem("settings") || {};
+  async getSettings() {
+    let settings = localStorage.getItem(DB_PREFIX + "settings");
+    if (!settings) {
+      settings = {
+        institutionName: "National Academy of Creative Arts",
+        enableFirebasePlaceholder: false,
+        theme: "light-premium"
+      };
+      localStorage.setItem(DB_PREFIX + "settings", JSON.stringify(settings));
+      return settings;
+    }
+    return JSON.parse(settings);
   },
 
-  saveSettings(settingsData) {
-    const current = this.getSettings();
-    this._setItem("settings", { ...current, ...settingsData });
+  async saveSettings(settingsData) {
+    const current = await this.getSettings();
+    localStorage.setItem(DB_PREFIX + "settings", JSON.stringify({ ...current, ...settingsData }));
     return true;
   },
 
-  // --- DATABASE SYSTEM RESET ---
-  resetToDefault() {
-    localStorage.removeItem(DB_PREFIX + "templates");
-    localStorage.removeItem(DB_PREFIX + "results");
-    localStorage.removeItem(DB_PREFIX + "settings");
-    this.init();
+  // --- DATABASE FACTORY RESET ---
+  async resetToDefault() {
+    if (!this.isConfigured()) {
+      localStorage.removeItem(DB_PREFIX + "results");
+      localStorage.removeItem(DB_PREFIX + "templates");
+      localStorage.removeItem(DB_PREFIX + "settings");
+      return true;
+    }
+
+    // 1. Wipe out tables using clean delete operators
+    await supabase.from('placements').delete().neq('result_id', 'dummy');
+    await supabase.from('results').delete().neq('id', 'dummy');
+    await supabase.from('templates').delete().neq('id', 'dummy');
+
+    // 2. Re-seed default layouts
+    const { error: tempErr } = await supabase.from('templates').insert(DEFAULT_TEMPLATES);
+    if (tempErr) console.error("Error seeding templates:", tempErr);
+
+    // 3. Re-seed default mock results
+    for (const r of DEFAULT_RESULTS) {
+      const { error: resErr } = await supabase.from('results').insert({
+        id: r.id,
+        program_name: r.programName,
+        category: r.category
+      });
+      if (resErr) {
+        console.error("Error seeding result:", resErr);
+        continue;
+      }
+      const placements = r.winners.map(w => ({
+        result_id: r.id,
+        position: w.position,
+        name: w.name,
+        team: w.team
+      }));
+      await supabase.from('placements').insert(placements);
+    }
+
     return true;
   }
 };
 
-// Auto initialize on script load
-db.init();
+// Expose credentials configurations
+const { createClient } = window.supabase || {};
+let supabase = null;
 
-// Export to window for global modular usage
+if (window.supabase && window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY) {
+  supabase = createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
+} else {
+  console.warn("Supabase credentials missing! Please configure js/config.js");
+}
+
+// Export window namespace
 window.db = db;

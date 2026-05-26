@@ -71,7 +71,7 @@ function runMainController() {
   }
 
   // --- INTERACTIVE POSTER MODAL POPUP ---
-  function openPosterModal(result) {
+  async function openPosterModal(result) {
     const modal = document.getElementById("poster-modal");
     if (!modal) return;
 
@@ -79,7 +79,7 @@ function runMainController() {
 
     const modalPosterWrap = document.getElementById("modal-poster-wrap");
 
-    const templates = db.getTemplates();
+    const templates = await db.getTemplates();
     if (templates.length === 0) return;
 
     let activeTemplateIndex = 0;
@@ -117,10 +117,10 @@ function runMainController() {
   }
 
   // --- 1. HOME PORTAL PAGE ---
-  function initHomePage() {
-    const results = db.getResults();
-    const templates = db.getTemplates();
-    const settings = db.getSettings();
+  async function initHomePage() {
+    const results = await db.getResults();
+    const templates = await db.getTemplates();
+    const settings = await db.getSettings();
 
     const homeStatResults = document.getElementById("home-stat-results");
     if (homeStatResults) homeStatResults.innerText = results.length;
@@ -206,7 +206,7 @@ function runMainController() {
     });
   }
 
-  function renderGalleryList() {
+  async function renderGalleryList() {
     try {
       const listContainer = document.getElementById("gallery-results-list");
       if (!listContainer) return;
@@ -216,7 +216,7 @@ function runMainController() {
       const searchInput = document.getElementById("gallery-search");
       const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : "";
       
-      let results = db.getResults() || [];
+      let results = await db.getResults() || [];
 
       if (activeGalleryCategory !== "All") {
         results = results.filter(r => r && r.category === activeGalleryCategory);
@@ -254,8 +254,7 @@ function runMainController() {
     }
   }
 
-  // --- 3. DYNAMIC RESULT DETAIL PAGE ---
-  function initDetailPage() {
+  async function initDetailPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const resultId = urlParams.get("id");
     
@@ -265,7 +264,7 @@ function runMainController() {
       return;
     }
 
-    const result = db.getResult(resultId);
+    const result = await db.getResult(resultId);
     if (!result) {
       alert("Result record not found in database!");
       window.location.href = "gallery.html";
@@ -322,7 +321,7 @@ function runMainController() {
       });
     }
 
-    const templates = db.getTemplates();
+    const templates = await db.getTemplates();
     const pickerWrap = document.getElementById("detail-template-picker");
     const posterWrap = document.getElementById("detail-poster-wrap");
     
@@ -375,9 +374,9 @@ function runMainController() {
 
     const deleteBtn = document.getElementById("btn-admin-delete");
     if (deleteBtn) {
-      deleteBtn.addEventListener("click", () => {
+      deleteBtn.addEventListener("click", async () => {
         if (confirm(`Are you sure you want to permanently delete the result for "${result.programName}"?`)) {
-          db.deleteResult(result.id);
+          await db.deleteResult(result.id);
           alert("Result deleted successfully.");
           window.location.href = "gallery.html";
         }

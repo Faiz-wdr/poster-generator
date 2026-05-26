@@ -66,7 +66,7 @@ function runAdminController() {
   }
 
   // --- TAB NAVIGATION SYSTEM ---
-  window.switchTab = function(tabId) {
+  window.switchTab = async function(tabId) {
     activeTab = tabId;
     
     navItems.forEach(item => {
@@ -90,15 +90,15 @@ function runAdminController() {
     if (adminHamburger) adminHamburger.classList.remove("open");
 
     if (tabId === "dashboard") {
-      loadDashboardStats();
+      await loadDashboardStats();
     } else if (tabId === "upload") {
-      initUploadResultForm();
+      await initUploadResultForm();
     } else if (tabId === "templates") {
-      initTemplateManager();
+      await initTemplateManager();
     } else if (tabId === "published") {
-      loadPublishedResults();
+      await loadPublishedResults();
     } else if (tabId === "settings") {
-      loadSettingsView();
+      await loadSettingsView();
     }
   };
 
@@ -110,9 +110,9 @@ function runAdminController() {
   });
 
   // --- 1. DASHBOARD CONTROLLER ---
-  function loadDashboardStats() {
-    const results = db.getResults();
-    const templates = db.getTemplates();
+  async function loadDashboardStats() {
+    const results = await db.getResults();
+    const templates = await db.getTemplates();
     
     document.getElementById("stat-total-results").innerText = results.length;
     
@@ -304,8 +304,8 @@ function runAdminController() {
     };
   }
 
-  window.triggerEditResult = function(id) {
-    const r = db.getResult(id);
+  window.triggerEditResult = async function(id) {
+    const r = await db.getResult(id);
     if (r) {
       switchTab("upload");
       document.getElementById("edit-result-id").value = r.id;
@@ -316,16 +316,16 @@ function runAdminController() {
       
       document.getElementById("upload-form-title").innerText = "Edit Published Result";
       document.getElementById("btn-submit-result").innerText = "Update Published Poster";
-      updateUploadLivePreview();
+      await updateUploadLivePreview();
     }
   };
 
   // --- 2. UPLOAD RESULT & REAL-TIME PREVIEW ---
   let uploadPreviewTimer = null;
   
-  function initUploadResultForm() {
+  async function initUploadResultForm() {
     const form = document.getElementById("result-publish-form");
-    const templates = db.getTemplates();
+    const templates = await db.getTemplates();
     const templateSelect = document.getElementById("form-template-selector");
     
     templateSelect.innerHTML = "";
@@ -345,7 +345,7 @@ function runAdminController() {
       populateWinners(null);
     }
 
-    updateUploadLivePreview();
+    await updateUploadLivePreview();
 
     const staticInputIds = ["form-program-name", "form-category", "form-template-selector"];
     staticInputIds.forEach(id => {
@@ -364,7 +364,7 @@ function runAdminController() {
     uploadPreviewTimer = setTimeout(updateUploadLivePreview, 150);
   }
 
-  function updateUploadLivePreview() {
+  async function updateUploadLivePreview() {
     const previewWrap = document.getElementById("preview-poster-wrap");
     if (!previewWrap) return;
     
@@ -375,7 +375,8 @@ function runAdminController() {
     const isEdit = !!document.getElementById("edit-result-id").value;
     const tId = document.getElementById("form-template-selector").value;
 
-    const template = db.getTemplate(tId) || db.getTemplates()[0];
+    const templates = await db.getTemplates();
+    const template = (await db.getTemplate(tId)) || templates[0];
     if (!template) return;
 
     const activeTemplateLabel = document.getElementById("lbl-active-template-name");
@@ -400,11 +401,11 @@ function runAdminController() {
   }
 
   // --- TEMPLATE SWAPPER ON UPLOAD PREVIEW ---
-  function shiftUploadTemplate(offset) {
+  async function shiftUploadTemplate(offset) {
     const templateSelect = document.getElementById("form-template-selector");
     if (!templateSelect) return;
     
-    const templates = db.getTemplates();
+    const templates = await db.getTemplates();
     if (templates.length === 0) return;
     
     const currentId = templateSelect.value;
@@ -416,7 +417,7 @@ function runAdminController() {
     const nextTemplate = templates[idx];
     templateSelect.value = nextTemplate.id;
     
-    updateUploadLivePreview();
+    await updateUploadLivePreview();
   }
 
   const prevBtn = document.getElementById("btn-prev-template");
@@ -428,7 +429,7 @@ function runAdminController() {
   // Handle Form Submit
   const resultForm = document.getElementById("result-publish-form");
   if (resultForm) {
-    resultForm.addEventListener("submit", (e) => {
+    resultForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       
       const editId = document.getElementById("edit-result-id").value;
@@ -442,12 +443,16 @@ function runAdminController() {
 
       if (editId) resultData.id = editId;
 
-      const saved = db.saveResult(resultData);
+      const saved = await db.saveResult(resultData);
       
       document.getElementById("edit-result-id").value = "";
       resultForm.reset();
 
-      alert(`Poster published successfully for: ${saved.programName}!`);
+      if (saved) {
+        alert(`Poster published successfully for: ${saved.programName}!`);
+      } else {
+        alert(`Failed to publish poster.`);
+      }
       switchTab("published");
     });
   }
@@ -462,8 +467,8 @@ function runAdminController() {
   }
 
   // --- 3. TEMPLATE MANAGER & TYPOGRAPHY EDITOR ---
-  function initTemplateManager() {
-    const templates = db.getTemplates();
+  async function initTemplateManager() {
+    const templates = await db.getTemplates();
     const templateSelect = document.getElementById("editor-template-select");
     
     templateSelect.innerHTML = "";
@@ -477,7 +482,7 @@ function runAdminController() {
     if (!currentEditorTemplate) {
       currentEditorTemplate = JSON.parse(JSON.stringify(templates[0]));
     } else {
-      const fresh = db.getTemplate(currentEditorTemplate.id);
+      const fresh = await db.getTemplate(currentEditorTemplate.id);
       if (fresh) currentEditorTemplate = JSON.parse(JSON.stringify(fresh));
     }
 
@@ -492,9 +497,9 @@ function runAdminController() {
     updateSelectionStatusLabel();
   }
 
-  function handleEditorTemplateChange(e) {
+  async function handleEditorTemplateChange(e) {
     const tId = e.target.value;
-    const tData = db.getTemplate(tId);
+    const tData = await db.getTemplate(tId);
     if (tData) {
       currentEditorTemplate = JSON.parse(JSON.stringify(tData));
       renderEditorPosterCanvas();
@@ -1051,13 +1056,13 @@ function runAdminController() {
   // --- SAVE TEMPLATE POSITIONS AND ATTRIBUTES ---
   const saveTemplateBtn = document.getElementById("btn-save-template-layout");
   if (saveTemplateBtn) {
-    saveTemplateBtn.addEventListener("click", () => {
+    saveTemplateBtn.addEventListener("click", async () => {
       if (!currentEditorTemplate) return;
-      db.saveTemplate(currentEditorTemplate);
+      await db.saveTemplate(currentEditorTemplate);
       undoStack = [];
       redoStack = [];
       alert(`Coordinates & typography styling saved successfully for template: "${currentEditorTemplate.name}"!`);
-      initTemplateManager();
+      await initTemplateManager();
     });
   }
 
@@ -1070,30 +1075,31 @@ function runAdminController() {
       fileInput.click();
     });
 
-    fileInput.addEventListener("change", (e) => {
+    fileInput.addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const base64 = evt.target.result;
-        const defaultTemplateFields = db.getTemplates()[0].fields;
-        
-        const newTemplate = {
-          id: "custom-template-" + Date.now(),
-          name: file.name.split(".")[0] || "Custom Graphic Upload",
-          background: base64,
-          fields: JSON.parse(JSON.stringify(defaultTemplateFields))
-        };
+      const publicUrl = await db.uploadTemplateBackground(file, file.name);
+      if (!publicUrl) {
+        alert("Failed to upload background image to storage.");
+        return;
+      }
 
-        db.saveTemplate(newTemplate);
-        currentEditorTemplate = newTemplate;
-        
-        alert(`New background template "${newTemplate.name}" registered successfully!`);
-        initTemplateManager();
-      };
+      const templates = await db.getTemplates();
+      const defaultTemplateFields = templates[0] ? templates[0].fields : {};
       
-      reader.readAsDataURL(file);
+      const newTemplate = {
+        id: "custom-template-" + Date.now(),
+        name: file.name.split(".")[0] || "Custom Graphic Upload",
+        background: publicUrl,
+        fields: JSON.parse(JSON.stringify(defaultTemplateFields))
+      };
+
+      await db.saveTemplate(newTemplate);
+      currentEditorTemplate = newTemplate;
+      
+      alert(`New background template "${newTemplate.name}" uploaded & registered successfully!`);
+      await initTemplateManager();
     });
   }
 
@@ -1192,14 +1198,14 @@ function runAdminController() {
   // --- 4. PUBLISHED RESULTS VIEWS ---
   let activeCategoryFilter = "All";
 
-  function loadPublishedResults() {
+  async function loadPublishedResults() {
     const listContainer = document.getElementById("published-results-list");
     if (!listContainer) return;
     
     listContainer.innerHTML = "";
     const searchVal = document.getElementById("admin-search-results").value.toLowerCase();
     
-    let results = db.getResults();
+    let results = await db.getResults();
 
     if (activeCategoryFilter !== "All") {
       results = results.filter(r => r.category === activeCategoryFilter);
@@ -1267,10 +1273,11 @@ function runAdminController() {
     });
   });
 
-  window.triggerDirectDownload = function(id) {
-    const result = db.getResult(id);
-    const template = db.getTemplates()[0]; // Default template
-    if (!result) return;
+  window.triggerDirectDownload = async function(id) {
+    const result = await db.getResult(id);
+    const templates = await db.getTemplates();
+    const template = templates[0]; // Default template
+    if (!result || !template) return;
     
     const tmpDiv = document.createElement("div");
     tmpDiv.className = "hidden-export-container";
@@ -1286,33 +1293,37 @@ function runAdminController() {
     }, 200);
   };
 
-  window.deletePublishedResult = function(id, name) {
+  window.deletePublishedResult = async function(id, name) {
     if (confirm(`Are you sure you want to permanently delete the published result for "${name}"?`)) {
-      db.deleteResult(id);
-      loadPublishedResults();
+      const deleted = await db.deleteResult(id);
+      if (deleted) {
+        await loadPublishedResults();
+      } else {
+        alert("Failed to delete result.");
+      }
     }
   };
 
   // --- 5. SETTINGS PANEL SYSTEM ---
-  function loadSettingsView() {
-    const settings = db.getSettings();
+  async function loadSettingsView() {
+    const settings = await db.getSettings();
     document.getElementById("settings-institution").value = settings.institutionName || "";
   }
 
   const saveSettingsBtn = document.getElementById("btn-save-settings");
   if (saveSettingsBtn) {
-    saveSettingsBtn.addEventListener("click", () => {
+    saveSettingsBtn.addEventListener("click", async () => {
       const instName = document.getElementById("settings-institution").value;
-      db.saveSettings({ institutionName: instName });
+      await db.saveSettings({ institutionName: instName });
       alert("Application settings updated successfully!");
     });
   }
 
   const resetBtn = document.getElementById("btn-factory-reset");
   if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
+    resetBtn.addEventListener("click", async () => {
       if (confirm("⚠️ WARNING: This will permanently wipe all results, custom template positions, uploaded backgrounds, and restore the platform to clean defaults. Do you wish to proceed?")) {
-        db.resetToDefault();
+        await db.resetToDefault();
         alert("Database successfully restored to pristine seed configuration!");
         window.location.reload();
       }
@@ -1325,21 +1336,25 @@ function runAdminController() {
   
   const editId = params.get("edit");
   if (editId) {
-    const r = db.getResult(editId);
-    if (r) {
-      setTimeout(() => {
-        switchTab("upload");
-        document.getElementById("edit-result-id").value = r.id;
-        document.getElementById("form-program-name").value = r.programName;
-        document.getElementById("form-category").value = r.category;
-        
-        populateWinners(r);
-        
-        document.getElementById("upload-form-title").innerText = "Edit Published Result";
-        document.getElementById("btn-submit-result").innerText = "Update Published Poster";
-        updateUploadLivePreview();
-      }, 100);
-    }
+    (async () => {
+      const r = await db.getResult(editId);
+      if (r) {
+        setTimeout(async () => {
+          await switchTab("upload");
+          document.getElementById("edit-result-id").value = r.id;
+          document.getElementById("form-program-name").value = r.programName;
+          document.getElementById("form-category").value = r.category;
+          
+          populateWinners(r);
+          
+          document.getElementById("upload-form-title").innerText = "Edit Published Result";
+          document.getElementById("btn-submit-result").innerText = "Update Published Poster";
+          await updateUploadLivePreview();
+        }, 100);
+      } else {
+        await switchTab(startTab);
+      }
+    })();
   } else {
     switchTab(startTab);
   }
