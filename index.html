@@ -19,7 +19,8 @@
   <header>
     <div class="container nav-flex">
       <a href="index.html" class="logo-group">
-        <div class="logo-icon">A</div>
+        <!-- <div class="logo-icon">A</div> -->
+        <img src="./favicon.svg" alt="" style="width: 50px; height: 50px;">
         <div class="logo-text">Arts Posters</div>
       </a>
 
@@ -180,7 +181,7 @@
     const logoGroup = document.querySelector(".logo-group");
     if (logoGroup) {
       let pressTimer = null;
-      
+
       const startPress = (e) => {
         if (e.type === "touchstart") {
           e.preventDefault();
@@ -190,16 +191,16 @@
           window.location.href = "admin.html";
         }, 1200); // 1.2 seconds hold
       };
-      
+
       const endPress = () => {
         clearTimeout(pressTimer);
       };
-      
+
       // Desktop Mouse triggers
       logoGroup.addEventListener("mousedown", startPress);
       logoGroup.addEventListener("mouseup", endPress);
       logoGroup.addEventListener("mouseleave", endPress);
-      
+
       // Mobile Touch triggers
       logoGroup.addEventListener("touchstart", startPress, { passive: false });
       logoGroup.addEventListener("touchend", endPress);

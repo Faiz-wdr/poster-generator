@@ -1,34 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Creator Panel | Arts Program Result Poster Generator</title>
-  <meta name="description" content="Administrator control panel to manage program categories, winners, placements, templates, and layouts for the Arts Program Result Poster Generator.">
+  <meta name="description"
+    content="Administrator control panel to manage program categories, winners, placements, templates, and layouts for the Arts Program Result Poster Generator.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="css/style.css">
   <!-- html2canvas and interact.js CDNs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 </head>
+
 <body style="background-color: var(--bg-page);">
 
   <!-- Private Login Screen overlay -->
-  <div id="admin-login-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #1e1b4b, #311042); z-index: 100000; display: flex; align-items: center; justify-content: center; font-family: var(--font-body); color: white; transition: opacity 0.5s ease-out;">
-    <div style="width: 100%; max-width: 420px; padding: 40px; border-radius: var(--radius-card); background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center; box-sizing: border-box;">
-      <div class="logo-icon" style="margin: 0 auto 24px; font-size: 2.2rem; width: 64px; height: 64px; border-radius: 20px; font-family: var(--font-title); font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--pink-accent)); display: flex; align-items: center; justify-content: center; color: white;">A</div>
-      <h2 style="font-family: var(--font-title); font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; color: white;">Poster Admin Login</h2>
-      <p style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); margin-bottom: 32px;">Please authenticate to access the creator panel.</p>
-      
+  <div id="admin-login-screen"
+    style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #1e1b4b, #311042); z-index: 100000; display: flex; align-items: center; justify-content: center; font-family: var(--font-body); color: white; transition: opacity 0.5s ease-out;">
+    <div
+      style="width: 100%; max-width: 420px; padding: 40px; border-radius: var(--radius-card); background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center; box-sizing: border-box;">
+      <div class="logo-icon"
+        style="margin: 0 auto 24px; font-size: 2.2rem; width: 64px; height: 64px; border-radius: 20px; font-family: var(--font-title); font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--pink-accent)); display: flex; align-items: center; justify-content: center; color: white;">
+        A</div>
+      <h2
+        style="font-family: var(--font-title); font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; color: white;">
+        Poster Admin Login</h2>
+      <p style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); margin-bottom: 32px;">Please authenticate to access
+        the creator panel.</p>
+
       <form id="admin-login-form" style="display: flex; flex-direction: column; gap: 16px;">
         <div class="form-group" style="text-align: left; margin-bottom: 0;">
-          <label style="color: rgba(255, 255, 255, 0.8); font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; display: block;">Access Password</label>
-          <input type="password" id="admin-password-input" placeholder="••••••••" style="width: 100%; padding: 12px 18px; border-radius: var(--radius-input); border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(0, 0, 0, 0.2); color: white; font-family: var(--font-body); font-size: 1rem; box-sizing: border-box; text-align: center; letter-spacing: 2px;" required autofocus>
+          <label
+            style="color: rgba(255, 255, 255, 0.8); font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; display: block;">Access
+            Password</label>
+          <input type="password" id="admin-password-input" placeholder="••••••••"
+            style="width: 100%; padding: 12px 18px; border-radius: var(--radius-input); border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(0, 0, 0, 0.2); color: white; font-family: var(--font-body); font-size: 1rem; box-sizing: border-box; text-align: center; letter-spacing: 2px;"
+            required autofocus>
         </div>
-        
-        <div id="login-error-msg" style="color: #F87171; font-size: 0.85rem; font-weight: 600; display: none; text-align: center; margin-top: 4px; animation: shake 0.4s ease;">❌ Incorrect password. Try again!</div>
-        
-        <button type="submit" class="btn btn-primary" style="margin-top: 12px; font-weight: 700; padding: 14px 20px; font-size: 0.95rem; border-radius: var(--radius-btn); background: linear-gradient(135deg, var(--primary), var(--pink-accent)); border: none; cursor: pointer; color: white; transition: all 0.3s ease; box-shadow: 0 10px 20px -10px rgba(124, 58, 237, 0.5);">
+
+        <div id="login-error-msg"
+          style="color: #F87171; font-size: 0.85rem; font-weight: 600; display: none; text-align: center; margin-top: 4px; animation: shake 0.4s ease;">
+          ❌ Incorrect password. Try again!</div>
+
+        <button type="submit" class="btn btn-primary"
+          style="margin-top: 12px; font-weight: 700; padding: 14px 20px; font-size: 0.95rem; border-radius: var(--radius-btn); background: linear-gradient(135deg, var(--primary), var(--pink-accent)); border: none; cursor: pointer; color: white; transition: all 0.3s ease; box-shadow: 0 10px 20px -10px rgba(124, 58, 237, 0.5);">
           Unlock Panel →
         </button>
       </form>
@@ -37,35 +54,45 @@
 
   <style>
     @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-6px); }
-      75% { transform: translateX(6px); }
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-6px);
+      }
+
+      75% {
+        transform: translateX(6px);
+      }
     }
   </style>
 
   <script>
-    (function() {
+    (function () {
       // Check session storage first
       if (sessionStorage.getItem("admin_logged_in") === "true") {
         document.write('<style>#admin-login-screen { display: none !important; }</style>');
       }
-      
+
       window.addEventListener("DOMContentLoaded", () => {
         const loginScreen = document.getElementById("admin-login-screen");
         const loginForm = document.getElementById("admin-login-form");
         const passwordInput = document.getElementById("admin-password-input");
         const errorMsg = document.getElementById("login-error-msg");
-        
+
         if (sessionStorage.getItem("admin_logged_in") === "true") {
           if (loginScreen) loginScreen.style.display = "none";
           return;
         }
-        
+
         if (loginForm) {
           loginForm.addEventListener("submit", (e) => {
             e.preventDefault();
             const password = passwordInput.value;
-            
+
             if (password === "wdr654") {
               sessionStorage.setItem("admin_logged_in", "true");
               loginScreen.style.opacity = "0";
@@ -104,7 +131,7 @@
 
   <!-- MAIN ADMIN CONTAINER -->
   <div class="admin-container">
-    
+
     <!-- LEFT SIDEBAR -->
     <aside class="admin-sidebar" id="sidebar-menu">
       <div>
@@ -112,31 +139,47 @@
           <div class="logo-icon">P</div>
           <div class="logo-text">Poster Engine</div>
         </div>
-        
+
         <nav class="admin-nav">
           <div class="admin-nav-item active" data-tab="dashboard">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+            </svg>
             Dashboard
           </div>
           <div class="admin-nav-item" data-tab="upload">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             Upload Result
           </div>
           <div class="admin-nav-item" data-tab="templates">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
             Templates Editor
           </div>
           <div class="admin-nav-item" data-tab="published">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
             Published Results
           </div>
           <div class="admin-nav-item" data-tab="settings">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
             Settings
           </div>
         </nav>
       </div>
-      
+
       <div>
         <a href="index.html" class="btn btn-outline btn-sm" style="width: 100%;">
           View Public Site
@@ -146,7 +189,7 @@
 
     <!-- RIGHT CONTENT AREA -->
     <main class="admin-content">
-      
+
       <!-- 1. DASHBOARD VIEW -->
       <section id="tab-dashboard" class="tab-section active">
         <div class="admin-header">
@@ -160,7 +203,7 @@
             </button>
           </div>
         </div>
-        
+
         <!-- Bento Stats Grid -->
         <div class="bento-grid">
           <div class="bento-card bento-span-2 bento-gradient-cyan">
@@ -184,20 +227,22 @@
               <div class="bento-stat-label">Active Templates</div>
             </div>
           </div>
-          
+
           <div class="bento-card bento-span-3 bento-row-2">
             <h3 style="margin-bottom: 20px;">Recently Published</h3>
             <div class="results-list-container" id="dashboard-recent-list" style="gap: 12px; width: 100%;">
               <!-- Generated dynamically -->
             </div>
           </div>
-          
+
           <div class="bento-card bg-primary-gradient">
             <div>
               <h3 style="color: white; font-size: 1.4rem; margin-bottom: 12px;">Visual Layouts</h3>
-              <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 24px;">Configure and position your text fields on poster canvases with pixel-perfect resolution.</p>
+              <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 24px;">Configure and position your text fields
+                on poster canvases with pixel-perfect resolution.</p>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="switchTab('templates')" style="background-color: white; color: var(--primary); align-self: flex-start;">
+            <button class="btn btn-secondary btn-sm" onclick="switchTab('templates')"
+              style="background-color: white; color: var(--primary); align-self: flex-start;">
               Open Layout Editor
             </button>
           </div>
@@ -209,24 +254,26 @@
         <div class="admin-header">
           <div>
             <h1 id="upload-form-title">Upload Program Result</h1>
-            <p style="color: var(--text-secondary);">Create or update dynamic results and apply templates in real-time.</p>
+            <p style="color: var(--text-secondary);">Create or update dynamic results and apply templates in real-time.
+            </p>
           </div>
           <div>
             <button class="btn btn-outline" onclick="switchTab('dashboard')">Cancel</button>
           </div>
         </div>
-        
+
         <div class="upload-grid">
           <!-- Form Section -->
           <div class="card-form">
             <form id="result-publish-form">
               <input type="hidden" id="edit-result-id" value="">
-              
+
               <div class="form-group">
                 <label for="form-program-name">Program Name</label>
-                <input type="text" id="form-program-name" placeholder="e.g. Classical Violin Solo" required autocomplete="off">
+                <input type="text" id="form-program-name" placeholder="e.g. Classical Violin Solo" required
+                  autocomplete="off">
               </div>
-              
+
               <div class="form-group">
                 <label for="form-category">Category</label>
                 <select id="form-category" required>
@@ -238,54 +285,63 @@
                   <option value="Literature">Literature</option>
                 </select>
               </div>
-              
+
               <!-- 🏆 WINNERS DYNAMIC ROWS SECTION -->
-              <div style="background-color: rgba(124, 58, 237, 0.02); border: 1px solid rgba(124, 58, 237, 0.1); padding: 20px; border-radius: var(--radius-input); margin-bottom: 24px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-                  <label style="font-weight: 700; color: var(--primary); margin-bottom: 0;">🏆 Competition Winners & Standing Positions</label>
-                  <button type="button" class="btn btn-primary btn-sm" id="btn-add-winner-row" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700; border-radius: 9999px;">
+              <div
+                style="background-color: rgba(124, 58, 237, 0.02); border: 1px solid rgba(124, 58, 237, 0.1); padding: 20px; border-radius: var(--radius-input); margin-bottom: 24px;">
+                <div
+                  style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                  <label style="font-weight: 700; color: var(--primary); margin-bottom: 0;">🏆 Competition Winners &
+                    Standing Positions</label>
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-add-winner-row"
+                    style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700; border-radius: 9999px;">
                     + Add Winner Row
                   </button>
                 </div>
-                
+
                 <!-- Dynamic winners rows list container -->
                 <div id="winners-rows-container" style="display: flex; flex-direction: column; gap: 12px;">
                   <!-- Injected dynamically via JS -->
                 </div>
               </div>
-              
+
               <div class="form-group">
                 <label for="form-template-selector">Select Preview Template</label>
                 <select id="form-template-selector">
                   <!-- Templates populated dynamically -->
                 </select>
               </div>
-              
+
               <div style="display: flex; gap: 12px; margin-top: 32px;">
                 <button type="submit" class="btn btn-primary" style="flex-grow: 1;" id="btn-submit-result">
                   Publish Result Poster
                 </button>
                 <button type="button" class="btn btn-secondary" id="btn-download-preview" style="padding: 14px 20px;">
-                  ⬇️ Download
+                  Download
                 </button>
               </div>
             </form>
           </div>
-          
+
           <!-- Live Preview Column -->
           <div>
             <h3 style="margin-bottom: 16px; text-align: center;">Live Real-Time Poster Preview (4:5)</h3>
             <div class="poster-preview-container" id="preview-poster-wrap">
               <!-- Rendered by posterEngine -->
             </div>
-            
+
             <!-- Sleek Template Swapper Pill Bar -->
-            <div style="display: flex; align-items: center; justify-content: space-between; max-width: 480px; margin: 16px auto 0 auto; gap: 12px; background-color: var(--bg-surface); padding: 10px 20px; border-radius: 9999px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
-              <button type="button" class="btn btn-outline btn-sm" id="btn-prev-template" style="padding: 8px 16px; border-radius: 9999px; border-color: var(--border-color); font-weight: 700; font-size: 0.82rem;">
+            <div
+              style="display: flex; align-items: center; justify-content: space-between; max-width: 480px; margin: 16px auto 0 auto; gap: 12px; background-color: var(--bg-surface); padding: 10px 20px; border-radius: 9999px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-prev-template"
+                style="padding: 8px 16px; border-radius: 9999px; border-color: var(--border-color); font-weight: 700; font-size: 0.82rem;">
                 ◀ Prev Style
               </button>
-              <span style="font-weight: 800; font-size: 0.88rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;" id="lbl-active-template-name">Classic Elite</span>
-              <button type="button" class="btn btn-outline btn-sm" id="btn-next-template" style="padding: 8px 16px; border-radius: 9999px; border-color: var(--border-color); font-weight: 700; font-size: 0.82rem;">
+              <span
+                style="font-weight: 800; font-size: 0.88rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;"
+                id="lbl-active-template-name">Classic Elite</span>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-next-template"
+                style="padding: 8px 16px; border-radius: 9999px; border-color: var(--border-color); font-weight: 700; font-size: 0.82rem;">
                 Next Style ▶
               </button>
             </div>
@@ -302,15 +358,16 @@
         <div class="admin-header" style="margin-bottom: 24px;">
           <div>
             <h1>Visual Layout Template Editor</h1>
-            <p style="color: var(--text-secondary);">Drag and resize text layers. Configure fonts, sizes, and colors directly on the canvas.</p>
+            <p style="color: var(--text-secondary);">Drag and resize text layers. Configure fonts, sizes, and colors
+              directly on the canvas.</p>
           </div>
           <div>
             <button class="btn btn-primary" id="btn-save-template-layout">
-              💾 Save Layout Positions
+              Save Layout Positions
             </button>
           </div>
         </div>
-        
+
         <div class="editor-layout">
           <!-- Left Panel: Select & New Backgrounds -->
           <div class="editor-sidebar-left">
@@ -318,36 +375,40 @@
               <h3 style="font-size: 1.1rem; margin-bottom: 4px;">1. Template Select</h3>
               <p>Choose an active layout template to visually position text layers.</p>
             </div>
-            
+
             <div class="form-group">
               <select id="editor-template-select" style="background-color: var(--bg-page);">
                 <!-- Populated dynamically -->
               </select>
             </div>
-            
+
             <div class="editor-title-desc">
               <h3 style="font-size: 1.1rem; margin-bottom: 4px;">2. Active Text Layer</h3>
               <p>Click any layer on the canvas or select from this list below:</p>
             </div>
-            
-            <div class="editor-field-selector-list" id="editor-field-selector-list" style="border: 1px solid var(--border-color); border-radius: var(--radius-input); background-color: var(--bg-page); max-height: 280px; overflow-y: auto;">
+
+            <div class="editor-field-selector-list" id="editor-field-selector-list"
+              style="border: 1px solid var(--border-color); border-radius: var(--radius-input); background-color: var(--bg-page); max-height: 280px; overflow-y: auto;">
               <!-- Populated dynamically via js/admin.js -->
             </div>
-            
+
             <div class="editor-title-desc" style="margin-top: auto;">
               <h3 style="font-size: 1.1rem; margin-bottom: 4px;">3. Upload Custom Template</h3>
               <p>Add a brand new template by uploading background graphics.</p>
             </div>
-            
+
             <!-- Base64 background uploader -->
             <div class="bg-upload-box" id="template-upload-trigger">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
               <h4 style="font-size: 0.9rem; margin-bottom: 4px;">Upload PNG/JPG</h4>
               <p style="font-size: 0.75rem; color: var(--text-secondary);">Image ratio must be 4:5</p>
               <input type="file" id="template-bg-file-input" accept="image/png, image/jpeg" style="display: none;">
             </div>
           </div>
-          
+
           <!-- Middle Panel: Visual Canvas Area -->
           <div class="editor-canvas-area">
             <!-- Strict aspect preview scaled with transform -->
@@ -355,7 +416,7 @@
               <!-- Rendered canvas overlay elements powered by interact.js -->
             </div>
           </div>
-          
+
           <!-- Right Panel: Design and Typography Tuning -->
           <div class="editor-sidebar-right">
             <div class="editor-title-desc">
@@ -366,60 +427,80 @@
             </div>
 
             <!-- Position & Size Inputs -->
-            <div class="control-panel-group" style="background: rgba(124,58,237,0.04); border-radius: 10px; padding: 14px; border: 1px solid rgba(124,58,237,0.12);">
-              <h4 style="font-size: 0.88rem; font-weight: 800; margin-bottom: 10px; color: var(--primary);">📐 Position &amp; Size</h4>
+            <div class="control-panel-group"
+              style="background: rgba(124,58,237,0.04); border-radius: 10px; padding: 14px; border: 1px solid rgba(124,58,237,0.12);">
+              <h4 style="font-size: 0.88rem; font-weight: 800; margin-bottom: 10px; color: var(--primary);">📐 Position
+                &amp; Size</h4>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <div>
-                  <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 3px;">X (Left)</label>
-                  <input type="number" id="editor-pos-x" min="0" max="1080" placeholder="0" style="width: 100%; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; text-align: center; font-family: var(--font-body); font-size: 0.9rem; background: var(--bg-page);">
+                  <label
+                    style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 3px;">X
+                    (Left)</label>
+                  <input type="number" id="editor-pos-x" min="0" max="1080" placeholder="0"
+                    style="width: 100%; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; text-align: center; font-family: var(--font-body); font-size: 0.9rem; background: var(--bg-page);">
                 </div>
                 <div>
-                  <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 3px;">Y (Top)</label>
-                  <input type="number" id="editor-pos-y" min="0" max="1350" placeholder="0" style="width: 100%; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; text-align: center; font-family: var(--font-body); font-size: 0.9rem; background: var(--bg-page);">
+                  <label
+                    style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 3px;">Y
+                    (Top)</label>
+                  <input type="number" id="editor-pos-y" min="0" max="1350" placeholder="0"
+                    style="width: 100%; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; text-align: center; font-family: var(--font-body); font-size: 0.9rem; background: var(--bg-page);">
                 </div>
                 <div>
-                  <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 3px;">Width</label>
-                  <input type="number" id="editor-pos-w" min="50" max="1080" placeholder="200" style="width: 100%; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; text-align: center; font-family: var(--font-body); font-size: 0.9rem; background: var(--bg-page);">
+                  <label
+                    style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 3px;">Width</label>
+                  <input type="number" id="editor-pos-w" min="50" max="1080" placeholder="200"
+                    style="width: 100%; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; text-align: center; font-family: var(--font-body); font-size: 0.9rem; background: var(--bg-page);">
                 </div>
                 <div>
-                  <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 3px;">Height</label>
-                  <input type="number" id="editor-pos-h" min="30" max="1350" placeholder="60" style="width: 100%; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; text-align: center; font-family: var(--font-body); font-size: 0.9rem; background: var(--bg-page);">
+                  <label
+                    style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 3px;">Height</label>
+                  <input type="number" id="editor-pos-h" min="30" max="1350" placeholder="60"
+                    style="width: 100%; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; text-align: center; font-family: var(--font-body); font-size: 0.9rem; background: var(--bg-page);">
                 </div>
               </div>
-              <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 6px;">Values in pixels (canvas: 1080 × 1350). Arrow keys also move selected layer.</p>
+              <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 6px;">Values in pixels (canvas:
+                1080 × 1350). Arrow keys also move selected layer.</p>
             </div>
-            
+
             <!-- Layer Visibility Control -->
-            <div class="control-panel-group" style="background: rgba(236,72,153,0.02); border-radius: 10px; padding: 14px; border: 1px solid rgba(236,72,153,0.12); margin-top: 14px;">
-              <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; user-select: none; color: var(--text-primary);">
-                <input type="checkbox" id="editor-field-visibility" style="width: 18px; height: 18px; accent-color: var(--primary);">
+            <div class="control-panel-group"
+              style="background: rgba(236,72,153,0.02); border-radius: 10px; padding: 14px; border: 1px solid rgba(236,72,153,0.12); margin-top: 14px;">
+              <label
+                style="display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; user-select: none; color: var(--text-primary);">
+                <input type="checkbox" id="editor-field-visibility"
+                  style="width: 18px; height: 18px; accent-color: var(--primary);">
                 <span>👁️ Layer Visible on Poster</span>
               </label>
-              <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.3;">Hidden layers will not be exported or displayed on public posters.</p>
+              <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.3;">Hidden
+                layers will not be exported or displayed on public posters.</p>
             </div>
-            
+
             <!-- Font Selection Dropdown -->
             <div class="control-panel-group">
               <label>Font Family</label>
-              <select id="editor-font-family-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--bg-page); font-weight: 600; font-family: var(--font-body);">
+              <select id="editor-font-family-select"
+                style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--bg-page); font-weight: 600; font-family: var(--font-body);">
                 <option value="Plus Jakarta Sans">Plus Jakarta Sans (Modern Sans)</option>
                 <option value="Outfit">Outfit (Geometric Bold)</option>
                 <option value="Playfair Display">Playfair Display (Elegant Serif)</option>
               </select>
             </div>
-            
+
             <!-- Font Size with Range and Number Input -->
             <div class="control-panel-group">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                 <label>Font Size (pixels)</label>
                 <div style="display: flex; align-items: center; gap: 6px;">
-                  <input type="number" id="editor-font-size-input" min="16" max="130" value="60" style="width: 70px; padding: 6px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; text-align: center; font-family: var(--font-body);">
+                  <input type="number" id="editor-font-size-input" min="16" max="130" value="60"
+                    style="width: 70px; padding: 6px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; text-align: center; font-family: var(--font-body);">
                   <span style="font-weight: 700; font-size: 0.9rem;">px</span>
                 </div>
               </div>
-              <input type="range" id="editor-font-size-slider" min="16" max="130" value="60" style="width: 100%; accent-color: var(--primary);">
+              <input type="range" id="editor-font-size-slider" min="16" max="130" value="60"
+                style="width: 100%; accent-color: var(--primary);">
             </div>
-            
+
             <!-- Text Alignment -->
             <div class="control-panel-group">
               <label>Text Alignment</label>
@@ -429,13 +510,14 @@
                 <button class="align-toggle-btn" data-align="right">Right</button>
               </div>
             </div>
-            
+
             <!-- Text Color with Hex input -->
             <div class="control-panel-group">
               <label>Text Color</label>
               <div class="color-swatches" id="editor-color-swatches">
                 <div class="color-swatch" style="background-color: #111827;" data-color="#111827"></div>
-                <div class="color-swatch" style="background-color: #FFFFFF; border: 1px solid #C5C7CB;" data-color="#FFFFFF"></div>
+                <div class="color-swatch" style="background-color: #FFFFFF; border: 1px solid #C5C7CB;"
+                  data-color="#FFFFFF"></div>
                 <div class="color-swatch" style="background-color: #7C3AED;" data-color="#7C3AED"></div>
                 <div class="color-swatch" style="background-color: #06B6D4;" data-color="#06B6D4"></div>
                 <div class="color-swatch" style="background-color: #F59E0B;" data-color="#F59E0B"></div>
@@ -446,20 +528,24 @@
                 <div class="color-swatch" style="background-color: #9CA3AF;" data-color="#9CA3AF"></div>
               </div>
               <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
-                <input type="color" id="editor-custom-color-picker" style="width: 44px; height: 32px; border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; padding: 0;">
-                <input type="text" id="editor-custom-color-hex" placeholder="#111827" style="width: 100px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 700; text-align: center; text-transform: uppercase; font-family: var(--font-body);">
+                <input type="color" id="editor-custom-color-picker"
+                  style="width: 44px; height: 32px; border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; padding: 0;">
+                <input type="text" id="editor-custom-color-hex" placeholder="#111827"
+                  style="width: 100px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 700; text-align: center; text-transform: uppercase; font-family: var(--font-body);">
                 <span style="font-size: 0.85rem; color: var(--text-secondary);">HEX</span>
               </div>
             </div>
-            
+
             <!-- Alignment Snapping Tool -->
             <div class="control-panel-group" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
               <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 4px;">Edge Alignment Tool</h4>
-              <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px;">Fit/snap selected layer(s) to match another layer's boundary edges.</p>
-              
+              <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px;">Fit/snap selected
+                layer(s) to match another layer's boundary edges.</p>
+
               <div class="form-group" style="margin-bottom: 12px;">
                 <label style="font-size: 0.75rem;">Reference Layer</label>
-                <select id="editor-align-ref-select" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; background-color: var(--bg-page); font-weight: 600; font-family: var(--font-body);">
+                <select id="editor-align-ref-select"
+                  style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; background-color: var(--bg-page); font-weight: 600; font-family: var(--font-body);">
                   <option value="programName">Program Name</option>
                   <option value="category">Category</option>
                   <option value="winner_1_pos">Winner 1 Position</option>
@@ -482,12 +568,16 @@
                   <option value="winner_6_team">Winner 6 Team</option>
                 </select>
               </div>
-              
+
               <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                <button class="btn btn-outline btn-sm" id="btn-snap-left" style="padding: 10px 4px; font-size: 0.78rem;">Align Lefts</button>
-                <button class="btn btn-outline btn-sm" id="btn-snap-center" style="padding: 10px 4px; font-size: 0.78rem;">Align Centers</button>
-                <button class="btn btn-outline btn-sm" id="btn-snap-right" style="padding: 10px 4px; font-size: 0.78rem;">Align Rights</button>
-                <button class="btn btn-outline btn-sm" id="btn-snap-width" style="padding: 10px 4px; font-size: 0.78rem;">Match Width</button>
+                <button class="btn btn-outline btn-sm" id="btn-snap-left"
+                  style="padding: 10px 4px; font-size: 0.78rem;">Align Lefts</button>
+                <button class="btn btn-outline btn-sm" id="btn-snap-center"
+                  style="padding: 10px 4px; font-size: 0.78rem;">Align Centers</button>
+                <button class="btn btn-outline btn-sm" id="btn-snap-right"
+                  style="padding: 10px 4px; font-size: 0.78rem;">Align Rights</button>
+                <button class="btn btn-outline btn-sm" id="btn-snap-width"
+                  style="padding: 10px 4px; font-size: 0.78rem;">Match Width</button>
               </div>
             </div>
 
@@ -495,27 +585,37 @@
             <div class="control-panel-group" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
               <h4 style="font-size: 0.88rem; font-weight: 800; margin-bottom: 8px;">↩ Undo / Redo</h4>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <button class="btn btn-outline btn-sm" id="btn-editor-undo" style="padding: 8px 4px; font-size: 0.78rem;">↩ Undo <span style='font-size:0.65rem; opacity:0.7'>(Ctrl+Z)</span></button>
-                <button class="btn btn-outline btn-sm" id="btn-editor-redo" style="padding: 8px 4px; font-size: 0.78rem;">↪ Redo <span style='font-size:0.65rem; opacity:0.7'>(Ctrl+⇧Z)</span></button>
+                <button class="btn btn-outline btn-sm" id="btn-editor-undo"
+                  style="padding: 8px 4px; font-size: 0.78rem;">↩ Undo <span
+                    style='font-size:0.65rem; opacity:0.7'>(Ctrl+Z)</span></button>
+                <button class="btn btn-outline btn-sm" id="btn-editor-redo"
+                  style="padding: 8px 4px; font-size: 0.78rem;">↪ Redo <span
+                    style='font-size:0.65rem; opacity:0.7'>(Ctrl+⇧Z)</span></button>
               </div>
             </div>
 
             <!-- Layer Selection Notice / Selection status -->
             <div class="control-panel-group" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
-              <div style="background-color: var(--primary-light); padding: 12px; border-radius: 12px; border: 1px dashed rgba(124,58,237,0.3);">
-                <h4 style="font-size: 0.85rem; color: var(--primary); display: flex; align-items: center; gap: 6px; font-weight: 800;">
+              <div
+                style="background-color: var(--primary-light); padding: 12px; border-radius: 12px; border: 1px dashed rgba(124,58,237,0.3);">
+                <h4
+                  style="font-size: 0.85rem; color: var(--primary); display: flex; align-items: center; gap: 6px; font-weight: 800;">
                   💡 Layer Selection
                 </h4>
-                <p style="font-size: 0.72rem; color: var(--primary); margin-top: 4px; line-height: 1.4; font-weight: 500;">
-                  Hold <strong>Ctrl</strong> (or <strong>Cmd</strong>) while clicking canvas layers or selecting from list to choose multiple elements.
+                <p
+                  style="font-size: 0.72rem; color: var(--primary); margin-top: 4px; line-height: 1.4; font-weight: 500;">
+                  Hold <strong>Ctrl</strong> (or <strong>Cmd</strong>) while clicking canvas layers or selecting from
+                  list to choose multiple elements.
                 </p>
-                <div id="editor-selection-status" style="font-size: 0.75rem; font-weight: 700; margin-top: 8px; color: var(--pink-accent);">
+                <div id="editor-selection-status"
+                  style="font-size: 0.75rem; font-weight: 700; margin-top: 8px; color: var(--pink-accent);">
                   1 layer selected
                 </div>
               </div>
             </div>
-            
-            <div class="editor-title-desc" style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: auto;">
+
+            <div class="editor-title-desc"
+              style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: auto;">
               <h4 style="font-size: 0.9rem; margin-bottom: 4px;">Drag &amp; Resize Guidelines:</h4>
               <ul style="font-size: 0.75rem; color: var(--text-secondary); padding-left: 14px;">
                 <li>Drag anywhere inside a field box to position.</li>
@@ -541,13 +641,17 @@
             </button>
           </div>
         </div>
-        
+
         <div class="search-filter-bar">
           <div class="search-input-wrapper">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="search-icon" style="width: 20px; height: 20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              class="search-icon" style="width: 20px; height: 20px;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input type="text" id="admin-search-results" placeholder="Search program name or winner names...">
           </div>
-          
+
           <div class="filter-pills" id="admin-category-filters">
             <button class="filter-pill active" data-category="All">All Categories</button>
             <button class="filter-pill" data-category="Music">Music</button>
@@ -556,7 +660,7 @@
             <button class="filter-pill" data-category="Theatre">Theatre</button>
           </div>
         </div>
-        
+
         <div class="results-list-container" id="published-results-list" style="margin-top: 24px;">
           <!-- Rendered Dynamically -->
         </div>
@@ -570,29 +674,32 @@
             <p style="color: var(--text-secondary);">Customize brand titles and perform system maintenance.</p>
           </div>
         </div>
-        
+
         <div class="settings-grid">
           <!-- Info Details -->
           <div class="card-form">
-            <h3 style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">General Branding</h3>
-            
+            <h3 style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">General
+              Branding</h3>
+
             <div class="form-group">
               <label for="settings-institution">Host Academy/Institution Title</label>
               <input type="text" id="settings-institution" placeholder="e.g. National Academy of Arts">
             </div>
-            
+
             <button class="btn btn-primary" id="btn-save-settings" style="margin-top: 16px;">
               Save Settings
             </button>
           </div>
-          
+
           <!-- System Settings -->
           <div class="card-form" style="border-color: rgba(239,68,68,0.2);">
-            <h3 style="margin-bottom: 24px; color: #EF4444; border-bottom: 1px solid #FEE2E2; padding-bottom: 8px;">Maintenance & Reset</h3>
+            <h3 style="margin-bottom: 24px; color: #EF4444; border-bottom: 1px solid #FEE2E2; padding-bottom: 8px;">
+              Maintenance & Reset</h3>
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 24px;">
-              Resetting will wipe out all custom results, custom background uploads, and editor coordinate adjustments, reverting the system to default pre-seeded state.
+              Resetting will wipe out all custom results, custom background uploads, and editor coordinate adjustments,
+              reverting the system to default pre-seeded state.
             </p>
-            
+
             <button class="btn btn-danger" id="btn-factory-reset">
               ⚠️ Factory Reset Database
             </button>
@@ -608,4 +715,5 @@
   <script src="js/engine.js"></script>
   <script src="js/admin.js"></script>
 </body>
+
 </html>

@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>View Poster Details | Arts Program Result Poster Generator</title>
-  <meta name="description" content="View details, customize layout, and download dynamic high-resolution posters for this arts competition result.">
+  <meta name="description"
+    content="View details, customize layout, and download dynamic high-resolution posters for this arts competition result.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
+
 <body>
 
   <!-- GLOBAL PREMIUM NAVIGATION -->
@@ -18,7 +21,7 @@
         <div class="logo-icon">A</div>
         <div class="logo-text">Arts Posters</div>
       </a>
-      
+
       <nav class="nav-links" id="desktop-nav">
         <a href="index.html">Home</a>
         <a href="gallery.html">Results Gallery</a>
@@ -40,10 +43,11 @@
 
   <!-- RESULT DETAIL SPLIT SECTION -->
   <main class="container section-padding" style="padding-top: 40px;">
-    
+
     <!-- Breadcrumb -->
     <div style="margin-bottom: 24px;">
-      <a href="gallery.html" style="font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 6px;">
+      <a href="gallery.html"
+        style="font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 6px;">
         ← Back to Results Gallery
       </a>
     </div>
@@ -54,18 +58,19 @@
         <div class="poster-preview-container" id="detail-poster-wrap">
           <!-- Rendered dynamically by posterEngine -->
         </div>
-        
+
         <div style="display: flex; flex-direction: column; width: 100%; max-width: 480px; gap: 12px; margin-top: 24px;">
           <button class="btn btn-primary" id="btn-detail-download" style="width: 100%;">
-            ⬇️ Download Poster (High-Res JPG)
+            Download Poster (High-Res JPG)
           </button>
-          
+
           <!-- Admin helper buttons -->
           <div style="display: flex; gap: 12px;" id="admin-actions-shortcut">
             <button class="btn btn-outline btn-sm" id="btn-admin-edit" style="flex-grow: 1; padding: 12px;">
               ✏️ Edit Result Details
             </button>
-            <button class="btn btn-outline btn-sm btn-danger" id="btn-admin-delete" style="flex-grow: 1; padding: 12px; color: #EF4444; border-color: #FEE2E2;">
+            <button class="btn btn-outline btn-sm btn-danger" id="btn-admin-delete"
+              style="flex-grow: 1; padding: 12px; color: #FFFFFF; border-color: #FEE2E2;">
               🗑️ Delete Result
             </button>
           </div>
@@ -76,17 +81,19 @@
       <div class="detail-sidebar">
         <span class="badge badge-primary" id="detail-badge-category" style="margin-bottom: 12px;">Category</span>
         <h1 id="detail-program-name">Program Name</h1>
-        
+
         <div class="detail-divider"></div>
-        
+
         <h3 style="font-size: 1.15rem; margin-bottom: 16px; color: var(--text-secondary);">🎖️ Placement Standings</h3>
-        
+
         <!-- Placement stand cards container -->
         <div id="detail-winners-list" style="display: flex; flex-direction: column; gap: 12px;">
           <div class="winner-item winner-item-1">
             <div class="winner-place winner-place-1">1st</div>
             <div>
-              <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">First Place Champion</div>
+              <div
+                style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">
+                First Place Champion</div>
               <div class="winner-name" id="detail-winner-1">First Place Name</div>
             </div>
           </div>
@@ -94,7 +101,9 @@
           <div class="winner-item winner-item-2">
             <div class="winner-place winner-place-2">2nd</div>
             <div>
-              <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Second Place Winner</div>
+              <div
+                style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">
+                Second Place Winner</div>
               <div class="winner-name" id="detail-winner-2">Second Place Name</div>
             </div>
           </div>
@@ -102,19 +111,22 @@
           <div class="winner-item winner-item-3">
             <div class="winner-place winner-place-3">3rd</div>
             <div>
-              <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Third Place Winner</div>
+              <div
+                style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">
+                Third Place Winner</div>
               <div class="winner-name" id="detail-winner-3">Third Place Name</div>
             </div>
           </div>
         </div>
 
         <div class="detail-divider"></div>
-        
+
         <!-- Live Swapping Template Picker -->
         <div>
           <h3 style="font-size: 1.15rem; margin-bottom: 8px;">🎨 Apply Brand Layout Style</h3>
-          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px;">Click any layout thumbnail below to instantly apply event graphics and typography structures.</p>
-          
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px;">Click any layout thumbnail
+            below to instantly apply event graphics and typography structures.</p>
+
           <div class="template-slider-container" style="margin: 0;">
             <div class="template-slider" id="detail-template-picker" style="padding-bottom: 12px;">
               <!-- Populated dynamically via js/main.js -->
@@ -132,13 +144,16 @@
         <div class="footer-logo-desc">
           <div class="logo-group">
             <div class="logo-icon" style="color: #111827; background: white;">A</div>
-            <div class="logo-text" style="background: white; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Arts Posters</div>
+            <div class="logo-text"
+              style="background: white; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Arts
+              Posters</div>
           </div>
           <p>
-            An elite, responsive generation system for overlaying competition results onto brand assets and printing pixel-perfect posters.
+            An elite, responsive generation system for overlaying competition results onto brand assets and printing
+            pixel-perfect posters.
           </p>
         </div>
-        
+
         <div class="footer-links-col">
           <h4>Navigation</h4>
           <ul>
@@ -167,12 +182,12 @@
   <!-- Core Scripts -->
   <script src="js/db.js"></script>
   <script src="js/engine.js"></script>
-  
+
   <!-- Client JavaScript Drawer binding -->
   <script>
     const publicHamburger = document.getElementById("public-hamburger");
     const mobileNav = document.getElementById("mobile-nav");
-    
+
     if (publicHamburger && mobileNav) {
       publicHamburger.addEventListener("click", () => {
         mobileNav.classList.toggle("open");
@@ -184,7 +199,7 @@
     const logoGroup = document.querySelector(".logo-group");
     if (logoGroup) {
       let pressTimer = null;
-      
+
       const startPress = (e) => {
         if (e.type === "touchstart") {
           e.preventDefault();
@@ -194,16 +209,16 @@
           window.location.href = "admin.html";
         }, 1200); // 1.2 seconds hold
       };
-      
+
       const endPress = () => {
         clearTimeout(pressTimer);
       };
-      
+
       // Desktop Mouse triggers
       logoGroup.addEventListener("mousedown", startPress);
       logoGroup.addEventListener("mouseup", endPress);
       logoGroup.addEventListener("mouseleave", endPress);
-      
+
       // Mobile Touch triggers
       logoGroup.addEventListener("touchstart", startPress, { passive: false });
       logoGroup.addEventListener("touchend", endPress);
@@ -212,4 +227,5 @@
   </script>
   <script src="js/main.js"></script>
 </body>
+
 </html>
