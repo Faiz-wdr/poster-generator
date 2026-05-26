@@ -1,9 +1,35 @@
 /**
- * Database Persistence Module using LocalStorage
- * seeds default templates and sample result data.
+ * Database Module — Supabase Cloud Backend
+ * All persistence is handled via Supabase REST API.
  */
 
-const DB_PREFIX = "arts_posters_";
+// ─── STEP 1: Initialize Supabase client FIRST ───────────────────────────────
+// The supabase variable must be declared and assigned before the db object
+// so that all method closures can reference the live client correctly.
+
+const { createClient } = window.supabase || {};
+
+let supabase = null;
+
+if (
+  typeof createClient === "function" &&
+  window.ENV &&
+  window.ENV.SUPABASE_URL &&
+  window.ENV.SUPABASE_ANON_KEY
+) {
+  supabase = createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
+  console.log("✅ Supabase client initialized successfully.");
+} else {
+  console.error("❌ Supabase client could NOT be initialized. Check config.js and the CDN import.", {
+    hasCreateClient: typeof createClient === "function",
+    hasWindowSupabase: !!window.supabase,
+    hasENV: !!window.ENV,
+    hasUrl: !!(window.ENV && window.ENV.SUPABASE_URL),
+    hasKey: !!(window.ENV && window.ENV.SUPABASE_ANON_KEY)
+  });
+}
+
+// ─── DEFAULT SEED DATA ───────────────────────────────────────────────────────
 
 const DEFAULT_TEMPLATES = [
   {
@@ -196,45 +222,57 @@ const DEFAULT_RESULTS = [
   }
 ];
 
+// ─── STEP 2: Define db object AFTER supabase is initialized ──────────────────
+// All methods safely reference the `supabase` variable above via closure.
+
 const db = {
-  // --- UTILS ---
+
+  // ── UTILS ──────────────────────────────────────────────────────────────────
   isConfigured() {
     return supabase !== null;
   },
 
   showDbError(action, errorObj) {
-    const msg = errorObj ? (errorObj.message || errorObj) : "Unknown error";
-    console.error(`Database Error during ${action}:`, errorObj);
-    
-    // Check if DOM is loaded
-    if (typeof document === 'undefined' || !document.body) return;
-    
+    const msg = errorObj ? (errorObj.message || String(errorObj)) : "Unknown error";
+    console.error(`Database Error during "${action}":`, errorObj);
+
+    if (typeof document === "undefined" || !document.body) return;
+
     let banner = document.getElementById("supabase-error-banner");
     if (!banner) {
       banner = document.createElement("div");
       banner.id = "supabase-error-banner";
-      banner.style = "background: #FEE2E2; color: #991B1B; padding: 12px 20px; border-bottom: 2px solid #FCA5A5; font-family: system-ui, sans-serif; font-size: 0.9rem; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; gap: 8px;";
+      banner.style = [
+        "background:#FEE2E2",
+        "color:#991B1B",
+        "padding:12px 20px",
+        "border-bottom:2px solid #FCA5A5",
+        "font-family:system-ui,sans-serif",
+        "font-size:0.9rem",
+        "font-weight:600",
+        "text-align:center",
+        "position:sticky",
+        "top:0",
+        "z-index:999999",
+        "display:flex",
+        "align-items:center",
+        "justify-content:center",
+        "gap:8px"
+      ].join(";");
       document.body.insertBefore(banner, document.body.firstChild);
     }
-    banner.innerHTML = `⚠️ <strong>Database Error (${action}):</strong> ${msg} (Check your Supabase Dashboard or RLS Policies)`;
+    banner.innerHTML = `⚠️ <strong>DB Error (${action}):</strong> ${msg} — Check Supabase Dashboard → Table Editor & RLS Policies`;
   },
 
-  // --- RESULTS API ---
+  // ── RESULTS ────────────────────────────────────────────────────────────────
   async getResults() {
-    if (!this.isConfigured()) {
-      let results = localStorage.getItem(DB_PREFIX + "results");
-      if (!results) {
-        localStorage.setItem(DB_PREFIX + "results", JSON.stringify(DEFAULT_RESULTS));
-        return DEFAULT_RESULTS;
-      }
-      const list = JSON.parse(results);
-      list.sort((a, b) => new Date(b.created || 0) - new Date(a.created || 0));
-      return list;
+    if (!supabase) {
+      console.error("getResults(): Supabase not initialized.");
+      return [];
     }
-    
-    // Fetch results and join with placements
+
     const { data, error } = await supabase
-      .from('results')
+      .from("results")
       .select(`
         id,
         programName:program_name,
@@ -246,57 +284,50 @@ const db = {
           team
         )
       `)
-      .order('created_at', { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) {
       this.showDbError("fetching results", error);
       return [];
     }
 
-    // Auto-seed mock results if database is completely empty
+    // Auto-seed if DB is completely empty
     if (!data || data.length === 0) {
-      console.log("No results found in Supabase. Seeding default winners mock database...");
+      console.log("No results in DB — seeding defaults...");
       for (const r of DEFAULT_RESULTS) {
-        const { error: resErr } = await supabase.from('results').insert({
+        const { error: resErr } = await supabase.from("results").insert({
           id: r.id,
           program_name: r.programName,
           category: r.category
         });
-        if (resErr) {
-          console.error("Error seeding result:", resErr);
-          continue;
-        }
+        if (resErr) { console.error("Seed result error:", resErr); continue; }
+
         const placements = r.winners.map(w => ({
           result_id: r.id,
           position: w.position,
           name: w.name,
           team: w.team
         }));
-        await supabase.from('placements').insert(placements);
+        await supabase.from("placements").insert(placements);
       }
       return DEFAULT_RESULTS;
     }
 
-    // Sort placements by position inside each result for uniform standing lists
-    if (data) {
-      data.forEach(r => {
-        if (r.winners) {
-          r.winners.sort((a, b) => (a.position || "").localeCompare(b.position || ""));
-        }
-      });
-    }
+    // Sort placements by position
+    data.forEach(r => {
+      if (r.winners) {
+        r.winners.sort((a, b) => (a.position || "").localeCompare(b.position || ""));
+      }
+    });
 
-    return data || [];
+    return data;
   },
 
   async getResult(id) {
-    if (!this.isConfigured()) {
-      const results = await this.getResults();
-      return results.find(r => r.id === id) || null;
-    }
+    if (!supabase) { console.error("getResult(): Supabase not initialized."); return null; }
 
     const { data, error } = await supabase
-      .from('results')
+      .from("results")
       .select(`
         id,
         programName:program_name,
@@ -308,13 +339,10 @@ const db = {
           team
         )
       `)
-      .eq('id', id)
+      .eq("id", id)
       .single();
 
-    if (error) {
-      console.error("Error fetching result:", error);
-      return null;
-    }
+    if (error) { this.showDbError("fetching result", error); return null; }
 
     if (data && data.winners) {
       data.winners.sort((a, b) => (a.position || "").localeCompare(b.position || ""));
@@ -324,56 +352,26 @@ const db = {
   },
 
   async saveResult(resultData) {
-    const id = resultData.id || "result_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
-    
-    if (!this.isConfigured()) {
-      const results = await this.getResults();
-      
-      const newResult = {
-        ...resultData,
-        id,
-        created: resultData.created || new Date().toISOString()
-      };
-      
-      const idx = results.findIndex(r => r.id === id);
-      if (idx !== -1) {
-        results[idx] = newResult;
-      } else {
-        results.push(newResult);
-      }
-      
-      localStorage.setItem(DB_PREFIX + "results", JSON.stringify(results));
-      return newResult;
-    }
+    if (!supabase) { console.error("saveResult(): Supabase not initialized."); return null; }
 
-    // 1. Upsert into results table
-    const resultRow = {
-      id: id,
+    const id = resultData.id || "result_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+
+    // 1. Upsert result row
+    const { error: resultErr } = await supabase.from("results").upsert({
+      id,
       program_name: resultData.programName,
       category: resultData.category
-    };
+    });
+    if (resultErr) { this.showDbError("saving result", resultErr); return null; }
 
-    const { error: resultErr } = await supabase
-      .from('results')
-      .upsert(resultRow);
-
-    if (resultErr) {
-      this.showDbError("saving results table", resultErr);
-      return null;
-    }
-
-    // 2. Clear existing placements for this result
+    // 2. Delete existing placements
     const { error: delErr } = await supabase
-      .from('placements')
+      .from("placements")
       .delete()
-      .eq('result_id', id);
+      .eq("result_id", id);
+    if (delErr) { console.error("Error deleting placements:", delErr); return null; }
 
-    if (delErr) {
-      console.error("Error deleting placements:", delErr);
-      return null;
-    }
-
-    // 3. Insert newly added placements
+    // 3. Insert new placements
     const placements = (resultData.winners || []).map(w => ({
       result_id: id,
       position: w.position,
@@ -382,267 +380,153 @@ const db = {
     }));
 
     if (placements.length > 0) {
-      const { error: insErr } = await supabase
-        .from('placements')
-        .insert(placements);
-
-      if (insErr) {
-        this.showDbError("inserting placements table", insErr);
-        return null;
-      }
+      const { error: insErr } = await supabase.from("placements").insert(placements);
+      if (insErr) { this.showDbError("inserting placements", insErr); return null; }
     }
 
     return { ...resultData, id };
   },
 
   async deleteResult(id) {
-    if (!this.isConfigured()) {
-      let results = await this.getResults();
-      results = results.filter(r => r.id !== id);
-      localStorage.setItem(DB_PREFIX + "results", JSON.stringify(results));
-      return true;
-    }
+    if (!supabase) { console.error("deleteResult(): Supabase not initialized."); return false; }
 
-    // Relational ON DELETE CASCADE automatically sweeps linked placements!
-    const { error } = await supabase
-      .from('results')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error("Error deleting result:", error);
-      return false;
-    }
+    const { error } = await supabase.from("results").delete().eq("id", id);
+    if (error) { this.showDbError("deleting result", error); return false; }
     return true;
   },
 
-  // --- TEMPLATES API ---
+  // ── TEMPLATES ──────────────────────────────────────────────────────────────
   async getTemplates() {
-    if (!this.isConfigured()) {
-      let templates = localStorage.getItem(DB_PREFIX + "templates");
-      if (!templates) {
-        localStorage.setItem(DB_PREFIX + "templates", JSON.stringify(DEFAULT_TEMPLATES));
-        return DEFAULT_TEMPLATES;
-      }
-      return JSON.parse(templates);
-    }
+    if (!supabase) { console.error("getTemplates(): Supabase not initialized."); return []; }
 
     const { data, error } = await supabase
-      .from('templates')
-      .select('*')
-      .order('created_at', { ascending: true });
+      .from("templates")
+      .select("*")
+      .order("created_at", { ascending: true });
 
-    if (error) {
-      this.showDbError("fetching templates", error);
-      return [];
-    }
+    if (error) { this.showDbError("fetching templates", error); return []; }
 
-    // Auto-seed templates table if database is completely empty
+    // Auto-seed if empty
     if (!data || data.length === 0) {
-      console.log("No templates found in Supabase. Seeding default visual templates...");
-      const { error: seedErr } = await supabase
-        .from('templates')
-        .insert(DEFAULT_TEMPLATES);
-
-      if (seedErr) {
-        console.error("Error seeding default templates:", seedErr);
-        return [];
-      }
+      console.log("No templates in DB — seeding defaults...");
+      const { error: seedErr } = await supabase.from("templates").insert(DEFAULT_TEMPLATES);
+      if (seedErr) { console.error("Error seeding templates:", seedErr); return []; }
       return DEFAULT_TEMPLATES;
     }
 
-    return data || [];
+    return data;
   },
 
   async getTemplate(id) {
-    if (!this.isConfigured()) {
-      const templates = await this.getTemplates();
-      return templates.find(t => t.id === id) || null;
-    }
+    if (!supabase) { console.error("getTemplate(): Supabase not initialized."); return null; }
 
     const { data, error } = await supabase
-      .from('templates')
-      .select('*')
-      .eq('id', id)
+      .from("templates")
+      .select("*")
+      .eq("id", id)
       .single();
 
-    if (error) {
-      console.error("Error fetching template:", error);
-      return null;
-    }
+    if (error) { this.showDbError("fetching template", error); return null; }
     return data;
   },
 
   async saveTemplate(templateData) {
-    if (!this.isConfigured()) {
-      const templates = await this.getTemplates();
-      const idx = templates.findIndex(t => t.id === templateData.id);
-      
-      const cleanTemplate = {
-        id: templateData.id,
-        name: templateData.name,
-        background: templateData.background,
-        fields: templateData.fields
-      };
-      
-      if (idx !== -1) {
-        templates[idx] = cleanTemplate;
-      } else {
-        templates.push(cleanTemplate);
-      }
-      
-      localStorage.setItem(DB_PREFIX + "templates", JSON.stringify(templates));
-      return templateData;
-    }
+    if (!supabase) { console.error("saveTemplate(): Supabase not initialized."); return null; }
 
-    // Strip created_at to avoid database overwrite constraints
-    const cleanTemplate = {
+    const { error } = await supabase.from("templates").upsert({
       id: templateData.id,
       name: templateData.name,
       background: templateData.background,
       fields: templateData.fields
-    };
+    });
 
-    const { error } = await supabase
-      .from('templates')
-      .upsert(cleanTemplate);
-
-    if (error) {
-      this.showDbError("saving template", error);
-      return null;
-    }
+    if (error) { this.showDbError("saving template", error); return null; }
     return templateData;
   },
 
   async deleteTemplate(id) {
-    if (!this.isConfigured()) {
-      let templates = await this.getTemplates();
-      templates = templates.filter(t => t.id !== id);
-      localStorage.setItem(DB_PREFIX + "templates", JSON.stringify(templates));
-      return true;
-    }
+    if (!supabase) { console.error("deleteTemplate(): Supabase not initialized."); return false; }
 
-    const { error } = await supabase
-      .from('templates')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error("Error deleting template:", error);
-      return false;
-    }
+    const { error } = await supabase.from("templates").delete().eq("id", id);
+    if (error) { this.showDbError("deleting template", error); return false; }
     return true;
   },
 
-  // --- STORAGE IMAGE UPLOADS ---
+  // ── STORAGE ────────────────────────────────────────────────────────────────
   async uploadTemplateBackground(file, fileName) {
-    if (!this.isConfigured()) {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = (err) => {
-          console.error("FileReader error:", err);
-          resolve(null);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
+    if (!supabase) { console.error("uploadTemplateBackground(): Supabase not initialized."); return null; }
 
     const cleanName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, "_")}`;
-    const { data, error } = await supabase
-      .storage
-      .from('template-backgrounds')
-      .upload(cleanName, file, {
-        cacheControl: '3600',
-        upsert: true
-      });
+    const { error } = await supabase.storage
+      .from("template-backgrounds")
+      .upload(cleanName, file, { cacheControl: "3600", upsert: true });
 
-    if (error) {
-      this.showDbError("uploading template background to storage", error);
-      return null;
-    }
+    if (error) { this.showDbError("uploading template background", error); return null; }
 
-    // Resolve public URL for database storage
-    const { data: urlData } = supabase
-      .storage
-      .from('template-backgrounds')
+    const { data: urlData } = supabase.storage
+      .from("template-backgrounds")
       .getPublicUrl(cleanName);
 
     return urlData ? urlData.publicUrl : null;
   },
 
-  // --- SETTINGS API ---
+  // ── SETTINGS (stored in Supabase templates table as a special row) ─────────
+  // Simple implementation: store settings in localStorage only for non-critical prefs
   async getSettings() {
-    let settings = localStorage.getItem(DB_PREFIX + "settings");
-    if (!settings) {
-      settings = {
-        institutionName: "National Academy of Creative Arts",
-        enableFirebasePlaceholder: false,
-        theme: "light-premium"
-      };
-      localStorage.setItem(DB_PREFIX + "settings", JSON.stringify(settings));
-      return settings;
-    }
-    return JSON.parse(settings);
+    try {
+      const raw = localStorage.getItem("arts_poster_settings");
+      if (raw) return JSON.parse(raw);
+    } catch (e) { /* ignore */ }
+    return {
+      institutionName: "Wandoor Sector Sahityotsav",
+      theme: "light-premium"
+    };
   },
 
   async saveSettings(settingsData) {
-    const current = await this.getSettings();
-    localStorage.setItem(DB_PREFIX + "settings", JSON.stringify({ ...current, ...settingsData }));
+    try {
+      const current = await this.getSettings();
+      localStorage.setItem("arts_poster_settings", JSON.stringify({ ...current, ...settingsData }));
+    } catch (e) { /* ignore */ }
     return true;
   },
 
-  // --- DATABASE FACTORY RESET ---
+  // ── FACTORY RESET ──────────────────────────────────────────────────────────
   async resetToDefault() {
-    if (!this.isConfigured()) {
-      localStorage.removeItem(DB_PREFIX + "results");
-      localStorage.removeItem(DB_PREFIX + "templates");
-      localStorage.removeItem(DB_PREFIX + "settings");
-      return true;
-    }
+    if (!supabase) { console.error("resetToDefault(): Supabase not initialized."); return false; }
 
-    // 1. Wipe out tables using clean delete operators
-    await supabase.from('placements').delete().neq('result_id', 'dummy');
-    await supabase.from('results').delete().neq('id', 'dummy');
-    await supabase.from('templates').delete().neq('id', 'dummy');
+    // Wipe tables
+    await supabase.from("placements").delete().neq("result_id", "___dummy___");
+    await supabase.from("results").delete().neq("id", "___dummy___");
+    await supabase.from("templates").delete().neq("id", "___dummy___");
 
-    // 2. Re-seed default layouts
-    const { error: tempErr } = await supabase.from('templates').insert(DEFAULT_TEMPLATES);
-    if (tempErr) console.error("Error seeding templates:", tempErr);
+    // Reseed templates
+    const { error: tErr } = await supabase.from("templates").insert(DEFAULT_TEMPLATES);
+    if (tErr) console.error("Reseed templates error:", tErr);
 
-    // 3. Re-seed default mock results
+    // Reseed results
     for (const r of DEFAULT_RESULTS) {
-      const { error: resErr } = await supabase.from('results').insert({
+      const { error: rErr } = await supabase.from("results").insert({
         id: r.id,
         program_name: r.programName,
         category: r.category
       });
-      if (resErr) {
-        console.error("Error seeding result:", resErr);
-        continue;
-      }
+      if (rErr) { console.error("Reseed result error:", rErr); continue; }
+
       const placements = r.winners.map(w => ({
         result_id: r.id,
         position: w.position,
         name: w.name,
         team: w.team
       }));
-      await supabase.from('placements').insert(placements);
+      await supabase.from("placements").insert(placements);
     }
 
     return true;
   }
 };
 
-// Expose credentials configurations
-const { createClient } = window.supabase || {};
-let supabase = null;
-
-if (window.supabase && window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY) {
-  supabase = createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
-} else {
-  console.warn("Supabase credentials missing! Please configure js/config.js");
-}
-
-// Export window namespace
+// ─── STEP 3: Expose globally ─────────────────────────────────────────────────
 window.db = db;
+
+console.log("db.js loaded. Supabase configured:", db.isConfigured());

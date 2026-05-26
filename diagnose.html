@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase Backend Diagnostic Tool</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f3f4f6;
+      color: #1f2937;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      background: white;
+      max-width: 680px;
+      width: 100%;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #7c3aed;
+      margin-top: 0;
+      font-size: 1.8rem;
+      border-bottom: 2px solid #f3f4f6;
+      padding-bottom: 12px;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    .success {
+      background-color: #def7ec;
+      color: #03543f;
+    }
+    .error {
+      background-color: #fde8e8;
+      color: #9b1c1c;
+    }
+    .info {
+      background-color: #e1effe;
+      color: #1e429f;
+    }
+    .test-step {
+      margin-bottom: 16px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+    .test-step.passed {
+      border-left: 4px solid #31c48d;
+    }
+    .test-step.failed {
+      border-left: 4px solid #f98080;
+    }
+    .step-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .step-desc {
+      font-size: 0.85rem;
+      color: #6b7280;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    pre {
+      background: #1f2937;
+      color: #f9fafb;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      max-height: 200px;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #7c3aed;
+      color: white;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 20px;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background-color: #6d28d9;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔌 Supabase Cloud Connection Diagnostic</h1>
+    
+    <div id="overall-status" class="status-badge info">Running Diagnostics...</div>
+    
+    <div id="diagnostics-log">
+      <!-- Injected dynamically -->
+    </div>
+    
+    <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+      <a href="index.html" class="btn">Go to Public Site</a>
+      <a href="admin.html" class="btn" style="background-color: #374151;">Go to Admin Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Loading scripts to diagnose -->
+  <script src="js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <script>
+    const logContainer = document.getElementById("diagnostics-log");
+    const statusBadge = document.getElementById("overall-status");
+    let allPassed = true;
+
+    function addLogStep(title, passed, details, isRaw = false) {
+      const step = document.createElement("div");
+      step.className = `test-step ${passed ? 'passed' : 'failed'}`;
+      
+      step.innerHTML = `
+        <div class="step-title">
+          <span>${title}</span>
+          <span>${passed ? '✅ PASSED' : '❌ FAILED'}</span>
+        </div>
+        <div class="step-desc">${isRaw ? details : escapeHtml(details)}</div>
+      `;
+      logContainer.appendChild(step);
+      if (!passed) allPassed = false;
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    async function runDiagnostics() {
+      // Step 1: Check Protocol
+      const isLocalFile = window.location.protocol === 'file:';
+      addLogStep(
+        "Browser Protocol Check",
+        !isLocalFile,
+        isLocalFile 
+          ? "Running via file:// protocol! Browser security blocks Supabase requests in this mode. You MUST open this through localhost:8080."
+          : `Running via HTTP protocol: ${window.location.origin}`
+      );
+
+      // Step 2: Check window.ENV config
+      const hasConfig = window.ENV && window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY;
+      addLogStep(
+        "Config File (js/config.js) Check",
+        hasConfig,
+        hasConfig
+          ? `SUPABASE_URL: ${window.ENV.SUPABASE_URL}\nSUPABASE_ANON_KEY: ${window.ENV.SUPABASE_ANON_KEY.substring(0, 20)}...`
+          : "Credentials missing or empty in js/config.js!"
+      );
+
+      // Step 3: Check Supabase Library
+      const hasLib = typeof supabase !== 'undefined' || (window.supabase && typeof window.supabase.createClient === 'function');
+      addLogStep(
+        "Supabase JS Library Loader Check",
+        hasLib,
+        hasLib
+          ? "Library successfully loaded from jsDelivr CDN!"
+          : "Supabase library not loaded! Check internet connection or CDN blocks."
+      );
+
+      if (hasConfig && hasLib) {
+        try {
+          const clientClass = window.supabase ? window.supabase.createClient : supabase.createClient;
+          const testClient = clientClass(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
+          
+          addLogStep(
+            "Client Instance Creation Check",
+            !!testClient,
+            "Supabase client object initialized successfully in memory."
+          );
+
+          // Step 4: Network Database Fetch Test
+          const { data, error } = await testClient
+            .from('results')
+            .select(`
+              id,
+              program_name,
+              category,
+              placements (
+                position,
+                name,
+                team
+              )
+            `);
+
+          if (error) {
+            addLogStep(
+              "Database Connection & Query Test",
+              false,
+              `Database returned error: ${error.message} (Code: ${error.code})`
+            );
+          } else {
+            addLogStep(
+              "Database Connection & Query Test",
+              true,
+              `Successfully queried public.results! Found ${data.length} records.`,
+              false
+            );
+
+            // Display raw returned records
+            const pre = document.createElement("pre");
+            pre.innerText = JSON.stringify(data, null, 2);
+            logContainer.appendChild(pre);
+          }
+
+        } catch (e) {
+          addLogStep(
+            "Unexpected Client Runtime Exception",
+            false,
+            e.stack || e.message
+          );
+        }
+      }
+
+      // Final status update
+      if (allPassed) {
+        statusBadge.className = "status-badge success";
+        statusBadge.innerText = "🟢 All Connections Healthy & Fully Functional!";
+      } else {
+        statusBadge.className = "status-badge error";
+        statusBadge.innerText = "🔴 Connection Failures Detected!";
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", runDiagnostics);
+  </script>
+</body>
+</html>

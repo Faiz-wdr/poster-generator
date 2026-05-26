@@ -36,22 +36,22 @@ function runMainController() {
     if (!result) return document.createElement("div");
     const row = document.createElement("div");
     row.className = "result-list-item";
-    
+
     let winnersList = "";
     const winners = result.winners || [];
-    
+
     // Filter first place winners ("01" or "1")
     const firstPlaceWinners = winners.filter(w => w && (w.position === "01" || w.position === "1"));
     // Fallback to first winner in array if no explicit first place found
     const topWinners = firstPlaceWinners.length > 0 ? firstPlaceWinners : (winners.length > 0 && winners[0] ? [winners[0]] : []);
-    
+
     topWinners.forEach(w => {
       if (w) {
         if (winnersList) winnersList += " & ";
         winnersList += (w.name || "") + (w.team ? ` (${w.team})` : "");
       }
     });
-    
+
     const displayWinners = winnersList || "[ No Winners Registered ]";
 
     row.innerHTML = `
@@ -91,7 +91,7 @@ function runMainController() {
     if (nextTemplateBtn) {
       const newNextBtn = nextTemplateBtn.cloneNode(true);
       nextTemplateBtn.parentNode.replaceChild(newNextBtn, nextTemplateBtn);
-      
+
       newNextBtn.addEventListener("click", () => {
         activeTemplateIndex = (activeTemplateIndex + 1) % templates.length;
         activeTemplate = templates[activeTemplateIndex];
@@ -103,7 +103,7 @@ function runMainController() {
     if (downloadBtn) {
       const newDownloadBtn = downloadBtn.cloneNode(true);
       downloadBtn.parentNode.replaceChild(newDownloadBtn, downloadBtn);
-      
+
       newDownloadBtn.addEventListener("click", () => {
         posterEngine.exportJpg(modalPosterWrap, `${result.programName}.jpg`);
       });
@@ -124,14 +124,14 @@ function runMainController() {
 
     const homeStatResults = document.getElementById("home-stat-results");
     if (homeStatResults) homeStatResults.innerText = results.length;
-    
+
     const cats = new Set(results.map(r => r ? (r.category || "") : ""));
     const homeStatCategories = document.getElementById("home-stat-categories");
     if (homeStatCategories) homeStatCategories.innerText = cats.size || 0;
-    
+
     const homeStatTemplates = document.getElementById("home-stat-templates");
     if (homeStatTemplates) homeStatTemplates.innerText = templates.length;
-    
+
     const homeStatInstitution = document.getElementById("home-stat-institution");
     if (homeStatInstitution) homeStatInstitution.innerText = settings.institutionName || "Arts Academy";
 
@@ -143,7 +143,7 @@ function runMainController() {
     const latestListContainer = document.getElementById("home-results-list");
     if (latestListContainer) {
       latestListContainer.innerHTML = "";
-      
+
       const latestList = results.slice(0, 3);
       if (latestList.length === 0) {
         latestListContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 40px; font-weight: 600; width: 100%;">No published results available yet.</div>`;
@@ -171,7 +171,7 @@ function runMainController() {
         img.style.backgroundImage = `url("${t.background}")`;
         img.style.backgroundSize = "cover";
         img.style.backgroundPosition = "center";
-        
+
         const label = document.createElement("div");
         label.className = "template-slide-name";
         label.innerText = t.name;
@@ -199,7 +199,7 @@ function runMainController() {
       pill.addEventListener("click", () => {
         pills.forEach(p => p.classList.remove("active"));
         pill.classList.add("active");
-        
+
         activeGalleryCategory = pill.dataset.category;
         renderGalleryList();
       });
@@ -212,10 +212,10 @@ function runMainController() {
       if (!listContainer) return;
 
       listContainer.innerHTML = "";
-      
+
       const searchInput = document.getElementById("gallery-search");
       const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : "";
-      
+
       let results = await db.getResults() || [];
 
       if (activeGalleryCategory !== "All") {
@@ -223,11 +223,11 @@ function runMainController() {
       }
 
       if (searchVal) {
-        results = results.filter(r => 
+        results = results.filter(r =>
           r && (
             (r.programName || "").toLowerCase().includes(searchVal) ||
             (r.category || "").toLowerCase().includes(searchVal) ||
-            (r.winners || []).some(w => 
+            (r.winners || []).some(w =>
               w && (
                 (w.name || "").toLowerCase().includes(searchVal) ||
                 (w.position || "").toLowerCase().includes(searchVal) ||
@@ -257,7 +257,7 @@ function runMainController() {
   async function initDetailPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const resultId = urlParams.get("id");
-    
+
     if (!resultId) {
       alert("No result identifier provided!");
       window.location.href = "gallery.html";
@@ -273,20 +273,20 @@ function runMainController() {
 
     document.getElementById("detail-badge-category").innerText = result.category;
     document.getElementById("detail-program-name").innerText = result.programName;
-    
+
     const winnersListContainer = document.getElementById("detail-winners-list");
     if (winnersListContainer) {
       winnersListContainer.innerHTML = "";
       const winners = result.winners || [];
-      
+
       winners.forEach((w, idx) => {
         const item = document.createElement("div");
-        
+
         let placeNum = w.position || "01";
         let medalLabel = placeNum;
         let rankClass = "others";
         let titleLabel = `Winner Position ${placeNum}`;
-        
+
         if (placeNum === "01" || placeNum === "1") {
           medalLabel = "1st";
           rankClass = "1";
@@ -307,7 +307,7 @@ function runMainController() {
 
         item.className = `winner-item winner-item-${rankClass}`;
         item.style.alignItems = "flex-start";
-        
+
         item.innerHTML = `
           <div class="winner-place winner-place-${rankClass}" style="font-size: 0.9rem; font-weight: 800; text-transform: uppercase;">${medalLabel}</div>
           <div style="flex-grow: 1;">
@@ -324,22 +324,22 @@ function runMainController() {
     const templates = await db.getTemplates();
     const pickerWrap = document.getElementById("detail-template-picker");
     const posterWrap = document.getElementById("detail-poster-wrap");
-    
+
     let activeTemplate = templates[0];
-    
+
     posterEngine.render(posterWrap, result, activeTemplate);
 
     pickerWrap.innerHTML = "";
     templates.forEach(t => {
       const slide = document.createElement("div");
       slide.className = "template-slide" + (t.id === activeTemplate.id ? " active" : "");
-      
+
       const img = document.createElement("div");
       img.className = "template-slide-img";
       img.style.backgroundImage = `url("${t.background}")`;
       img.style.backgroundSize = "cover";
       img.style.backgroundPosition = "center";
-      
+
       const label = document.createElement("div");
       label.className = "template-slide-name";
       label.innerText = t.name;

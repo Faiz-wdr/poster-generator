@@ -7,6 +7,7 @@
  *   echo "window.ENV = { SUPABASE_URL: '$SUPABASE_URL', SUPABASE_ANON_KEY: '$SUPABASE_ANON_KEY' };" > js/config.js
  */
 window.ENV = {
-  SUPABASE_URL: "https://ujmqljrgzmugqzrmhapt.supabase.co",
-  SUPABASE_ANON_KEY: "sb_publishable_QJXt8AmwNViPZaKvwsgCSg_7WO4QluV"
+  SUPABASE_URL: "https://ojtzjiosapraquwxvere.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_Pcm_YbdZLfNndtrHwVTjlA_UILIyZn-"
 };
+
