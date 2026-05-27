@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import interact from 'interactjs';
-import { getTemplates, saveTemplate, uploadTemplateBackground } from '../../lib/db';
+import { getTemplates, saveTemplate, uploadTemplateBackground, deleteTemplate } from '../../lib/db';
 import { posterEngine } from '../../lib/posterEngine';
 import { DEFAULT_TEMPLATES } from '../../data/defaults';
-import { Undo, Redo, Save, CheckCircle, Upload, Eye, EyeOff, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Undo, Redo, Save, CheckCircle, Upload, Eye, EyeOff, AlignLeft, AlignCenter, AlignRight, Trash2 } from 'lucide-react';
 
 const COLOR_SWATCHES = [
   '#111827', '#7C3AED', '#EC4899', '#F59E0B', '#10B981',
@@ -53,6 +53,20 @@ export default function TemplateEditor() {
     setActiveFieldId(null);
     setUndoStack([]);
     setRedoStack([]);
+  };
+
+  const handleDeleteTemplate = async (id, name) => {
+    if (!window.confirm(`Delete template "${name}"? This cannot be undone.`)) return;
+    const ok = await deleteTemplate(id);
+    if (ok) {
+      const updated = await getTemplates();
+      setTemplates(updated);
+      if (currentTemplate?.id === id && updated.length) {
+        selectTemplate(updated[0]);
+      }
+    } else {
+      alert('Failed to delete template.');
+    }
   };
 
   // Render editor canvas when template structure or values change
@@ -347,14 +361,25 @@ export default function TemplateEditor() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {templates.map(tpl => (
-                <button
-                  key={tpl.id}
-                  className={`field-selector-btn ${currentTemplate?.id === tpl.id ? 'active' : ''}`}
-                  onClick={() => selectTemplate(tpl)}
-                >
-                  {tpl.name}
-                  {currentTemplate?.id === tpl.id && <span>✓</span>}
-                </button>
+                <div key={tpl.id} style={{ display: 'flex', gap: 6, width: '100%' }}>
+                  <button
+                    className={`field-selector-btn ${currentTemplate?.id === tpl.id ? 'active' : ''}`}
+                    onClick={() => selectTemplate(tpl)}
+                    style={{ flexGrow: 1, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <span>{tpl.name}</span>
+                    {currentTemplate?.id === tpl.id && <span style={{ marginLeft: 6 }}>✓</span>}
+                  </button>
+                  <button
+                    className="btn btn-outline"
+                    onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
+                    style={{ padding: '8px 12px', borderColor: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title={`Delete template "${tpl.name}"`}
+                    disabled={templates.length <= 1}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               ))}
             </div>
           </div>

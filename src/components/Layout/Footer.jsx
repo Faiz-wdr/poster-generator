@@ -26,18 +26,18 @@ export default function Footer() {
           </div>
 
           <div className="footer-links-col">
-            <h4>Templates</h4>
+            <h4>Socials</h4>
             <ul>
-              <li><Link to="/admin/templates">Classic Elite</Link></li>
-              <li><Link to="/admin/templates">Cyber Pulse</Link></li>
-              <li><Link to="/admin/templates">Sunset Glow</Link></li>
+              <li><Link to="https://www.facebook.com/ssfwandoor/">Facebook</Link></li>
+              <li><Link to="https://www.instagram.com/ssfwandoorsector?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==">Instagram</Link></li>
+              <li><Link to="https://wa.me/918086199683">WhatsApp</Link></li>
             </ul>
           </div>
         </div>
 
         <div className="footer-bottom">
-          <p>© 2026 Arts Result Posters Generator. All rights reserved.</p>
-          <p>Built with React, Vite & Supabase</p>
+          <p>© 2026 Wandoor Sector Sahityotsav. All rights reserved.</p>
+          <p>Built with ❤️ for Wandoor Sector</p>
         </div>
       </div>
     </footer>
