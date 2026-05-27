@@ -27,7 +27,7 @@ export default function Header() {
           onTouchEnd={endPress}
         >
           {/* <div className="logo-icon">B</div> */}
-          <img src="./favicon.svg" alt="Logo" />
+          <img src="/favicon.svg" alt="Logo" />
           <div className="logo-text">Sahityotsav </div>
         </Link>
 
