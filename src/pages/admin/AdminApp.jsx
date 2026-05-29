@@ -5,18 +5,18 @@ import PublishResult from './PublishResult';
 import TemplateEditor from './TemplateEditor';
 import PublishedResults from './PublishedResults';
 import Settings from './Settings';
-import { 
-  LayoutDashboard, 
-  PlusCircle, 
-  Palette, 
-  ClipboardList, 
-  Settings as SettingsIcon, 
-  LogOut, 
-  ArrowLeft, 
-  AlertCircle 
+import {
+  LayoutDashboard,
+  PlusCircle,
+  Palette,
+  ClipboardList,
+  Settings as SettingsIcon,
+  LogOut,
+  ArrowLeft,
+  AlertCircle
 } from 'lucide-react';
 
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'wdr654';
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'wdr456';
 
 function LoginScreen({ onLogin }) {
   const [pw, setPw] = useState('');
