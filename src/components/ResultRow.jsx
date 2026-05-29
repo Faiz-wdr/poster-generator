@@ -21,7 +21,10 @@ export default function ResultRow({ result, onOpenModal, actionSlot }) {
       <div className="result-list-main">
         <span className="badge badge-primary result-list-category">{result.category}</span>
         <div className="result-list-title-wrap">
-          <div className="result-list-title">{result.programName}</div>
+          <div className="result-list-title">
+            {result.resultNo && <span style={{ color: 'var(--primary)', marginRight: 8 }}>#{result.resultNo}</span>}
+            {result.programName}
+          </div>
           {winnerSummary && (
             <div className="result-list-winner">
               {winners.map((w, i) => (

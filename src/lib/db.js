@@ -33,7 +33,15 @@ function saveLocalResults(results) {
 function getLocalTemplates() {
   try {
     const raw = localStorage.getItem('arts_poster_templates');
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      parsed.forEach(t => {
+        if (t.fields && !t.fields.resultNo) {
+          t.fields.resultNo = { left: 90, top: 160, width: 900, height: 40, fontSize: 24, color: '#7C3AED', align: 'center', shadow: false, visible: true };
+        }
+      });
+      return parsed;
+    }
   } catch (e) {
     console.error("Failed to parse local templates", e);
   }
@@ -62,6 +70,7 @@ export async function getResults() {
       .from('results')
       .select(`
         id,
+        resultNo:result_no,
         programName:program_name,
         category,
         created:created_at,
@@ -77,7 +86,7 @@ export async function getResults() {
     if (!data || data.length === 0) {
       // Auto-seed
       for (const r of DEFAULT_RESULTS) {
-        await supabase.from('results').insert({ id: r.id, program_name: r.programName, category: r.category });
+        await supabase.from('results').insert({ id: r.id, program_name: r.programName, category: r.category, result_no: r.resultNo });
         await supabase.from('placements').insert(r.winners.map(w => ({ result_id: r.id, ...w })));
       }
       return DEFAULT_RESULTS;
@@ -102,6 +111,7 @@ export async function getResult(id) {
       .from('results')
       .select(`
         id,
+        resultNo:result_no,
         programName:program_name,
         category,
         created:created_at,
@@ -142,7 +152,7 @@ export async function saveResult(resultData) {
 
   try {
     const { error: resErr } = await supabase.from('results').upsert({
-      id, program_name: resultData.programName, category: resultData.category,
+      id, program_name: resultData.programName, category: resultData.category, result_no: resultData.resultNo
     });
     if (resErr) { showDbError('saving result', resErr); return null; }
 
@@ -209,6 +219,11 @@ export async function getTemplates() {
       await supabase.from('templates').insert(DEFAULT_TEMPLATES);
       return DEFAULT_TEMPLATES;
     }
+    data.forEach(t => {
+      if (t.fields && !t.fields.resultNo) {
+        t.fields.resultNo = { left: 90, top: 160, width: 900, height: 40, fontSize: 24, color: '#7C3AED', align: 'center', shadow: false, visible: true };
+      }
+    });
     return data;
   } catch (e) {
     showDbError('fetching templates exception', e);
@@ -228,6 +243,9 @@ export async function getTemplate(id) {
       showDbError('fetching template', error);
       const templates = getLocalTemplates();
       return templates.find(t => t.id === id) || null;
+    }
+    if (data && data.fields && !data.fields.resultNo) {
+      data.fields.resultNo = { left: 90, top: 160, width: 900, height: 40, fontSize: 24, color: '#7C3AED', align: 'center', shadow: false, visible: true };
     }
     return data;
   } catch (e) {
@@ -356,7 +374,7 @@ export async function resetToDefault() {
     await supabase.from('templates').insert(DEFAULT_TEMPLATES);
 
     for (const r of DEFAULT_RESULTS) {
-      await supabase.from('results').insert({ id: r.id, program_name: r.programName, category: r.category });
+      await supabase.from('results').insert({ id: r.id, program_name: r.programName, category: r.category, result_no: r.resultNo });
       await supabase.from('placements').insert(r.winners.map(w => ({ result_id: r.id, ...w })));
     }
     return true;

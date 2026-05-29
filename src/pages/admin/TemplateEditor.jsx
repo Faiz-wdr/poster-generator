@@ -73,7 +73,7 @@ export default function TemplateEditor() {
   useEffect(() => {
     if (!canvasWrapRef.current || !currentTemplate) return;
     const dummyResult = { programName: 'Program Name', category: 'Category', winners: [] };
-    
+
     // Render using latest selections from refs to prevent rendering triggers
     posterEngine.render(canvasWrapRef.current, dummyResult, currentTemplate, {
       editable: true,
@@ -92,7 +92,7 @@ export default function TemplateEditor() {
         setActiveFieldId(fKey);
       },
     });
-    
+
     // Re-setup interact after canvas DOM elements are created
     setupInteract();
   }, [currentTemplate]);
@@ -199,7 +199,7 @@ export default function TemplateEditor() {
 
   // Cleanup interact on unmount
   useEffect(() => {
-    return () => { try { interact('.editable-active .poster-field').unset(); } catch {} };
+    return () => { try { interact('.editable-active .poster-field').unset(); } catch { } };
   }, []);
 
   // Keyboard arrow nudge + undo/redo
@@ -208,8 +208,8 @@ export default function TemplateEditor() {
       const tag = e.target.tagName.toLowerCase();
       const inInput = ['input', 'select', 'textarea'].includes(tag) || e.target.isContentEditable;
 
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); applyUndo(); return; }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); applyRedo(); return; }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); applyUndo(); return; }
+      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) { e.preventDefault(); applyRedo(); return; }
       if (inInput) return;
 
       let dx = 0, dy = 0;
@@ -328,7 +328,7 @@ export default function TemplateEditor() {
         <div>
           <h1 style={{ fontSize: '2rem', marginBottom: 4 }}>Template Editor</h1>
           <p style={{ color: 'var(--text-secondary)' }}>
-            Drag, resize and style text fields on the poster canvas. Ctrl+Z to undo.
+            Drag, resize and style text fields on the poster canvas
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>

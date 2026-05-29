@@ -82,7 +82,10 @@ export default function Dashboard() {
                   <tbody>
                     {recent.map(r => (
                       <tr key={r.id}>
-                        <td style={{ fontWeight: 700 }}>{r.programName}</td>
+                        <td style={{ fontWeight: 700 }}>
+                          {r.resultNo && <span style={{ color: 'var(--primary)', marginRight: 8, fontStyle: 'normal' }}>#{r.resultNo}</span>}
+                          {r.programName}
+                        </td>
                         <td><span className="badge badge-primary">{r.category}</span></td>
                         <td style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                           {r.winners?.length || 0} placements

@@ -51,6 +51,7 @@ const DEFAULT_TEMPLATES = [
       </svg>
     `.trim())}`,
     fields: {
+      resultNo:      { left: 90,  top: 160, width: 900, height: 40,  fontSize: 24, color: "#7C3AED", align: "center", shadow: false, visible: true },
       programName:   { left: 90,  top: 200, width: 900, height: 160, fontSize: 72, color: "#7C3AED", align: "center", shadow: false, visible: true },
       category:      { left: 290, top: 380, width: 500, height: 60,  fontSize: 32, color: "#EC4899", align: "center", shadow: false, visible: true },
       winner_1_pos:  { left: 140, top: 480, width: 90,  height: 80,  fontSize: 32, color: "#F59E0B", align: "left",   shadow: false, visible: true },
@@ -102,6 +103,7 @@ const DEFAULT_TEMPLATES = [
       </svg>
     `.trim())}`,
     fields: {
+      resultNo:      { left: 80,  top: 110, width: 920, height: 40,  fontSize: 20, color: "#06B6D4", align: "center", shadow: false, visible: true },
       programName:   { left: 80,  top: 150, width: 920, height: 180, fontSize: 80, color: "#111827", align: "center", shadow: false, visible: true },
       category:      { left: 290, top: 350, width: 500, height: 60,  fontSize: 30, color: "#06B6D4", align: "center", shadow: false, visible: true },
       winner_1_pos:  { left: 100, top: 450, width: 90,  height: 80,  fontSize: 30, color: "#06B6D4", align: "left",   shadow: false, visible: true },
@@ -151,6 +153,7 @@ const DEFAULT_TEMPLATES = [
       </svg>
     `.trim())}`,
     fields: {
+      resultNo:      { left: 100, top: 150, width: 880, height: 40,  fontSize: 20, color: "#F59E0B", align: "center", shadow: false, visible: true },
       programName:   { left: 100, top: 190, width: 880, height: 160, fontSize: 76, color: "#F59E0B", align: "center", shadow: false, visible: true },
       category:      { left: 290, top: 370, width: 500, height: 60,  fontSize: 28, color: "#EC4899", align: "center", shadow: false, visible: true },
       winner_1_pos:  { left: 100, top: 470, width: 90,  height: 80,  fontSize: 28, color: "#EC4899", align: "left",   shadow: false, visible: true },
@@ -178,6 +181,7 @@ const DEFAULT_TEMPLATES = [
 const DEFAULT_RESULTS = [
   {
     id: "result-1",
+    resultNo: "01",
     programName: "Classical Violin Symphony Solo",
     category: "Junior",
     winners: [
@@ -189,6 +193,7 @@ const DEFAULT_RESULTS = [
   },
   {
     id: "result-2",
+    resultNo: "02",
     programName: "Contemporary Fusion Ballet",
     category: "High School",
     winners: [
@@ -200,6 +205,7 @@ const DEFAULT_RESULTS = [
   },
   {
     id: "result-3",
+    resultNo: "03",
     programName: "Dynamic Canvas Oil Painting",
     category: "Higher Secondary",
     winners: [
@@ -211,6 +217,7 @@ const DEFAULT_RESULTS = [
   },
   {
     id: "result-4",
+    resultNo: "04",
     programName: "Shakespearean Dramatic Soliloquy",
     category: "Senior",
     winners: [
@@ -275,6 +282,7 @@ const db = {
       .from("results")
       .select(`
         id,
+        resultNo:result_no,
         programName:program_name,
         category,
         created:created_at,
@@ -298,7 +306,8 @@ const db = {
         const { error: resErr } = await supabase.from("results").insert({
           id: r.id,
           program_name: r.programName,
-          category: r.category
+          category: r.category,
+          result_no: r.resultNo
         });
         if (resErr) { console.error("Seed result error:", resErr); continue; }
 
@@ -330,6 +339,7 @@ const db = {
       .from("results")
       .select(`
         id,
+        resultNo:result_no,
         programName:program_name,
         category,
         created:created_at,
@@ -360,7 +370,8 @@ const db = {
     const { error: resultErr } = await supabase.from("results").upsert({
       id,
       program_name: resultData.programName,
-      category: resultData.category
+      category: resultData.category,
+      result_no: resultData.resultNo
     });
     if (resultErr) { this.showDbError("saving result", resultErr); return null; }
 
@@ -414,6 +425,12 @@ const db = {
       return DEFAULT_TEMPLATES;
     }
 
+    data.forEach(t => {
+      if (t.fields && !t.fields.resultNo) {
+        t.fields.resultNo = { left: 90, top: 160, width: 900, height: 40, fontSize: 24, color: "#7C3AED", align: "center", shadow: false, visible: true };
+      }
+    });
+
     return data;
   },
 
@@ -427,6 +444,11 @@ const db = {
       .single();
 
     if (error) { this.showDbError("fetching template", error); return null; }
+    
+    if (data && data.fields && !data.fields.resultNo) {
+      data.fields.resultNo = { left: 90, top: 160, width: 900, height: 40, fontSize: 24, color: "#7C3AED", align: "center", shadow: false, visible: true };
+    }
+    
     return data;
   },
 
@@ -509,7 +531,8 @@ const db = {
       const { error: rErr } = await supabase.from("results").insert({
         id: r.id,
         program_name: r.programName,
-        category: r.category
+        category: r.category,
+        result_no: r.resultNo
       });
       if (rErr) { console.error("Reseed result error:", rErr); continue; }
 

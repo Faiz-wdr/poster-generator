@@ -58,7 +58,10 @@ function runMainController() {
       <div class="result-list-main">
         <span class="badge badge-primary result-list-category">${result.category || "General"}</span>
         <div class="result-list-title-wrap">
-          <div class="result-list-title">${result.programName || "[ Unnamed Program ]"}</div>
+          <div class="result-list-title">
+            ${result.resultNo ? `<span style="color:var(--primary);margin-right:8px;">#${result.resultNo}</span>` : ""}
+            ${result.programName || "[ Unnamed Program ]"}
+          </div>
           <div class="result-list-winner">🥇 Top Winner(s): <strong>${displayWinners}</strong></div>
         </div>
       </div>

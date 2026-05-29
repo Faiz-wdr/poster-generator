@@ -145,7 +145,10 @@ function runAdminController() {
             <div class="result-list-main" style="gap: 16px;">
               <span class="badge badge-primary result-list-category">${r.category}</span>
               <div class="result-list-title-wrap">
-                <div class="result-list-title" style="font-size: 1.05rem;">${r.programName}</div>
+                <div class="result-list-title" style="font-size: 1.05rem;">
+                  ${r.resultNo ? `<span style="color:var(--primary);margin-right:8px;">#${r.resultNo}</span>` : ""}
+                  ${r.programName}
+                </div>
                 <div class="result-list-winner" style="font-size: 0.85rem;">🥇 Top Winner: <strong>${topWinnerName}</strong></div>
               </div>
             </div>
@@ -309,6 +312,7 @@ function runAdminController() {
     if (r) {
       switchTab("upload");
       document.getElementById("edit-result-id").value = r.id;
+      document.getElementById("form-result-no").value = r.resultNo || "";
       document.getElementById("form-program-name").value = r.programName;
       document.getElementById("form-category").value = r.category;
       
@@ -322,6 +326,20 @@ function runAdminController() {
 
   // --- 2. UPLOAD RESULT & REAL-TIME PREVIEW ---
   let uploadPreviewTimer = null;
+
+  function calculateNextResultNo(results) {
+    if (!results || results.length === 0) return '01';
+    let maxNum = 0;
+    results.forEach(r => {
+      const match = String(r.resultNo || '').match(/^(\d+)/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    });
+    const nextNum = maxNum + 1;
+    return String(nextNum).padStart(2, '0');
+  }
   
   async function initUploadResultForm() {
     const form = document.getElementById("result-publish-form");
@@ -342,12 +360,16 @@ function runAdminController() {
       document.getElementById("upload-form-title").innerText = "Publish Result Poster";
       document.getElementById("btn-submit-result").innerText = "Publish Result Poster";
       
+      const results = await db.getResults();
+      const nextNo = calculateNextResultNo(results);
+      document.getElementById("form-result-no").value = nextNo;
+      
       populateWinners(null);
     }
 
     await updateUploadLivePreview();
 
-    const staticInputIds = ["form-program-name", "form-category", "form-template-selector"];
+    const staticInputIds = ["form-result-no", "form-program-name", "form-category", "form-template-selector"];
     staticInputIds.forEach(id => {
       const el = document.getElementById(id);
       if (el) {
@@ -368,6 +390,7 @@ function runAdminController() {
     const previewWrap = document.getElementById("preview-poster-wrap");
     if (!previewWrap) return;
     
+    const resultNo = document.getElementById("form-result-no").value || "01";
     const programName = document.getElementById("form-program-name").value || "[ Program Name ]";
     const category = document.getElementById("form-category").value || "Category";
     
@@ -394,7 +417,7 @@ function runAdminController() {
     }
 
     const mockResult = { 
-      programName, category, 
+      resultNo, programName, category, 
       winners
     };
     posterEngine.render(previewWrap, mockResult, template);
@@ -436,6 +459,7 @@ function runAdminController() {
       const data = getWinnersData();
 
       const resultData = {
+        resultNo: document.getElementById("form-result-no").value,
         programName: document.getElementById("form-program-name").value,
         category: document.getElementById("form-category").value,
         winners: data.winners
@@ -985,21 +1009,21 @@ function runAdminController() {
     const tag = e.target.tagName.toLowerCase();
     const inInput = (tag === "input" || tag === "select" || tag === "textarea" || e.target.isContentEditable);
 
-    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
       if (activeTab === "templates") {
         e.preventDefault();
         applyUndo();
         return;
       }
     }
-    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && e.shiftKey) {
       if (activeTab === "templates") {
         e.preventDefault();
         applyRedo();
         return;
       }
     }
-    if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
       if (activeTab === "templates") {
         e.preventDefault();
         applyRedo();
@@ -1241,7 +1265,10 @@ function runAdminController() {
         <div class="result-list-main">
           <span class="badge badge-primary result-list-category">${r.category}</span>
           <div class="result-list-title-wrap">
-            <div class="result-list-title">${r.programName}</div>
+            <div class="result-list-title">
+              ${r.resultNo ? `<span style="color:var(--primary);margin-right:8px;">#${r.resultNo}</span>` : ""}
+              ${r.programName}
+            </div>
             <div class="result-list-winner">
               ${winnersList}
             </div>

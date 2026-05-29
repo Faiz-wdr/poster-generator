@@ -268,10 +268,17 @@
             <form id="result-publish-form">
               <input type="hidden" id="edit-result-id" value="">
 
-              <div class="form-group">
-                <label for="form-program-name">Program Name</label>
-                <input type="text" id="form-program-name" placeholder="e.g. Classical Violin Solo" required
-                  autocomplete="off">
+              <div style="display: grid; grid-template-columns: 120px 1fr; gap: 16px;">
+                <div class="form-group">
+                  <label for="form-result-no">Result No.</label>
+                  <input type="text" id="form-result-no" placeholder="01" required autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                  <label for="form-program-name">Program Name</label>
+                  <input type="text" id="form-program-name" placeholder="e.g. Classical Violin Solo" required
+                    autocomplete="off">
+                </div>
               </div>
 
               <div class="form-group">
@@ -548,6 +555,7 @@
                 <label style="font-size: 0.75rem;">Reference Layer</label>
                 <select id="editor-align-ref-select"
                   style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; background-color: var(--bg-page); font-weight: 600; font-family: var(--font-body);">
+                  <option value="resultNo">Result No.</option>
                   <option value="programName">Program Name</option>
                   <option value="category">Category</option>
                   <option value="winner_1_pos">Winner 1 Position</option>

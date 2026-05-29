@@ -5,7 +5,7 @@
 const posterEngine = {
   // Fields to render — all winner elements are independent editable layers
   FIELDS: [
-    'programName', 'category',
+    'resultNo', 'programName', 'category',
     'winner_1_pos', 'winner_1_name', 'winner_1_team',
     'winner_2_pos', 'winner_2_name', 'winner_2_team',
     'winner_3_pos', 'winner_3_name', 'winner_3_team',
@@ -16,6 +16,7 @@ const posterEngine = {
 
   // Human-readable label for field IDs
   getFieldLabel(fKey) {
+    if (fKey === 'resultNo') return 'Result No.';
     if (fKey === 'programName') return 'Program Name';
     if (fKey === 'category') return 'Category';
     const m = fKey.match(/^winner_(\d+)_(pos|name|team)$/);
@@ -27,8 +28,10 @@ const posterEngine = {
     return fKey;
   },
 
-  // Labels for rendering formatting
   getLabelForField(fieldName, value, result) {
+    if (fieldName === 'resultNo') {
+      return value || "";
+    }
     if (fieldName === 'category') {
       return value ? value.toUpperCase() : "";
     }
@@ -89,8 +92,15 @@ const posterEngine = {
     
     // Create text overlays
     this.FIELDS.forEach(fKey => {
-      const fDef = template.fields[fKey];
-      if (!fDef) return;
+      let fDef = template.fields[fKey];
+      if (!fDef) {
+        if (fKey === 'resultNo') {
+          // Provide generic default fallback so it can be edited/rendered
+          fDef = { left: 90, top: 160, width: 900, height: 40, fontSize: 24, color: "#7C3AED", align: "center", shadow: false, visible: true };
+        } else {
+          return;
+        }
+      }
       
       const fieldDiv = document.createElement("div");
       fieldDiv.className = "poster-field";
@@ -151,8 +161,8 @@ const posterEngine = {
       const textSpan = document.createElement("div");
       textSpan.className = "poster-field-text";
       textSpan.style.fontFamily = fDef.fontFamily || (fKey === 'programName' ? "var(--font-title)" : "var(--font-body)");
-      textSpan.style.fontWeight = fKey === 'category' ? "700" : "800";
-      textSpan.style.letterSpacing = fKey === 'category' ? "0.08em" : "normal";
+      textSpan.style.fontWeight = (fKey === 'category' || fKey === 'resultNo') ? "700" : "800";
+      textSpan.style.letterSpacing = (fKey === 'category' || fKey === 'resultNo') ? "0.08em" : "normal";
 
       // Determine content
       if (isWinnerField) {

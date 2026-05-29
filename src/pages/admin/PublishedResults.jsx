@@ -108,7 +108,10 @@ export default function PublishedResults() {
                 <div className="result-list-main">
                   <span className="badge badge-primary result-list-category">{r.category}</span>
                   <div className="result-list-title-wrap">
-                    <div className="result-list-title">{r.programName}</div>
+                    <div className="result-list-title">
+                      {r.resultNo && <span style={{ color: 'var(--primary)', marginRight: 8 }}>#{r.resultNo}</span>}
+                      {r.programName}
+                    </div>
                     <div className="result-list-winner">
                       {winners.map((w, i) => (
                         <span key={i}>

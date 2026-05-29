@@ -1,17 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { getResult, getTemplates, saveResult } from '../../lib/db';
+import { getResults, getResult, getTemplates, saveResult } from '../../lib/db';
 import { posterEngine } from '../../lib/posterEngine';
 import { CATEGORY_OPTIONS, TEAM_OPTIONS } from '../../data/defaults';
 import { CheckCircle, Plus, X, Save, Send } from 'lucide-react';
 
 const EMPTY_WINNER = () => ({ position: '01', name: '', team: '' });
 
+export function calculateNextResultNo(results) {
+  if (!results || results.length === 0) return '01';
+  let maxNum = 0;
+  results.forEach(r => {
+    const match = String(r.resultNo || '').match(/^(\d+)/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxNum) {
+        maxNum = num;
+      }
+    }
+  });
+  const nextNum = maxNum + 1;
+  return String(nextNum).padStart(2, '0');
+}
+
 export default function PublishResult() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const editId = params.get('edit');
 
+  const [resultNo, setResultNo] = useState('01');
   const [programName, setProgramName] = useState('');
   const [category, setCategory] = useState('Junior');
   const [winners, setWinners] = useState([EMPTY_WINNER()]);
@@ -35,10 +52,15 @@ export default function PublishResult() {
         if (r) {
           setProgramName(r.programName);
           setCategory(r.category);
+          setResultNo(r.resultNo || '');
           setWinners(r.winners?.length ? r.winners : [EMPTY_WINNER()]);
           setIsEditing(true);
           setEditResultId(r.id);
         }
+      } else {
+        const allResults = await getResults();
+        const nextNo = calculateNextResultNo(allResults);
+        setResultNo(nextNo);
       }
     }
     load();
@@ -47,10 +69,10 @@ export default function PublishResult() {
   // Live preview
   useEffect(() => {
     if (!previewRef.current || !activeTemplate) return;
-    const result = { programName, category, winners };
+    const result = { resultNo, programName, category, winners };
     const cleanup = posterEngine.render(previewRef.current, result, activeTemplate, {});
     return cleanup;
-  }, [programName, category, winners, activeTemplate]);
+  }, [resultNo, programName, category, winners, activeTemplate]);
 
   const addWinner = () => setWinners(w => [...w, EMPTY_WINNER()]);
   const removeWinner = (i) => setWinners(w => w.filter((_, idx) => idx !== i));
@@ -67,6 +89,7 @@ export default function PublishResult() {
     setSaving(true);
     const result = await saveResult({
       id: editResultId || undefined,
+      resultNo: resultNo.trim(),
       programName: programName.trim(),
       category,
       winners: validWinners,
@@ -108,16 +131,30 @@ export default function PublishResult() {
         {/* Form */}
         <div className="card-form">
           <form onSubmit={handleSubmit} id="result-publish-form">
-            <div className="form-group">
-              <label htmlFor="form-program-name">Program / Event Name *</label>
-              <input
-                id="form-program-name"
-                type="text"
-                placeholder="e.g. Classical Violin Symphony Solo"
-                value={programName}
-                onChange={e => setProgramName(e.target.value)}
-                required
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 16 }}>
+              <div className="form-group">
+                <label htmlFor="form-result-no">Result No. *</label>
+                <input
+                  id="form-result-no"
+                  type="text"
+                  placeholder="01"
+                  value={resultNo}
+                  onChange={e => setResultNo(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="form-program-name">Program / Event Name *</label>
+                <input
+                  id="form-program-name"
+                  type="text"
+                  placeholder="e.g. Classical Violin Symphony Solo"
+                  value={programName}
+                  onChange={e => setProgramName(e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
             <div className="form-group">
