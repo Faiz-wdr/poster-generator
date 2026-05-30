@@ -16,7 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'wdr456';
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'wdr654';
 
 function LoginScreen({ onLogin }) {
   const [pw, setPw] = useState('');
