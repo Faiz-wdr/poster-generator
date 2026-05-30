@@ -40,7 +40,7 @@ export default function Home() {
           </div>
 
           <div className="hero-content">
-            <h1>Arts Program<br />Result Posters</h1>
+            <h1>Wandoor Sector<br />Sahityotsav</h1>
             <p>Publish, design and download stunning high-resolution result <br />posters for your arts programs — all in one place.</p>
             <div className="hero-actions">
               <Link to="/gallery" className="btn btn-primary">Browse Results Gallery →</Link>
