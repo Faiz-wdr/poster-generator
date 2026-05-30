@@ -232,6 +232,26 @@ const DEFAULT_RESULTS = [
 // ─── STEP 2: Define db object AFTER supabase is initialized ──────────────────
 // All methods safely reference the `supabase` variable above via closure.
 
+function encodeProgramName(programName, resultNo) {
+  if (!resultNo) return programName;
+  return `[No: ${resultNo}] ${programName}`;
+}
+
+function decodeProgramName(encodedName) {
+  if (!encodedName) return { programName: '', resultNo: '01' };
+  const match = encodedName.match(/^\[No:\s*([^\]]+)\]\s*(.*)$/);
+  if (match) {
+    return {
+      resultNo: match[1],
+      programName: match[2]
+    };
+  }
+  return {
+    resultNo: '01',
+    programName: encodedName
+  };
+}
+
 const db = {
 
   // ── UTILS ──────────────────────────────────────────────────────────────────
@@ -282,7 +302,6 @@ const db = {
       .from("results")
       .select(`
         id,
-        resultNo:result_no,
         programName:program_name,
         category,
         created:created_at,
@@ -303,11 +322,11 @@ const db = {
     if (!data || data.length === 0) {
       console.log("No results in DB — seeding defaults...");
       for (const r of DEFAULT_RESULTS) {
+        const encodedName = encodeProgramName(r.programName, r.resultNo);
         const { error: resErr } = await supabase.from("results").insert({
           id: r.id,
-          program_name: r.programName,
-          category: r.category,
-          result_no: r.resultNo
+          program_name: encodedName,
+          category: r.category
         });
         if (resErr) { console.error("Seed result error:", resErr); continue; }
 
@@ -322,8 +341,11 @@ const db = {
       return DEFAULT_RESULTS;
     }
 
-    // Sort placements by position
+    // Decode programName and resultNo, and sort placements by position
     data.forEach(r => {
+      const decoded = decodeProgramName(r.programName);
+      r.programName = decoded.programName;
+      r.resultNo = decoded.resultNo;
       if (r.winners) {
         r.winners.sort((a, b) => (a.position || "").localeCompare(b.position || ""));
       }
@@ -339,7 +361,6 @@ const db = {
       .from("results")
       .select(`
         id,
-        resultNo:result_no,
         programName:program_name,
         category,
         created:created_at,
@@ -354,8 +375,13 @@ const db = {
 
     if (error) { this.showDbError("fetching result", error); return null; }
 
-    if (data && data.winners) {
-      data.winners.sort((a, b) => (a.position || "").localeCompare(b.position || ""));
+    if (data) {
+      const decoded = decodeProgramName(data.programName);
+      data.programName = decoded.programName;
+      data.resultNo = decoded.resultNo;
+      if (data.winners) {
+        data.winners.sort((a, b) => (a.position || "").localeCompare(b.position || ""));
+      }
     }
 
     return data;
@@ -365,13 +391,13 @@ const db = {
     if (!supabase) { console.error("saveResult(): Supabase not initialized."); return null; }
 
     const id = resultData.id || "result_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+    const encodedProgramName = encodeProgramName(resultData.programName, resultData.resultNo);
 
     // 1. Upsert result row
     const { error: resultErr } = await supabase.from("results").upsert({
       id,
-      program_name: resultData.programName,
-      category: resultData.category,
-      result_no: resultData.resultNo
+      program_name: encodedProgramName,
+      category: resultData.category
     });
     if (resultErr) { this.showDbError("saving result", resultErr); return null; }
 
@@ -528,11 +554,11 @@ const db = {
 
     // Reseed results
     for (const r of DEFAULT_RESULTS) {
+      const encodedName = encodeProgramName(r.programName, r.resultNo);
       const { error: rErr } = await supabase.from("results").insert({
         id: r.id,
-        program_name: r.programName,
-        category: r.category,
-        result_no: r.resultNo
+        program_name: encodedName,
+        category: r.category
       });
       if (rErr) { console.error("Reseed result error:", rErr); continue; }
 

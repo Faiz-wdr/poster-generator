@@ -58,6 +58,27 @@ function saveLocalTemplates(templates) {
   }
 }
 
+// Prefix serialization helpers for resultNo fallback storage
+export function encodeProgramName(programName, resultNo) {
+  if (!resultNo) return programName;
+  return `[No: ${resultNo}] ${programName}`;
+}
+
+export function decodeProgramName(encodedName) {
+  if (!encodedName) return { programName: '', resultNo: '01' };
+  const match = encodedName.match(/^\[No:\s*([^\]]+)\]\s*(.*)$/);
+  if (match) {
+    return {
+      resultNo: match[1],
+      programName: match[2]
+    };
+  }
+  return {
+    resultNo: '01',
+    programName: encodedName
+  };
+}
+
 // ── RESULTS ───────────────────────────────────────────────────────────────────
 
 export async function getResults() {
@@ -70,7 +91,6 @@ export async function getResults() {
       .from('results')
       .select(`
         id,
-        resultNo:result_no,
         programName:program_name,
         category,
         created:created_at,
@@ -86,13 +106,19 @@ export async function getResults() {
     if (!data || data.length === 0) {
       // Auto-seed
       for (const r of DEFAULT_RESULTS) {
-        await supabase.from('results').insert({ id: r.id, program_name: r.programName, category: r.category, result_no: r.resultNo });
+        const encodedName = encodeProgramName(r.programName, r.resultNo);
+        await supabase.from('results').insert({ id: r.id, program_name: encodedName, category: r.category });
         await supabase.from('placements').insert(r.winners.map(w => ({ result_id: r.id, ...w })));
       }
       return DEFAULT_RESULTS;
     }
 
-    data.forEach(r => r.winners?.sort((a, b) => (a.position || '').localeCompare(b.position || '')));
+    data.forEach(r => {
+      const decoded = decodeProgramName(r.programName);
+      r.programName = decoded.programName;
+      r.resultNo = decoded.resultNo;
+      r.winners?.sort((a, b) => (a.position || '').localeCompare(b.position || ''));
+    });
     return data;
   } catch (e) {
     showDbError('fetching results exception', e);
@@ -111,7 +137,6 @@ export async function getResult(id) {
       .from('results')
       .select(`
         id,
-        resultNo:result_no,
         programName:program_name,
         category,
         created:created_at,
@@ -125,7 +150,12 @@ export async function getResult(id) {
       const results = getLocalResults();
       return results.find(r => r.id === id) || null;
     }
-    data?.winners?.sort((a, b) => (a.position || '').localeCompare(b.position || ''));
+    if (data) {
+      const decoded = decodeProgramName(data.programName);
+      data.programName = decoded.programName;
+      data.resultNo = decoded.resultNo;
+      data.winners?.sort((a, b) => (a.position || '').localeCompare(b.position || ''));
+    }
     return data;
   } catch (e) {
     showDbError('fetching result exception', e);
@@ -151,8 +181,9 @@ export async function saveResult(resultData) {
   }
 
   try {
+    const encodedProgramName = encodeProgramName(resultData.programName, resultData.resultNo);
     const { error: resErr } = await supabase.from('results').upsert({
-      id, program_name: resultData.programName, category: resultData.category, result_no: resultData.resultNo
+      id, program_name: encodedProgramName, category: resultData.category
     });
     if (resErr) { showDbError('saving result', resErr); return null; }
 
@@ -374,7 +405,8 @@ export async function resetToDefault() {
     await supabase.from('templates').insert(DEFAULT_TEMPLATES);
 
     for (const r of DEFAULT_RESULTS) {
-      await supabase.from('results').insert({ id: r.id, program_name: r.programName, category: r.category, result_no: r.resultNo });
+      const encodedName = encodeProgramName(r.programName, r.resultNo);
+      await supabase.from('results').insert({ id: r.id, program_name: encodedName, category: r.category });
       await supabase.from('placements').insert(r.winners.map(w => ({ result_id: r.id, ...w })));
     }
     return true;
