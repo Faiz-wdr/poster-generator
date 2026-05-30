@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getResults, getTemplates, deleteResult } from '../../lib/db';
+import { getResults, getTemplates, deleteResult, saveResult } from '../../lib/db';
 import { posterEngine } from '../../lib/posterEngine';
 import { CATEGORY_OPTIONS } from '../../data/defaults';
 import { Plus, Search, Pencil, Download, Trash2 } from 'lucide-react';
@@ -38,6 +38,15 @@ export default function PublishedResults() {
     else alert('Failed to delete result.');
   };
 
+  const handlePublish = async (r) => {
+    const ok = await saveResult({
+      ...r,
+      status: 'published'
+    });
+    if (ok) await load();
+    else alert('Failed to publish result.');
+  };
+
   const handleDownload = (result) => {
     if (!templates.length) return;
     const tpl = templates[0];
@@ -57,11 +66,11 @@ export default function PublishedResults() {
     <div>
       <div className="admin-header">
         <div>
-          <h1 style={{ fontSize: '2rem', marginBottom: 4 }}>Published Results</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Manage all published results — edit, download or delete.</p>
+          <h1 style={{ fontSize: '2rem', marginBottom: 4 }}>Results Records</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Manage all results — draft drafts, publish, edit, download or delete.</p>
         </div>
         <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate('/admin/upload')}>
-          <Plus size={16} /> Publish New Result
+          <Plus size={16} /> Create Result
         </button>
       </div>
 
@@ -107,6 +116,11 @@ export default function PublishedResults() {
               <div key={r.id} className="result-list-item" style={{ cursor: 'default' }}>
                 <div className="result-list-main">
                   <span className="badge badge-primary result-list-category">{r.category}</span>
+                  {r.status === 'pending' ? (
+                    <span className="badge" style={{ background: '#FEF3C7', color: '#D97706', border: '1px solid #FCD34D', fontSize: '0.75rem', padding: '4px 10px', borderRadius: 20 }}>Pending</span>
+                  ) : (
+                    <span className="badge" style={{ background: '#D1FAE5', color: '#059669', border: '1px solid #A7F3D0', fontSize: '0.75rem', padding: '4px 10px', borderRadius: 20 }}>Published</span>
+                  )}
                   <div className="result-list-title-wrap">
                     <div className="result-list-title">
                       {r.resultNo && <span style={{ color: 'var(--primary)', marginRight: 8 }}>#{r.resultNo}</span>}
@@ -124,7 +138,12 @@ export default function PublishedResults() {
                     </div>
                   </div>
                 </div>
-                <div className="action-btns" style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                <div className="action-btns" style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'center' }}>
+                  {r.status === 'pending' && (
+                    <button className="btn btn-primary btn-sm" style={{ background: '#10B981', borderColor: '#10B981', color: 'white', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => handlePublish(r)}>
+                      Publish
+                    </button>
+                  )}
                   <button className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate(`/admin/upload?edit=${r.id}`)}>
                     <Pencil size={14} /> Edit
                   </button>

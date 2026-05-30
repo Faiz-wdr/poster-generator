@@ -90,7 +90,7 @@ const NAV_ITEMS = [
   { to: '/admin', label: 'Dashboard', icon: <LayoutDashboard size={18} />, end: true },
   { to: '/admin/upload', label: 'Publish Result', icon: <PlusCircle size={18} /> },
   { to: '/admin/templates', label: 'Template Editor', icon: <Palette size={18} /> },
-  { to: '/admin/published', label: 'Published Results', icon: <ClipboardList size={18} /> },
+  { to: '/admin/results', label: 'Results', icon: <ClipboardList size={18} /> },
   { to: '/admin/settings', label: 'Settings', icon: <SettingsIcon size={18} /> },
 ];
 
@@ -184,7 +184,7 @@ export default function AdminApp() {
           <Route index element={<Dashboard />} />
           <Route path="upload" element={<PublishResult />} />
           <Route path="templates" element={<TemplateEditor />} />
-          <Route path="published" element={<PublishedResults />} />
+          <Route path="results" element={<PublishedResults />} />
           <Route path="settings" element={<Settings />} />
         </Routes>
       </div>

@@ -59,7 +59,7 @@ export default function Dashboard() {
           <div className="card-form">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3>Recent Results</h3>
-              <button className="btn btn-outline btn-sm" onClick={() => navigate('/admin/published')}>
+              <button className="btn btn-outline btn-sm" onClick={() => navigate('/admin/results')}>
                 View All
               </button>
             </div>

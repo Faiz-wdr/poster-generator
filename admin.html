@@ -167,7 +167,7 @@
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Published Results
+            Results
           </div>
           <div class="admin-nav-item" data-tab="settings">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -322,8 +322,11 @@
               </div>
 
               <div style="display: flex; gap: 12px; margin-top: 32px;">
+                <button type="button" class="btn btn-outline" style="flex-grow: 1; border-color: var(--primary); color: var(--primary);" id="btn-draft-result">
+                  Save Draft
+                </button>
                 <button type="submit" class="btn btn-primary" style="flex-grow: 1;" id="btn-submit-result">
-                  Publish Result Poster
+                  Publish Result
                 </button>
                 <button type="button" class="btn btn-secondary" id="btn-download-preview" style="padding: 14px 20px;">
                   Download
@@ -642,12 +645,12 @@
       <section id="tab-published" class="tab-section">
         <div class="admin-header">
           <div>
-            <h1>Published Results Records</h1>
+            <h1>Results Records</h1>
             <p style="color: var(--text-secondary);">Manage and download dynamically generated JPEG result posters.</p>
           </div>
           <div>
             <button class="btn btn-primary" onclick="switchTab('upload')">
-              + Publish New Result
+              + Create Result
             </button>
           </div>
         </div>

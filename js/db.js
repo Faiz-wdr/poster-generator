@@ -232,24 +232,35 @@ const DEFAULT_RESULTS = [
 // ─── STEP 2: Define db object AFTER supabase is initialized ──────────────────
 // All methods safely reference the `supabase` variable above via closure.
 
-function encodeProgramName(programName, resultNo) {
-  if (!resultNo) return programName;
-  return `[No: ${resultNo}] ${programName}`;
+function encodeProgramName(programName, resultNo, status = 'published') {
+  const parts = [];
+  if (resultNo) parts.push(`[No: ${resultNo}]`);
+  parts.push(`[Status: ${status}]`);
+  return `${parts.join('')} ${programName}`;
 }
 
 function decodeProgramName(encodedName) {
-  if (!encodedName) return { programName: '', resultNo: '01' };
-  const match = encodedName.match(/^\[No:\s*([^\]]+)\]\s*(.*)$/);
-  if (match) {
-    return {
-      resultNo: match[1],
-      programName: match[2]
-    };
+  if (!encodedName) return { programName: '', resultNo: '01', status: 'published' };
+  
+  let resultNo = '01';
+  let status = 'published';
+  let programName = encodedName;
+
+  // Extract [No: ...]
+  const noMatch = programName.match(/^\[No:\s*([^\]]+)\]\s*/);
+  if (noMatch) {
+    resultNo = noMatch[1];
+    programName = programName.replace(/^\[No:\s*[^\]]+\]\s*/, '');
   }
-  return {
-    resultNo: '01',
-    programName: encodedName
-  };
+
+  // Extract [Status: ...]
+  const statusMatch = programName.match(/^\[Status:\s*([^\]]+)\]\s*/);
+  if (statusMatch) {
+    status = statusMatch[1];
+    programName = programName.replace(/^\[Status:\s*[^\]]+\]\s*/, '');
+  }
+
+  return { resultNo, status, programName };
 }
 
 const db = {
@@ -318,34 +329,14 @@ const db = {
       return [];
     }
 
-    // Auto-seed if DB is completely empty
-    if (!data || data.length === 0) {
-      console.log("No results in DB — seeding defaults...");
-      for (const r of DEFAULT_RESULTS) {
-        const encodedName = encodeProgramName(r.programName, r.resultNo);
-        const { error: resErr } = await supabase.from("results").insert({
-          id: r.id,
-          program_name: encodedName,
-          category: r.category
-        });
-        if (resErr) { console.error("Seed result error:", resErr); continue; }
-
-        const placements = r.winners.map(w => ({
-          result_id: r.id,
-          position: w.position,
-          name: w.name,
-          team: w.team
-        }));
-        await supabase.from("placements").insert(placements);
-      }
-      return DEFAULT_RESULTS;
-    }
+    if (!data) return [];
 
     // Decode programName and resultNo, and sort placements by position
     data.forEach(r => {
       const decoded = decodeProgramName(r.programName);
       r.programName = decoded.programName;
       r.resultNo = decoded.resultNo;
+      r.status = decoded.status;
       if (r.winners) {
         r.winners.sort((a, b) => (a.position || "").localeCompare(b.position || ""));
       }
@@ -379,6 +370,7 @@ const db = {
       const decoded = decodeProgramName(data.programName);
       data.programName = decoded.programName;
       data.resultNo = decoded.resultNo;
+      data.status = decoded.status;
       if (data.winners) {
         data.winners.sort((a, b) => (a.position || "").localeCompare(b.position || ""));
       }
@@ -391,7 +383,7 @@ const db = {
     if (!supabase) { console.error("saveResult(): Supabase not initialized."); return null; }
 
     const id = resultData.id || "result_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
-    const encodedProgramName = encodeProgramName(resultData.programName, resultData.resultNo);
+    const encodedProgramName = encodeProgramName(resultData.programName, resultData.resultNo, resultData.status || 'published');
 
     // 1. Upsert result row
     const { error: resultErr } = await supabase.from("results").upsert({
@@ -443,13 +435,7 @@ const db = {
 
     if (error) { this.showDbError("fetching templates", error); return []; }
 
-    // Auto-seed if empty
-    if (!data || data.length === 0) {
-      console.log("No templates in DB — seeding defaults...");
-      const { error: seedErr } = await supabase.from("templates").insert(DEFAULT_TEMPLATES);
-      if (seedErr) { console.error("Error seeding templates:", seedErr); return []; }
-      return DEFAULT_TEMPLATES;
-    }
+    if (!data) return [];
 
     data.forEach(t => {
       if (t.fields && !t.fields.resultNo) {
@@ -547,29 +533,6 @@ const db = {
     await supabase.from("placements").delete().neq("result_id", "___dummy___");
     await supabase.from("results").delete().neq("id", "___dummy___");
     await supabase.from("templates").delete().neq("id", "___dummy___");
-
-    // Reseed templates
-    const { error: tErr } = await supabase.from("templates").insert(DEFAULT_TEMPLATES);
-    if (tErr) console.error("Reseed templates error:", tErr);
-
-    // Reseed results
-    for (const r of DEFAULT_RESULTS) {
-      const encodedName = encodeProgramName(r.programName, r.resultNo);
-      const { error: rErr } = await supabase.from("results").insert({
-        id: r.id,
-        program_name: encodedName,
-        category: r.category
-      });
-      if (rErr) { console.error("Reseed result error:", rErr); continue; }
-
-      const placements = r.winners.map(w => ({
-        result_id: r.id,
-        position: w.position,
-        name: w.name,
-        team: w.team
-      }));
-      await supabase.from("placements").insert(placements);
-    }
 
     return true;
   }

@@ -80,8 +80,7 @@ export default function PublishResult() {
     setWinners(w => w.map((win, idx) => idx === i ? { ...win, [field]: val } : win));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSave = async (statusToSave) => {
     if (!programName.trim()) { alert('Please enter a program name.'); return; }
     const validWinners = winners.filter(w => w.name.trim());
     if (validWinners.length === 0) { alert('Please add at least one winner.'); return; }
@@ -93,14 +92,15 @@ export default function PublishResult() {
       programName: programName.trim(),
       category,
       winners: validWinners,
+      status: statusToSave
     });
 
     setSaving(false);
     if (result) {
-      setSavedMsg(isEditing ? 'Result updated successfully!' : 'Result published successfully!');
+      setSavedMsg(statusToSave === 'pending' ? 'Draft saved successfully!' : 'Result published successfully!');
       setTimeout(() => {
         setSavedMsg('');
-        navigate('/admin/published');
+        navigate('/admin/results');
       }, 2000);
     } else {
       alert('Failed to save result. Please check console for errors.');
@@ -130,7 +130,7 @@ export default function PublishResult() {
       <div className="upload-grid">
         {/* Form */}
         <div className="card-form">
-          <form onSubmit={handleSubmit} id="result-publish-form">
+          <form onSubmit={(e) => e.preventDefault()} id="result-publish-form">
             <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 16 }}>
               <div className="form-group">
                 <label htmlFor="form-result-no">Result No. *</label>
@@ -244,13 +244,29 @@ export default function PublishResult() {
             )}
 
             <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-              <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 8 }} disabled={saving} id="btn-submit-result">
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ flexGrow: 1, borderColor: 'var(--primary)', color: 'var(--primary)' }}
+                onClick={() => handleSave('pending')}
+                disabled={saving}
+              >
+                Save Draft
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                onClick={() => handleSave('published')}
+                disabled={saving}
+                id="btn-submit-result"
+              >
                 {saving ? (
                   <span>Saving…</span>
                 ) : isEditing ? (
                   <>
                     <Save size={18} />
-                    <span>Update Published Poster</span>
+                    <span>Update &amp; Publish</span>
                   </>
                 ) : (
                   <>
@@ -260,7 +276,7 @@ export default function PublishResult() {
                 )}
               </button>
               {isEditing && (
-                <button type="button" className="btn btn-outline" onClick={() => navigate('/admin/published')}>
+                <button type="button" className="btn btn-outline" onClick={() => navigate('/admin/results')}>
                   Cancel
                 </button>
               )}

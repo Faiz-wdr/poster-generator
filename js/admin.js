@@ -451,7 +451,29 @@ function runAdminController() {
 
   // Handle Form Submit
   const resultForm = document.getElementById("result-publish-form");
+  const draftBtn = document.getElementById("btn-draft-result");
+
+  let submitStatus = "published";
+
+  if (draftBtn) {
+    draftBtn.onclick = async () => {
+      submitStatus = "pending";
+      if (resultForm) {
+        if (resultForm.reportValidity()) {
+          resultForm.dispatchEvent(new Event('submit'));
+        }
+      }
+    };
+  }
+
   if (resultForm) {
+    const submitBtn = document.getElementById("btn-submit-result");
+    if (submitBtn) {
+      submitBtn.onclick = () => {
+        submitStatus = "published";
+      };
+    }
+
     resultForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       
@@ -462,7 +484,8 @@ function runAdminController() {
         resultNo: document.getElementById("form-result-no").value,
         programName: document.getElementById("form-program-name").value,
         category: document.getElementById("form-category").value,
-        winners: data.winners
+        winners: data.winners,
+        status: submitStatus
       };
 
       if (editId) resultData.id = editId;
@@ -473,9 +496,13 @@ function runAdminController() {
       resultForm.reset();
 
       if (saved) {
-        alert(`Poster published successfully for: ${saved.programName}!`);
+        if (submitStatus === "pending") {
+          alert(`Draft saved successfully for: ${saved.programName}!`);
+        } else {
+          alert(`Poster published successfully for: ${saved.programName}!`);
+        }
       } else {
-        alert(`Failed to publish poster.`);
+        alert(`Failed to save result.`);
       }
       switchTab("published");
     });
@@ -1261,9 +1288,14 @@ function runAdminController() {
         winnersList += `<strong>${w.name}</strong> (Pos ${w.position})${w.team ? ` [${w.team}]` : ""}`;
       });
 
+      const statusHtml = r.status === 'pending'
+        ? `<span class="badge" style="background:#FEF3C7;color:#D97706;border:1px solid #FCD34D;font-size:0.75rem;padding:4px 10px;border-radius:20px;">Pending</span>`
+        : `<span class="badge" style="background:#D1FAE5;color:#059669;border:1px solid #A7F3D0;font-size:0.75rem;padding:4px 10px;border-radius:20px;">Published</span>`;
+
       row.innerHTML = `
         <div class="result-list-main">
           <span class="badge badge-primary result-list-category">${r.category}</span>
+          ${statusHtml}
           <div class="result-list-title-wrap">
             <div class="result-list-title">
               ${r.resultNo ? `<span style="color:var(--primary);margin-right:8px;">#${r.resultNo}</span>` : ""}
@@ -1274,7 +1306,8 @@ function runAdminController() {
             </div>
           </div>
         </div>
-        <div class="action-btns" style="display:flex;gap:8px;">
+        <div class="action-btns" style="display:flex;gap:8px;align-items:center;">
+          ${r.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="publishDraftDirect('${r.id}')" style="background:#10B981;border-color:#10B981;color:white;font-weight:700;">Publish</button>` : ''}
           <button class="btn btn-outline btn-sm" onclick="triggerEditResult('${r.id}')">✏️ Edit</button>
           <button class="btn btn-secondary btn-sm" onclick="triggerDirectDownload('${r.id}')">⬇️ Download</button>
           <button class="btn btn-outline btn-sm btn-danger" onclick="deletePublishedResult('${r.id}', '${r.programName}')" style="color: #EF4444; border-color: #FEE2E2; padding: 8px 12px;">🗑️ Delete</button>
@@ -1320,6 +1353,18 @@ function runAdminController() {
     }, 200);
   };
 
+  window.publishDraftDirect = async function(id) {
+    const result = await db.getResult(id);
+    if (!result) return;
+    result.status = 'published';
+    const ok = await db.saveResult(result);
+    if (ok) {
+      await loadPublishedResults();
+    } else {
+      alert("Failed to publish result.");
+    }
+  };
+
   window.deletePublishedResult = async function(id, name) {
     if (confirm(`Are you sure you want to permanently delete the published result for "${name}"?`)) {
       const deleted = await db.deleteResult(id);
@@ -1349,9 +1394,9 @@ function runAdminController() {
   const resetBtn = document.getElementById("btn-factory-reset");
   if (resetBtn) {
     resetBtn.addEventListener("click", async () => {
-      if (confirm("⚠️ WARNING: This will permanently wipe all results, custom template positions, uploaded backgrounds, and restore the platform to clean defaults. Do you wish to proceed?")) {
+      if (confirm("⚠️ WARNING: This will permanently wipe all results, custom template positions, and uploaded backgrounds. Do you wish to proceed?")) {
         await db.resetToDefault();
-        alert("Database successfully restored to pristine seed configuration!");
+        alert("Database successfully reset! All results and templates have been deleted.");
         window.location.reload();
       }
     });

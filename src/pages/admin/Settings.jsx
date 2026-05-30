@@ -19,11 +19,11 @@ export default function Settings() {
   };
 
   const handleReset = async () => {
-    if (!window.confirm('⚠️ WARNING: This will permanently wipe all results, templates, and uploaded backgrounds, then restore defaults. Proceed?')) return;
+    if (!window.confirm('⚠️ WARNING: This will permanently wipe all results, templates, and uploaded backgrounds. Do you wish to proceed?')) return;
     setResetting(true);
     await resetToDefault();
     setResetting(false);
-    alert('Database successfully restored to pristine seed configuration!');
+    alert('Database successfully reset! All results and templates have been deleted.');
     window.location.reload();
   };
 

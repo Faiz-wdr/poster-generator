@@ -16,7 +16,8 @@ export default function Home() {
   useEffect(() => {
     async function load() {
       const [r, t] = await Promise.all([getResults(), getTemplates()]);
-      setResults(r);
+      const published = r.filter(item => item.status === 'published');
+      setResults(published);
       setTemplates(t);
       setLoading(false);
     }

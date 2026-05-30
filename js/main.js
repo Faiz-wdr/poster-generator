@@ -121,7 +121,8 @@ function runMainController() {
 
   // --- 1. HOME PORTAL PAGE ---
   async function initHomePage() {
-    const results = await db.getResults();
+    const rawResults = await db.getResults();
+    const results = rawResults.filter(r => r && r.status === 'published');
     const templates = await db.getTemplates();
     const settings = await db.getSettings();
 
@@ -219,7 +220,8 @@ function runMainController() {
       const searchInput = document.getElementById("gallery-search");
       const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : "";
 
-      let results = await db.getResults() || [];
+      const rawResults = await db.getResults() || [];
+      let results = rawResults.filter(r => r && r.status === 'published');
 
       if (activeGalleryCategory !== "All") {
         results = results.filter(r => r && r.category === activeGalleryCategory);
@@ -268,8 +270,8 @@ function runMainController() {
     }
 
     const result = await db.getResult(resultId);
-    if (!result) {
-      alert("Result record not found in database!");
+    if (!result || result.status !== "published") {
+      alert("Result record not found or not published yet!");
       window.location.href = "gallery.html";
       return;
     }
@@ -327,6 +329,14 @@ function runMainController() {
     const templates = await db.getTemplates();
     const pickerWrap = document.getElementById("detail-template-picker");
     const posterWrap = document.getElementById("detail-poster-wrap");
+
+    if (templates.length === 0) {
+      if (posterWrap) {
+        posterWrap.innerHTML = `<div style="text-align:center;color:var(--text-secondary);padding:60px;font-weight:600;">No templates available. Please create templates in the Admin panel.</div>`;
+      }
+      if (pickerWrap) pickerWrap.innerHTML = "";
+      return;
+    }
 
     let activeTemplate = templates[0];
 

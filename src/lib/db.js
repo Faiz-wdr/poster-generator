@@ -58,25 +58,36 @@ function saveLocalTemplates(templates) {
   }
 }
 
-// Prefix serialization helpers for resultNo fallback storage
-export function encodeProgramName(programName, resultNo) {
-  if (!resultNo) return programName;
-  return `[No: ${resultNo}] ${programName}`;
+// Prefix serialization helpers for resultNo and status fallback storage
+export function encodeProgramName(programName, resultNo, status = 'published') {
+  const parts = [];
+  if (resultNo) parts.push(`[No: ${resultNo}]`);
+  parts.push(`[Status: ${status}]`);
+  return `${parts.join('')} ${programName}`;
 }
 
 export function decodeProgramName(encodedName) {
-  if (!encodedName) return { programName: '', resultNo: '01' };
-  const match = encodedName.match(/^\[No:\s*([^\]]+)\]\s*(.*)$/);
-  if (match) {
-    return {
-      resultNo: match[1],
-      programName: match[2]
-    };
+  if (!encodedName) return { programName: '', resultNo: '01', status: 'published' };
+  
+  let resultNo = '01';
+  let status = 'published';
+  let programName = encodedName;
+
+  // Extract [No: ...]
+  const noMatch = programName.match(/^\[No:\s*([^\]]+)\]\s*/);
+  if (noMatch) {
+    resultNo = noMatch[1];
+    programName = programName.replace(/^\[No:\s*[^\]]+\]\s*/, '');
   }
-  return {
-    resultNo: '01',
-    programName: encodedName
-  };
+
+  // Extract [Status: ...]
+  const statusMatch = programName.match(/^\[Status:\s*([^\]]+)\]\s*/);
+  if (statusMatch) {
+    status = statusMatch[1];
+    programName = programName.replace(/^\[Status:\s*[^\]]+\]\s*/, '');
+  }
+
+  return { resultNo, status, programName };
 }
 
 // ── RESULTS ───────────────────────────────────────────────────────────────────
@@ -103,20 +114,13 @@ export async function getResults() {
       return getLocalResults();
     }
 
-    if (!data || data.length === 0) {
-      // Auto-seed
-      for (const r of DEFAULT_RESULTS) {
-        const encodedName = encodeProgramName(r.programName, r.resultNo);
-        await supabase.from('results').insert({ id: r.id, program_name: encodedName, category: r.category });
-        await supabase.from('placements').insert(r.winners.map(w => ({ result_id: r.id, ...w })));
-      }
-      return DEFAULT_RESULTS;
-    }
+    if (!data) return [];
 
     data.forEach(r => {
       const decoded = decodeProgramName(r.programName);
       r.programName = decoded.programName;
       r.resultNo = decoded.resultNo;
+      r.status = decoded.status;
       r.winners?.sort((a, b) => (a.position || '').localeCompare(b.position || ''));
     });
     return data;
@@ -154,6 +158,7 @@ export async function getResult(id) {
       const decoded = decodeProgramName(data.programName);
       data.programName = decoded.programName;
       data.resultNo = decoded.resultNo;
+      data.status = decoded.status;
       data.winners?.sort((a, b) => (a.position || '').localeCompare(b.position || ''));
     }
     return data;
@@ -181,7 +186,7 @@ export async function saveResult(resultData) {
   }
 
   try {
-    const encodedProgramName = encodeProgramName(resultData.programName, resultData.resultNo);
+    const encodedProgramName = encodeProgramName(resultData.programName, resultData.resultNo, resultData.status || 'published');
     const { error: resErr } = await supabase.from('results').upsert({
       id, program_name: encodedProgramName, category: resultData.category
     });
@@ -246,10 +251,7 @@ export async function getTemplates() {
       return getLocalTemplates();
     }
 
-    if (!data || data.length === 0) {
-      await supabase.from('templates').insert(DEFAULT_TEMPLATES);
-      return DEFAULT_TEMPLATES;
-    }
+    if (!data) return [];
     data.forEach(t => {
       if (t.fields && !t.fields.resultNo) {
         t.fields.resultNo = { left: 90, top: 160, width: 900, height: 40, fontSize: 24, color: '#7C3AED', align: 'center', shadow: false, visible: true };
@@ -392,8 +394,8 @@ export function saveSettings(data) {
 
 export async function resetToDefault() {
   if (useLocal) {
-    localStorage.removeItem('arts_poster_results');
-    localStorage.removeItem('arts_poster_templates');
+    localStorage.setItem('arts_poster_results', JSON.stringify([]));
+    localStorage.setItem('arts_poster_templates', JSON.stringify([]));
     return true;
   }
 
@@ -401,19 +403,11 @@ export async function resetToDefault() {
     await supabase.from('placements').delete().neq('result_id', '___dummy___');
     await supabase.from('results').delete().neq('id', '___dummy___');
     await supabase.from('templates').delete().neq('id', '___dummy___');
-
-    await supabase.from('templates').insert(DEFAULT_TEMPLATES);
-
-    for (const r of DEFAULT_RESULTS) {
-      const encodedName = encodeProgramName(r.programName, r.resultNo);
-      await supabase.from('results').insert({ id: r.id, program_name: encodedName, category: r.category });
-      await supabase.from('placements').insert(r.winners.map(w => ({ result_id: r.id, ...w })));
-    }
     return true;
   } catch (e) {
     showDbError('reset to default exception', e);
-    localStorage.removeItem('arts_poster_results');
-    localStorage.removeItem('arts_poster_templates');
+    localStorage.setItem('arts_poster_results', JSON.stringify([]));
+    localStorage.setItem('arts_poster_templates', JSON.stringify([]));
     return true;
   }
 }
