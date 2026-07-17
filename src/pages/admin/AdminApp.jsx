@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
+import { getClient } from '../../lib/db';
+import { applyClientTheme } from '../../lib/theme';
 import Dashboard from './Dashboard';
 import PublishResult from './PublishResult';
 import TemplateEditor from './TemplateEditor';
@@ -13,100 +15,76 @@ import {
   Settings as SettingsIcon,
   LogOut,
   ArrowLeft,
-  AlertCircle
+  AlertTriangle,
+  Lock
 } from 'lucide-react';
 
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'wdr654';
-
-function LoginScreen({ onLogin }) {
-  const [pw, setPw] = useState('');
-  const [error, setError] = useState(false);
-  const [shake, setShake] = useState(false);
-
-  const submit = (e) => {
-    e.preventDefault();
-    if (pw === ADMIN_PASSWORD) {
-      sessionStorage.setItem('admin_logged_in', 'true');
-      onLogin();
-    } else {
-      setError(true);
-      setShake(true);
-      setPw('');
-      setTimeout(() => setShake(false), 600);
-    }
-  };
-
-  return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg-page)', padding: 24,
-    }}>
-      <div style={{
-        background: 'white', padding: '48px 40px', borderRadius: 'var(--radius-card)',
-        boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)',
-        width: '100%', maxWidth: 400, textAlign: 'center',
-      }}>
-        <div className="logo-icon" style={{ margin: '0 auto 20px', width: 56, height: 56, fontSize: '1.8rem' }}>A</div>
-        <h2 style={{ marginBottom: 8 }}>Admin Access</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 32, fontSize: '0.95rem' }}>
-          Enter your admin password to continue.
-        </p>
-        <form onSubmit={submit} id="admin-login-form">
-          <div className="form-group">
-            <input
-              type="password"
-              id="admin-password-input"
-              placeholder="Admin Password"
-              value={pw}
-              onChange={e => { setPw(e.target.value); setError(false); }}
-              style={{ textAlign: 'center', fontSize: '1.1rem', letterSpacing: '0.1em' }}
-              autoFocus
-            />
-          </div>
-          {error && (
-            <div
-              id="login-error-msg"
-              style={{
-                color: '#EF4444', fontWeight: 700, marginBottom: 16, fontSize: '0.9rem',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                animation: shake ? 'shake 0.4s ease' : 'none',
-              }}
-            >
-              <AlertCircle size={16} />
-              <span>Incorrect password. Please try again.</span>
-            </div>
-          )}
-          <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-            Unlock Dashboard →
-          </button>
-        </form>
-        <style>{`@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}`}</style>
-      </div>
-    </div>
-  );
-}
-
-const NAV_ITEMS = [
-  { to: '/admin', label: 'Dashboard', icon: <LayoutDashboard size={18} />, end: true },
-  { to: '/admin/upload', label: 'Publish Result', icon: <PlusCircle size={18} /> },
-  { to: '/admin/templates', label: 'Template Editor', icon: <Palette size={18} /> },
-  { to: '/admin/results', label: 'Results', icon: <ClipboardList size={18} /> },
-  { to: '/admin/settings', label: 'Settings', icon: <SettingsIcon size={18} /> },
-];
-
 export default function AdminApp() {
-  const [loggedIn, setLoggedIn] = useState(
-    sessionStorage.getItem('admin_logged_in') === 'true'
-  );
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  
+  const [client, setClient] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isExpired, setIsExpired] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const clientId = sessionStorage.getItem('client_id');
+  const loggedIn = sessionStorage.getItem('client_admin_logged_in') === 'true';
+
+  useEffect(() => {
+    if (!loggedIn || !clientId) {
+      navigate('/login');
+      return;
+    }
+
+    async function loadClient() {
+      const c = await getClient(clientId);
+      if (!c) {
+        // Client not found, logout
+        sessionStorage.clear();
+        navigate('/login');
+        return;
+      }
+      setClient(c);
+      applyClientTheme(c);
+      
+      // Check expiry date
+      const expiry = new Date(c.expiry_date);
+      const expired = expiry <= new Date();
+      setIsExpired(expired);
+      setLoading(false);
+    }
+
+    loadClient();
+
+    return () => {
+      // Clean up theme on logout or unmount
+      applyClientTheme(null);
+    };
+  }, [loggedIn, clientId, navigate]);
 
   const logout = () => {
-    sessionStorage.removeItem('admin_logged_in');
-    setLoggedIn(false);
+    sessionStorage.clear();
+    applyClientTheme(null);
+    navigate('/login');
   };
 
-  if (!loggedIn) return <LoginScreen onLogin={() => setLoggedIn(true)} />;
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)' }}>
+        <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 600 }}>
+          Authenticating event dashboard…
+        </div>
+      </div>
+    );
+  }
+
+  const NAV_ITEMS = [
+    { to: '/admin', label: 'Overview', icon: <LayoutDashboard size={18} />, end: true },
+    { to: '/admin/upload', label: 'Publish Result', icon: <PlusCircle size={18} /> },
+    { to: '/admin/templates', label: 'Templates', icon: <Palette size={18} /> },
+    { to: '/admin/results', label: 'Results', icon: <ClipboardList size={18} /> },
+    { to: '/admin/settings', label: 'Program Settings', icon: <SettingsIcon size={18} /> },
+  ];
 
   return (
     <div className="admin-container">
@@ -122,8 +100,21 @@ export default function AdminApp() {
       <aside className={`admin-sidebar ${sidebarOpen ? 'mobile-open' : ''}`}>
         <div>
           <div className="logo-group" style={{ padding: '0 8px' }}>
-            <div className="logo-icon">A</div>
-            <div className="logo-text">Arts Admin</div>
+            <div className="logo-icon" style={{ background: `linear-gradient(135deg, var(--primary), var(--secondary))`, overflow: 'hidden' }}>
+              {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image')) ? (
+                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+              ) : (
+                client.logo || 'E'
+              )}
+            </div>
+            <div>
+              <div className="logo-text" style={{ fontSize: '1.1rem', background: 'none', WebkitTextFillColor: 'initial', color: 'var(--text-primary)' }}>
+                {client.event_name}
+              </div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
+                {client.organization_name}
+              </div>
+            </div>
           </div>
 
           <nav className="admin-nav">
@@ -145,31 +136,40 @@ export default function AdminApp() {
         <div>
           <button
             className="admin-nav-item"
-            style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
             onClick={logout}
           >
             <span style={{ display: 'flex', alignItems: 'center' }}><LogOut size={18} /></span>
             <span>Logout</span>
           </button>
+          
           <div style={{ marginTop: 16, padding: '0 8px' }}>
-            <button
+            <a
               className="btn btn-outline btn-sm"
+              href={`/event/${client.slug}`}
+              target="_blank"
+              rel="noreferrer"
               style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-              onClick={() => navigate('/')}
             >
-              <ArrowLeft size={14} /> View Public Site
-            </button>
+              <ArrowLeft size={14} /> View Public Event
+            </a>
           </div>
         </div>
       </aside>
 
       {/* Main content */}
-      <div className="admin-content">
+      <div className="admin-content" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         {/* Mobile header */}
         <div className="admin-mobile-header">
           <div className="logo-group">
-            <div className="logo-icon">A</div>
-            <div className="logo-text">Arts Admin</div>
+            <div className="logo-icon" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image')) ? (
+                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+              ) : (
+                client.logo || 'E'
+              )}
+            </div>
+            <div className="logo-text">{client.event_name}</div>
           </div>
           <button
             style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}
@@ -180,13 +180,26 @@ export default function AdminApp() {
           </button>
         </div>
 
-        <Routes>
-          <Route index element={<Dashboard />} />
-          <Route path="upload" element={<PublishResult />} />
-          <Route path="templates" element={<TemplateEditor />} />
-          <Route path="results" element={<PublishedResults />} />
-          <Route path="settings" element={<Settings />} />
-        </Routes>
+        {/* Global Expiry Locked Alert */}
+        {isExpired && (
+          <div style={{
+            background: '#FEF2F2', borderBottom: '1px solid #FCA5A5', color: '#B91C1C',
+            padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: '0.9rem'
+          }}>
+            <Lock size={16} style={{ flexShrink: 0 }} />
+            <span>Event License Expired. Contact Administrator. Editing has been locked.</span>
+          </div>
+        )}
+
+        <div style={{ padding: 24, flexGrow: 1 }}>
+          <Routes>
+            <Route index element={<Dashboard isExpired={isExpired} clientId={clientId} />} />
+            <Route path="upload" element={<PublishResult isExpired={isExpired} clientId={clientId} />} />
+            <Route path="templates" element={<TemplateEditor isExpired={isExpired} clientId={clientId} />} />
+            <Route path="results" element={<PublishedResults isExpired={isExpired} clientId={clientId} />} />
+            <Route path="settings" element={<Settings isExpired={isExpired} clientId={clientId} />} />
+          </Routes>
+        </div>
       </div>
     </div>
   );

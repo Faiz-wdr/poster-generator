@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getResults, getTemplates } from '../../lib/db';
 import { ClipboardList, Trophy, Palette, Pencil, Plus } from 'lucide-react';
 
-export default function Dashboard() {
+export default function Dashboard({ isExpired, clientId }) {
   const [results, setResults] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,13 +11,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function load() {
-      const [r, t] = await Promise.all([getResults(), getTemplates()]);
+      const [r, t] = await Promise.all([
+        getResults(clientId),
+        getTemplates(clientId)
+      ]);
       setResults(r);
       setTemplates(t);
       setLoading(false);
     }
     load();
-  }, []);
+  }, [clientId]);
 
   const totalWinners = results.reduce((acc, r) => acc + (r.winners?.length || 0), 0);
   const recent = results.slice(0, 5);
@@ -26,16 +29,21 @@ export default function Dashboard() {
     <div>
       <div className="admin-header">
         <div>
-          <h1 style={{ fontSize: '2rem', marginBottom: 4 }}>Dashboard</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Welcome back — here's your platform overview.</p>
+          <h1 style={{ fontSize: '2rem', marginBottom: 4 }}>Dashboard Overview</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Welcome to your event coordinator control center.</p>
         </div>
-        <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate('/admin/upload')}>
+        <button
+          className="btn btn-primary"
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+          onClick={() => navigate('/admin/upload')}
+          disabled={isExpired}
+        >
           <Plus size={16} /> Publish New Result
         </button>
       </div>
 
       {loading ? (
-        <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Loading stats…</p>
+        <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Loading statistics…</p>
       ) : (
         <>
           {/* Stats Cards */}
@@ -58,15 +66,22 @@ export default function Dashboard() {
           {/* Recent Results */}
           <div className="card-form">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3>Recent Results</h3>
+              <h3>Recent Announcements</h3>
               <button className="btn btn-outline btn-sm" onClick={() => navigate('/admin/results')}>
-                View All
+                View All Records
               </button>
             </div>
 
             {recent.length === 0 ? (
               <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: 24 }}>
-                No results yet. <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin/upload')}>Publish one!</button>
+                No results published yet.{' '}
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => navigate('/admin/upload')}
+                  disabled={isExpired}
+                >
+                  Publish first result!
+                </button>
               </p>
             ) : (
               <div className="published-list-table-wrapper">
@@ -92,8 +107,12 @@ export default function Dashboard() {
                         </td>
                         <td>
                           <div className="action-btns">
-                            <button className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate(`/admin/upload?edit=${r.id}`)}>
-                              <Pencil size={14} /> Edit
+                            <button
+                              className="btn btn-outline btn-sm"
+                              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                              onClick={() => navigate(`/admin/upload?edit=${r.id}`)}
+                            >
+                              <Pencil size={14} /> {isExpired ? 'View' : 'Edit'}
                             </button>
                           </div>
                         </td>

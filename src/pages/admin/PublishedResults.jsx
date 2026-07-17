@@ -1,26 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getResults, getTemplates, deleteResult, saveResult } from '../../lib/db';
+import { getResults, getTemplates, deleteResult, saveResult, getSettings } from '../../lib/db';
 import { posterEngine } from '../../lib/posterEngine';
 import { CATEGORY_OPTIONS } from '../../data/defaults';
 import { Plus, Search, Pencil, Download, Trash2 } from 'lucide-react';
 
-export default function PublishedResults() {
+export default function PublishedResults({ isExpired, clientId }) {
   const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [clientCategories, setClientCategories] = useState([]);
 
   const load = async () => {
-    const [r, t] = await Promise.all([getResults(), getTemplates()]);
+    const [r, t, s] = await Promise.all([
+      getResults(clientId),
+      getTemplates(clientId),
+      getSettings(clientId)
+    ]);
     setResults(r);
     setTemplates(t);
+    setClientCategories(s.categories || []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [clientId]);
 
   const filtered = results.filter(r => {
     const matchCat = activeCategory === 'All' || r.category === activeCategory;
@@ -32,6 +38,7 @@ export default function PublishedResults() {
   });
 
   const handleDelete = async (id, name) => {
+    if (isExpired) { alert('Action locked: Event license expired.'); return; }
     if (!window.confirm(`Delete "${name}"? This is permanent.`)) return;
     const ok = await deleteResult(id);
     if (ok) await load();
@@ -39,10 +46,11 @@ export default function PublishedResults() {
   };
 
   const handlePublish = async (r) => {
+    if (isExpired) { alert('Action locked: Event license expired.'); return; }
     const ok = await saveResult({
       ...r,
       status: 'published'
-    });
+    }, clientId);
     if (ok) await load();
     else alert('Failed to publish result.');
   };
@@ -60,16 +68,21 @@ export default function PublishedResults() {
     }, 200);
   };
 
-  const categories = ['All', ...CATEGORY_OPTIONS];
+  const categories = ['All', ...(clientCategories && clientCategories.length ? clientCategories : CATEGORY_OPTIONS)];
 
   return (
     <div>
       <div className="admin-header">
         <div>
-          <h1 style={{ fontSize: '2rem', marginBottom: 4 }}>Results Records</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Manage all results — draft drafts, publish, edit, download or delete.</p>
+          <h1 style={{ fontSize: '2rem', marginBottom: 4 }}>Program Records</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Manage standings — draft drafts, publish, edit, download or delete.</p>
         </div>
-        <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate('/admin/upload')}>
+        <button
+          className="btn btn-primary"
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+          onClick={() => navigate('/admin/upload')}
+          disabled={isExpired}
+        >
           <Plus size={16} /> Create Result
         </button>
       </div>
@@ -103,10 +116,10 @@ export default function PublishedResults() {
 
       {/* Table */}
       {loading ? (
-        <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Loading…</p>
+        <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Loading records…</p>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 32, fontWeight: 600 }}>
-          No results found. Try adjusting filters.
+          No results found. Try adjusting filters or search.
         </div>
       ) : (
         <div className="results-list-container" id="published-results-list">
@@ -115,7 +128,7 @@ export default function PublishedResults() {
             return (
               <div key={r.id} className="result-list-item" style={{ cursor: 'default' }}>
                 <div className="result-list-main">
-                  <span className="badge badge-primary result-list-category">{r.category}</span>
+                  <span className="badge badge-primary" style={{ marginRight: 8 }}>{r.category}</span>
                   {r.status === 'pending' ? (
                     <span className="badge" style={{ background: '#FEF3C7', color: '#D97706', border: '1px solid #FCD34D', fontSize: '0.75rem', padding: '4px 10px', borderRadius: 20 }}>Pending</span>
                   ) : (
@@ -140,12 +153,21 @@ export default function PublishedResults() {
                 </div>
                 <div className="action-btns" style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'center' }}>
                   {r.status === 'pending' && (
-                    <button className="btn btn-primary btn-sm" style={{ background: '#10B981', borderColor: '#10B981', color: 'white', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => handlePublish(r)}>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      style={{ background: '#10B981', borderColor: '#10B981', color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}
+                      onClick={() => handlePublish(r)}
+                      disabled={isExpired}
+                    >
                       Publish
                     </button>
                   )}
-                  <button className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate(`/admin/upload?edit=${r.id}`)}>
-                    <Pencil size={14} /> Edit
+                  <button
+                    className="btn btn-outline btn-sm"
+                    style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                    onClick={() => navigate(`/admin/upload?edit=${r.id}`)}
+                  >
+                    <Pencil size={14} /> {isExpired ? 'View' : 'Edit'}
                   </button>
                   <button className="btn btn-secondary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => handleDownload(r)}>
                     <Download size={14} /> Download
@@ -154,6 +176,7 @@ export default function PublishedResults() {
                     className="btn btn-outline btn-sm"
                     style={{ color: '#EF4444', borderColor: '#FEE2E2', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}
                     onClick={() => handleDelete(r.id, r.programName)}
+                    disabled={isExpired}
                   >
                     <Trash2 size={14} /> Delete
                   </button>

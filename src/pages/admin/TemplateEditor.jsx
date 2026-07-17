@@ -18,7 +18,7 @@ const FONT_FAMILIES = [
   { value: 'monospace', label: 'Monospace' },
 ];
 
-export default function TemplateEditor() {
+export default function TemplateEditor({ isExpired, clientId }) {
   const [templates, setTemplates] = useState([]);
   const [currentTemplate, setCurrentTemplate] = useState(null);
   const [selectedFieldIds, setSelectedFieldIds] = useState([]);
@@ -39,11 +39,11 @@ export default function TemplateEditor() {
   useEffect(() => { activeFieldIdRef.current = activeFieldId; }, [activeFieldId]);
 
   useEffect(() => {
-    getTemplates().then(t => {
+    getTemplates(clientId).then(t => {
       setTemplates(t);
       if (t.length) selectTemplate(t[0]);
     });
-  }, []);
+  }, [clientId]);
 
   const selectTemplate = (tpl) => {
     // Deep clone so edits don't mutate original
@@ -56,10 +56,11 @@ export default function TemplateEditor() {
   };
 
   const handleDeleteTemplate = async (id, name) => {
+    if (isExpired) { alert('Action locked: Event license expired.'); return; }
     if (!window.confirm(`Delete template "${name}"? This cannot be undone.`)) return;
     const ok = await deleteTemplate(id);
     if (ok) {
-      const updated = await getTemplates();
+      const updated = await getTemplates(clientId);
       setTemplates(updated);
       if (currentTemplate?.id === id && updated.length) {
         selectTemplate(updated[0]);
@@ -76,10 +77,11 @@ export default function TemplateEditor() {
 
     // Render using latest selections from refs to prevent rendering triggers
     posterEngine.render(canvasWrapRef.current, dummyResult, currentTemplate, {
-      editable: true,
+      editable: !isExpired,
       selectedFieldIds: selectedFieldIdsRef.current,
       activeFieldId: activeFieldIdRef.current,
       onSelectField: (fKey, e) => {
+        if (isExpired) return;
         const shift = e.ctrlKey || e.metaKey || e.shiftKey;
         setSelectedFieldIds(prev => {
           if (shift) {
@@ -95,7 +97,7 @@ export default function TemplateEditor() {
 
     // Re-setup interact after canvas DOM elements are created
     setupInteract();
-  }, [currentTemplate]);
+  }, [currentTemplate, isExpired]);
 
   // Handle selection styling directly in DOM to avoid full canvas re-renders
   useEffect(() => {
@@ -115,6 +117,8 @@ export default function TemplateEditor() {
   // interact.js drag + resize setup
   const setupInteract = useCallback(() => {
     interact('.editable-active .poster-field').unset();
+    if (isExpired) return;
+
     interact('.editable-active .poster-field')
       .draggable({
         inertia: false,
@@ -195,7 +199,7 @@ export default function TemplateEditor() {
           }
         },
       });
-  }, []);
+  }, [isExpired]);
 
   // Cleanup interact on unmount
   useEffect(() => {
@@ -205,6 +209,7 @@ export default function TemplateEditor() {
   // Keyboard arrow nudge + undo/redo
   useEffect(() => {
     const onKeyDown = (e) => {
+      if (isExpired) return;
       const tag = e.target.tagName.toLowerCase();
       const inInput = ['input', 'select', 'textarea'].includes(tag) || e.target.isContentEditable;
 
@@ -244,7 +249,7 @@ export default function TemplateEditor() {
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [isExpired]);
 
   const snapshotHistory = () => {
     const tpl = currentTemplateRef.current;
@@ -254,6 +259,7 @@ export default function TemplateEditor() {
   };
 
   const applyUndo = () => {
+    if (isExpired) return;
     if (!undoStack.length || !currentTemplateRef.current) return;
     const prev = undoStack[undoStack.length - 1];
     setRedoStack(r => [...r, JSON.parse(JSON.stringify(currentTemplateRef.current.fields))]);
@@ -262,6 +268,7 @@ export default function TemplateEditor() {
   };
 
   const applyRedo = () => {
+    if (isExpired) return;
     if (!redoStack.length || !currentTemplateRef.current) return;
     const next = redoStack[redoStack.length - 1];
     setUndoStack(u => [...u, JSON.parse(JSON.stringify(currentTemplateRef.current.fields))]);
@@ -275,6 +282,7 @@ export default function TemplateEditor() {
   };
 
   const updateActiveFields = (prop, val) => {
+    if (isExpired) return;
     snapshotHistory();
     setCurrentTemplate(tpl => {
       const updated = { ...tpl, fields: { ...tpl.fields } };
@@ -286,25 +294,27 @@ export default function TemplateEditor() {
   };
 
   const handleSave = async () => {
+    if (isExpired) { alert('Action locked: Event license expired.'); return; }
     if (!currentTemplate) return;
     setSaving(true);
-    await saveTemplate(currentTemplate);
+    await saveTemplate(currentTemplate, clientId);
     setUndoStack([]);
     setRedoStack([]);
     setSaving(false);
     setSavedMsg('✅ Template saved!');
-    const t = await getTemplates();
+    const t = await getTemplates(clientId);
     setTemplates(t);
     setTimeout(() => setSavedMsg(''), 3000);
   };
 
   const handleUploadBg = async (e) => {
+    if (isExpired) { alert('Action locked: Event license expired.'); return; }
     const file = e.target.files[0];
     if (!file) return;
     const url = await uploadTemplateBackground(file, file.name);
     if (!url) { alert('Failed to upload background image.'); return; }
 
-    const allTemplates = await getTemplates();
+    const allTemplates = await getTemplates(clientId);
     const defaultFields = allTemplates[0]?.fields || DEFAULT_TEMPLATES[0].fields;
 
     const newTpl = {
@@ -312,9 +322,10 @@ export default function TemplateEditor() {
       name: file.name.split('.')[0] || 'Custom Template',
       background: url,
       fields: JSON.parse(JSON.stringify(defaultFields)),
+      client_id: clientId,
     };
-    await saveTemplate(newTpl);
-    const updated = await getTemplates();
+    await saveTemplate(newTpl, clientId);
+    const updated = await getTemplates(clientId);
     setTemplates(updated);
     selectTemplate(newTpl);
     alert(`Template "${newTpl.name}" uploaded & registered!`);
@@ -326,15 +337,15 @@ export default function TemplateEditor() {
     <div>
       <div className="admin-header">
         <div>
-          <h1 style={{ fontSize: '2rem', marginBottom: 4 }}>Template Editor</h1>
+          <h1 style={{ fontSize: '2rem', marginBottom: 4 }}>Template Layout Editor</h1>
           <p style={{ color: 'var(--text-secondary)' }}>
-            Drag, resize and style text fields on the poster canvas
+            Drag, resize and style text layers on the virtual poster canvas.
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="btn-editor-undo" onClick={applyUndo} disabled={!undoStack.length} title="Undo (Ctrl+Z)"><Undo size={14} /> Undo</button>
-          <button className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="btn-editor-redo" onClick={applyRedo} disabled={!redoStack.length} title="Redo (Ctrl+Y)"><Redo size={14} /> Redo</button>
-          <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="btn-save-template-layout" onClick={handleSave} disabled={saving}>
+          <button className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="btn-editor-undo" onClick={applyUndo} disabled={isExpired || !undoStack.length} title="Undo (Ctrl+Z)"><Undo size={14} /> Undo</button>
+          <button className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="btn-editor-redo" onClick={applyRedo} disabled={isExpired || !redoStack.length} title="Redo (Ctrl+Y)"><Redo size={14} /> Redo</button>
+          <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="btn-save-template-layout" onClick={handleSave} disabled={isExpired || saving}>
             <Save size={16} />
             <span>{saving ? 'Saving…' : 'Save Layout'}</span>
           </button>
@@ -354,7 +365,7 @@ export default function TemplateEditor() {
           {/* Template switcher */}
           <div>
             <div className="editor-title-desc">
-              <h4 style={{ marginBottom: 4 }}>Active Template</h4>
+              <h4 style={{ marginBottom: 4 }}>Active Graphic Asset</h4>
               <p id="lbl-active-template-name" style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.9rem' }}>
                 {currentTemplate?.name || '—'}
               </p>
@@ -375,7 +386,7 @@ export default function TemplateEditor() {
                     onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
                     style={{ padding: '8px 12px', borderColor: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     title={`Delete template "${tpl.name}"`}
-                    disabled={templates.length <= 1}
+                    disabled={isExpired || templates.length <= 1}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -386,16 +397,16 @@ export default function TemplateEditor() {
 
           {/* Upload custom background */}
           <div>
-            <h4 style={{ marginBottom: 10 }}>Upload Custom Background</h4>
+            <h4 style={{ marginBottom: 10 }}>Upload Custom Layout Background</h4>
             <label
               className="bg-upload-box"
               htmlFor="template-bg-file-input"
               id="template-upload-trigger"
-              style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+              style={{ cursor: isExpired ? 'not-allowed' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: isExpired ? 0.6 : 1 }}
             >
               <Upload size={28} style={{ color: 'var(--primary)', marginBottom: 8 }} />
               <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                Click to upload image
+                Click to upload layout image
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 4 }}>
                 PNG, JPG — 1080×1350 recommended
@@ -407,12 +418,13 @@ export default function TemplateEditor() {
               accept="image/*"
               style={{ display: 'none' }}
               onChange={handleUploadBg}
+              disabled={isExpired}
             />
           </div>
 
           {/* Fields list */}
           <div>
-            <h4 style={{ marginBottom: 8 }}>Poster Layers</h4>
+            <h4 style={{ marginBottom: 8 }}>Poster Text Layers</h4>
             {selectedFieldIds.length > 0 && (
               <div
                 id="editor-selection-status"
@@ -421,25 +433,25 @@ export default function TemplateEditor() {
                   padding: '8px 12px', borderRadius: 8, fontSize: '0.8rem', fontWeight: 700, marginBottom: 10,
                 }}
               >
-                <strong>{selectedFieldIds.length} layer(s) selected</strong>:<br />
+                <strong>{selectedFieldIds.length} layers selected</strong>:<br />
                 {selectedFieldIds.map(id => posterEngine.getFieldLabel(id)).join(', ')}
               </div>
             )}
             <div className="editor-field-selector-list" id="editor-field-selector-list">
               <div style={{ padding: '4px 14px', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)' }}>
-                ℹ️ Global Info Layers
+                ℹ️ Global Details
               </div>
               {posterEngine.FIELDS.map(fKey => {
                 if (fKey === 'winner_1_pos') {
                   return [
                     <div key="win-header" style={{ padding: '8px 14px 4px', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', marginTop: 6 }}>
-                      🏆 Winner Standing Slots
+                      🏆 Standings slots
                     </div>,
-                    <FieldBtn key={fKey} fKey={fKey} currentTemplate={currentTemplate} selectedFieldIds={selectedFieldIds} activeFieldId={activeFieldId} setSelectedFieldIds={setSelectedFieldIds} setActiveFieldId={setActiveFieldId} />,
+                    <FieldBtn key={fKey} fKey={fKey} currentTemplate={currentTemplate} selectedFieldIds={selectedFieldIds} activeFieldId={activeFieldId} setSelectedFieldIds={setSelectedFieldIds} setActiveFieldId={setActiveFieldId} disabled={isExpired} />,
                   ];
                 }
                 return (
-                  <FieldBtn key={fKey} fKey={fKey} currentTemplate={currentTemplate} selectedFieldIds={selectedFieldIds} activeFieldId={activeFieldId} setSelectedFieldIds={setSelectedFieldIds} setActiveFieldId={setActiveFieldId} />
+                  <FieldBtn key={fKey} fKey={fKey} currentTemplate={currentTemplate} selectedFieldIds={selectedFieldIds} activeFieldId={activeFieldId} setSelectedFieldIds={setSelectedFieldIds} setActiveFieldId={setActiveFieldId} disabled={isExpired} />
                 );
               })}
             </div>
@@ -447,7 +459,7 @@ export default function TemplateEditor() {
         </div>
 
         {/* Canvas Area */}
-        <div className="editor-canvas-area">
+        <div className="editor-canvas-area" style={{ opacity: isExpired ? 0.85 : 1 }}>
           <div
             ref={canvasWrapRef}
             id="editor-canvas-wrap"
@@ -460,7 +472,7 @@ export default function TemplateEditor() {
         <div className="editor-sidebar-right">
           {!activeDef ? (
             <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 32 }}>
-              <p style={{ fontWeight: 600 }}>Select a layer on the canvas or from the list to edit its properties.</p>
+              <p style={{ fontWeight: 600 }}>Select a text layer on the canvas or from the layers list to adjust positioning and font styling.</p>
             </div>
           ) : (
             <>
@@ -471,7 +483,7 @@ export default function TemplateEditor() {
 
               {/* Position & Size */}
               <div className="control-panel-group">
-                <label>Position & Size (px)</label>
+                <label>Position &amp; Size (px)</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {[['X', 'left', 'editor-pos-x'], ['Y', 'top', 'editor-pos-y'], ['W', 'width', 'editor-pos-w'], ['H', 'height', 'editor-pos-h']].map(([lbl, prop, id]) => (
                     <div key={prop}>
@@ -481,6 +493,7 @@ export default function TemplateEditor() {
                         type="number"
                         value={Math.round(activeDef[prop === 'left' ? 'left' : prop === 'top' ? 'top' : prop === 'width' ? 'width' : 'height'] || 0)}
                         onChange={e => updateActiveFields(prop === 'left' ? 'left' : prop === 'top' ? 'top' : prop === 'width' ? 'width' : 'height', parseInt(e.target.value))}
+                        disabled={isExpired}
                         style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}
                       />
                     </div>
@@ -495,6 +508,7 @@ export default function TemplateEditor() {
                   id="editor-font-family-select"
                   value={activeDef.fontFamily || (activeFieldId === 'programName' ? 'Outfit' : 'Plus Jakarta Sans')}
                   onChange={e => updateActiveFields('fontFamily', e.target.value)}
+                  disabled={isExpired}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}
                 >
                   {FONT_FAMILIES.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
@@ -511,6 +525,7 @@ export default function TemplateEditor() {
                   max={130}
                   value={activeDef.fontSize || 40}
                   onChange={e => updateActiveFields('fontSize', parseInt(e.target.value))}
+                  disabled={isExpired}
                   style={{ width: '100%', accentColor: 'var(--primary)' }}
                 />
                 <input
@@ -520,6 +535,7 @@ export default function TemplateEditor() {
                   max={130}
                   value={activeDef.fontSize || 40}
                   onChange={e => updateActiveFields('fontSize', parseInt(e.target.value))}
+                  disabled={isExpired}
                   style={{ width: 80, padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'var(--font-body)' }}
                 />
               </div>
@@ -534,6 +550,7 @@ export default function TemplateEditor() {
                       className={`align-toggle-btn ${(activeDef.align || 'center') === a ? 'active' : ''}`}
                       data-align={a}
                       onClick={() => updateActiveFields('align', a)}
+                      disabled={isExpired}
                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       {a === 'left' ? <AlignLeft size={16} /> : a === 'center' ? <AlignCenter size={16} /> : <AlignRight size={16} />}
@@ -551,8 +568,8 @@ export default function TemplateEditor() {
                       key={c}
                       className={`color-swatch ${(activeDef.color || '#111827').toLowerCase() === c.toLowerCase() ? 'active' : ''}`}
                       data-color={c}
-                      style={{ background: c, border: c === '#FFFFFF' ? '1px solid #E5E7EB' : 'none' }}
-                      onClick={() => updateActiveFields('color', c)}
+                      style={{ background: c, border: c === '#FFFFFF' ? '1px solid #E5E7EB' : 'none', opacity: isExpired ? 0.6 : 1 }}
+                      onClick={() => { if (!isExpired) updateActiveFields('color', c); }}
                       title={c}
                     />
                   ))}
@@ -563,6 +580,7 @@ export default function TemplateEditor() {
                     type="color"
                     value={activeDef.color || '#111827'}
                     onChange={e => updateActiveFields('color', e.target.value)}
+                    disabled={isExpired}
                     style={{ width: 36, height: 36, borderRadius: 8, border: 'none', cursor: 'pointer' }}
                   />
                   <input
@@ -573,6 +591,7 @@ export default function TemplateEditor() {
                       const v = e.target.value;
                       if (/^#[0-9A-Fa-f]{3}$|^#[0-9A-Fa-f]{6}$/.test(v)) updateActiveFields('color', v);
                     }}
+                    disabled={isExpired}
                     style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'monospace', fontSize: '0.9rem' }}
                   />
                 </div>
@@ -586,6 +605,7 @@ export default function TemplateEditor() {
                     type="checkbox"
                     checked={activeDef.visible !== false}
                     onChange={e => updateActiveFields('visible', e.target.checked)}
+                    disabled={isExpired}
                     style={{ marginRight: 8 }}
                   />
                   Visible on poster
@@ -607,7 +627,7 @@ export default function TemplateEditor() {
                       id={id}
                       className="btn btn-outline btn-sm"
                       onClick={() => alignFields(type)}
-                      disabled={selectedFieldIds.length < 2}
+                      disabled={isExpired || selectedFieldIds.length < 2}
                     >
                       {label}
                     </button>
@@ -622,6 +642,7 @@ export default function TemplateEditor() {
   );
 
   function alignFields(alignType) {
+    if (isExpired) return;
     if (!currentTemplate || selectedFieldIds.length < 2) return;
     const refId = activeFieldId;
     const refDef = currentTemplate.fields[refId];
@@ -644,7 +665,7 @@ export default function TemplateEditor() {
   }
 }
 
-function FieldBtn({ fKey, currentTemplate, selectedFieldIds, activeFieldId, setSelectedFieldIds, setActiveFieldId }) {
+function FieldBtn({ fKey, currentTemplate, selectedFieldIds, activeFieldId, setSelectedFieldIds, setActiveFieldId, disabled }) {
   const isSelected = selectedFieldIds.includes(fKey);
   const fieldDef = currentTemplate?.fields[fKey];
   const isVisible = fieldDef?.visible !== false;
@@ -654,6 +675,7 @@ function FieldBtn({ fKey, currentTemplate, selectedFieldIds, activeFieldId, setS
       className={`field-selector-btn ${isSelected ? 'active' : ''}`}
       data-field-id={fKey}
       onClick={e => {
+        if (disabled) return;
         if (document.activeElement?.blur) document.activeElement.blur();
         const shift = e.ctrlKey || e.metaKey || e.shiftKey;
         setSelectedFieldIds(prev => {
@@ -666,7 +688,8 @@ function FieldBtn({ fKey, currentTemplate, selectedFieldIds, activeFieldId, setS
         });
         setActiveFieldId(fKey);
       }}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
+      disabled={disabled}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', opacity: disabled ? 0.75 : 1 }}
     >
       <span style={!isVisible ? { color: 'var(--text-secondary)', textDecoration: 'line-through', opacity: 0.6, fontStyle: 'italic' } : {}}>
         {posterEngine.getFieldLabel(fKey)}
