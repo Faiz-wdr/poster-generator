@@ -20,9 +20,10 @@ export default function PublishedResults({ isExpired, clientId }) {
       getTemplates(clientId),
       getSettings(clientId)
     ]);
-    setResults(r);
-    setTemplates(t);
-    setClientCategories(s.categories || []);
+    const settings = s || {};
+    setResults(r || []);
+    setTemplates(t || []);
+    setClientCategories(settings.categories || []);
     setLoading(false);
   };
 

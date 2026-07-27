@@ -185,13 +185,15 @@ export default function PublishResult({ isExpired, clientId }) {
         getTemplates(clientId),
         getSettings(clientId)
       ]);
-      setTemplates(t);
-      setActiveTemplate(t[0] || null);
-      setClientPrograms(s.programs || []);
-      setClientCategories(s.categories || []);
-      setClientTeams(s.teams || []);
+      const settings = s || {};
+      const tpls = t || [];
+      setTemplates(tpls);
+      setActiveTemplate(tpls[0] || null);
+      setClientPrograms(settings.programs || []);
+      setClientCategories(settings.categories || []);
+      setClientTeams(settings.teams || []);
 
-      const cats = s.categories && s.categories.length ? s.categories : CATEGORY_OPTIONS;
+      const cats = settings.categories && settings.categories.length ? settings.categories : CATEGORY_OPTIONS;
 
       if (editId) {
         const r = await getResult(editId);
@@ -205,7 +207,7 @@ export default function PublishResult({ isExpired, clientId }) {
         }
       } else {
         const allResults = await getResults(clientId);
-        const nextNo = calculateNextResultNo(allResults);
+        const nextNo = calculateNextResultNo(allResults || []);
         setResultNo(nextNo);
         if (cats.length > 0) {
           setCategory(cats[0]);

@@ -15,8 +15,8 @@ export default function Dashboard({ isExpired, clientId }) {
         getResults(clientId),
         getTemplates(clientId)
       ]);
-      setResults(r);
-      setTemplates(t);
+      setResults(r || []);
+      setTemplates(t || []);
       setLoading(false);
     }
     load();
