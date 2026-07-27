@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getClients, saveClient, deleteClient, resetToDefault, getResults, uploadClientLogo } from '../../lib/db';
+import { getClients, saveClient, deleteClient, resetToDefault, getResults, uploadClientLogo, deleteAllClientsPermanently } from '../../lib/db';
 import { Plus, Users, Award, Download, Power, Calendar, Shield, Settings, Trash2, RotateCcw, AlertTriangle, FileText, CheckCircle, ExternalLink, Image } from 'lucide-react';
 
 const renderLogo = (logoStr, size = '2.5rem', fontSize = '1.4rem', borderRadius = '12px') => {
@@ -230,6 +230,18 @@ export default function SuperAdminDashboard() {
     } else {
       alert('Failed to reset event data.');
     }
+  };
+
+  const handleWipeAllClients = async () => {
+    if (!window.confirm('⚠️ WARNING: This will PERMANENTLY DELETE ALL CLIENTS and all event data! Are you sure?')) return;
+    const secondConfirm = window.prompt('Type "DELETE" to confirm wiping all clients permanently:');
+    if (secondConfirm !== 'DELETE') return;
+
+    await deleteAllClientsPermanently();
+    setClients([]);
+    setSelectedClient(null);
+    setSuccessMsg('All client events have been permanently deleted.');
+    setTimeout(() => setSuccessMsg(''), 4000);
   };
 
   const totalActive = clients.filter(c => c.status === 'active' && new Date(c.expiry_date) > new Date()).length;
