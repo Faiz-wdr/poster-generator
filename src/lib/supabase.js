@@ -9,7 +9,8 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
  * so we skip client creation entirely if the key is obviously wrong.
  */
 function isValidSupabaseKey(key) {
-  if (!key || key.length < 30) return false;
+  if (!key || key.length < 20) return false;
+  if (key.startsWith('sb_publishable_') || key.startsWith('sb_secret_')) return true;
   // Real Supabase anon keys are JWTs: three base64 segments separated by dots
   const parts = key.split('.');
   if (parts.length !== 3) return false;
