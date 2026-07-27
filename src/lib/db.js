@@ -150,7 +150,7 @@ export async function getClients() {
       return getLocalClients();
     }
 
-    return data || [];
+    return (data || []).filter(c => c.id !== 'default-client' && c.id !== 'alqamar-client' && c.id !== 'expired-client');
   } catch (e) {
     showDbError('fetching clients exception', e);
     tripCircuitBreaker('getClients', e);
@@ -318,7 +318,14 @@ function getLocalClients() {
     const raw = localStorage.getItem('arts_poster_clients');
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        // Filter out legacy demo clients if present in browser localStorage
+        const cleaned = parsed.filter(c => c.id !== 'default-client' && c.id !== 'alqamar-client' && c.id !== 'expired-client');
+        if (cleaned.length !== parsed.length) {
+          localStorage.setItem('arts_poster_clients', JSON.stringify(cleaned));
+        }
+        return cleaned;
+      }
     }
   } catch (e) {
     console.error("Failed to parse local clients", e);
