@@ -11,9 +11,19 @@ export function getSubdomainInfo(hostname = window.location.hostname) {
   }
 
   const parts = host.split('.');
-  
-  // Single word hostname or standard apex domain (e.g. yourdomain.com -> 2 parts)
-  if (parts.length <= 2) {
+
+  // Check if platform hosting apex domain (e.g. vercel.app, netlify.app, onrender.com, github.io)
+  const isPlatformDomain =
+    host.endsWith('.vercel.app') ||
+    host.endsWith('.netlify.app') ||
+    host.endsWith('.onrender.com') ||
+    host.endsWith('.github.io') ||
+    host.endsWith('.pages.dev');
+
+  const minPartsForSubdomain = isPlatformDomain ? 4 : 3;
+
+  // Root / Apex Domain (e.g. yourdomain.com [2 parts] or app.vercel.app [3 parts])
+  if (parts.length < minPartsForSubdomain) {
     return { type: 'root', slug: null };
   }
 
