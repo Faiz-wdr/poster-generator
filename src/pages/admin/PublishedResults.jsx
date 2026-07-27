@@ -30,12 +30,10 @@ export default function PublishedResults({ isExpired, clientId }) {
   useEffect(() => { load(); }, [clientId]);
 
   const filtered = results.filter(r => {
-    const matchCat = activeCategory === 'All' || r.category === activeCategory;
     const q = search.toLowerCase();
-    const matchSearch = !q ||
+    return !q ||
       r.programName?.toLowerCase().includes(q) ||
       r.winners?.some(w => w.name?.toLowerCase().includes(q));
-    return matchCat && matchSearch;
   });
 
   const handleDelete = async (id, name) => {
@@ -88,9 +86,9 @@ export default function PublishedResults({ isExpired, clientId }) {
         </button>
       </div>
 
-      {/* Search + Filter */}
+      {/* Search Bar */}
       <div className="search-filter-bar" style={{ marginBottom: 28 }}>
-        <div className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <div className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
           <Search size={18} className="search-icon" style={{ position: 'absolute', left: 14, color: 'var(--text-secondary)' }} />
           <input
             id="admin-search-results"
@@ -98,20 +96,8 @@ export default function PublishedResults({ isExpired, clientId }) {
             placeholder="Search program or winner…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ paddingLeft: 42 }}
+            style={{ paddingLeft: 42, width: '100%' }}
           />
-        </div>
-        <div className="filter-pills" id="admin-category-filters">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              className={`filter-pill ${activeCategory === cat ? 'active' : ''}`}
-              data-category={cat}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
         </div>
       </div>
 

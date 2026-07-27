@@ -97,12 +97,10 @@ export default function PublicEvent({ overrideSlug }) {
   }
 
   const filtered = results.filter(r => {
-    const matchCat = activeCategory === 'All' || r.category === activeCategory;
     const q = search.toLowerCase();
-    const matchSearch = !q ||
+    return !q ||
       r.programName?.toLowerCase().includes(q) ||
       r.winners?.some(w => w.name?.toLowerCase().includes(q));
-    return matchCat && matchSearch;
   });
 
   const clientCats = Array.isArray(client?.categories) ? client.categories : [];
@@ -177,39 +175,19 @@ export default function PublicEvent({ overrideSlug }) {
           </div>
         </section>
 
-        {/* 2. PROGRAM THEME / CATEGORIES SECTION */}
+        {/* 2. PROGRAM SEARCH SECTION */}
         <section style={{ marginBottom: 36 }}>
-          <div style={{ marginBottom: 12 }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Program Themes & Categories
-            </h3>
-          </div>
-
           <div className="search-filter-bar" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', padding: '16px' }}>
-            <div className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <div className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
               <Search size={18} className="search-icon" style={{ position: 'absolute', left: 14, color: '#64748B' }} />
               <input
                 type="search"
                 placeholder="Search program or winner name…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                style={{ paddingLeft: 42, background: '#F8FAFC', border: '1px solid #CBD5E1' }}
+                style={{ paddingLeft: 42, background: '#F8FAFC', border: '1px solid #CBD5E1', width: '100%' }}
               />
             </div>
-
-            {categories.length > 0 && (
-              <div className="filter-pills">
-                {categories.map(cat => (
-                  <button
-                    key={cat}
-                    className={`filter-pill ${activeCategory === cat ? 'active' : ''}`}
-                    onClick={() => setActiveCategory(cat)}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </section>
 
