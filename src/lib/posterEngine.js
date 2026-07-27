@@ -49,10 +49,18 @@ export const posterEngine = {
   getEditorPlaceholderForField(fKey) {
     const m = fKey.match(/^winner_(\d+)_(pos|name|team)$/);
     if (m) {
-      const type = m[2] === 'pos' ? 'Pos' : m[2] === 'name' ? 'Name' : 'Team';
-      return `<div style="opacity:0.35;font-style:italic;font-size:0.8em;padding:10px 0;text-align:inherit;">[ W${m[1]} ${type} ]</div>`;
+      const idx = parseInt(m[1]);
+      const sampleNames = ['Muhammed Abdullah', 'Aisha Farheen', 'Rahul Ramachandran', 'Fathima Raniya', 'Devanand K. V.', 'Ananya P. Nair'];
+      const sampleTeams = ['Wandoor Higher Secondary School', 'Vaniyambalam Higher Secondary', 'Koorad Arts & Science Campus', 'Emangad Public Academy', 'Kuttiyil Memorial High School', 'Thekkumpuram Higher Secondary'];
+      
+      if (m[2] === 'pos') return `0${idx}`;
+      if (m[2] === 'name') return sampleNames[idx - 1] || `Winner Name ${idx}`;
+      if (m[2] === 'team') return sampleTeams[idx - 1] || `Team Name ${idx}`;
     }
-    return `<div style="opacity:0.35;font-style:italic;font-size:0.8em;padding:10px 0;">${fKey}</div>`;
+    if (fKey === 'resultNo') return '01';
+    if (fKey === 'programName') return 'Classical Violin Symphony Solo';
+    if (fKey === 'category') return 'Senior Category';
+    return fKey;
   },
 
   /**
@@ -128,7 +136,8 @@ export const posterEngine = {
         left: `${fDef.left}px`,
         top: `${fDef.top}px`,
         width: `${fDef.width}px`,
-        height: `${fDef.height}px`,
+        height: 'auto',
+        minHeight: `${Math.max(24, Math.round((fDef.fontSize || 40) * 1.15))}px`,
         color: fDef.color || '#111827',
         textAlign: fDef.align || 'center',
         justifyContent: fDef.align === 'left' ? 'flex-start' : fDef.align === 'right' ? 'flex-end' : 'center',
@@ -142,14 +151,18 @@ export const posterEngine = {
       textSpan.style.letterSpacing = (fKey === 'category' || fKey === 'resultNo') ? '0.08em' : 'normal';
 
       if (isWinnerField) {
-        if (hasWinnerData || opts.editable) {
+        if (hasWinnerData) {
           textSpan.innerHTML = this.getLabelForField(fKey, '', result);
-          if (opts.editable && !hasWinnerData) {
-            textSpan.innerHTML = this.getEditorPlaceholderForField(fKey);
-          }
+        } else if (opts.editable) {
+          textSpan.innerHTML = this.getEditorPlaceholderForField(fKey);
         }
       } else {
-        textSpan.innerHTML = this.getLabelForField(fKey, result?.[fKey] || (opts.editable ? `[ ${fKey} ]` : ''), result);
+        const val = result?.[fKey];
+        if (val) {
+          textSpan.innerHTML = this.getLabelForField(fKey, val, result);
+        } else if (opts.editable) {
+          textSpan.innerHTML = this.getEditorPlaceholderForField(fKey);
+        }
       }
 
       if (opts.editable) {

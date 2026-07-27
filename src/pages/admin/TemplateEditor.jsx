@@ -74,7 +74,19 @@ export default function TemplateEditor({ isExpired, clientId }) {
   // Render editor canvas when template structure or values change
   useEffect(() => {
     if (!canvasWrapRef.current || !currentTemplate) return;
-    const dummyResult = { programName: 'Program Name', category: 'Category', winners: [] };
+    const dummyResult = {
+      resultNo: '01',
+      programName: 'Classical Violin Symphony Solo',
+      category: 'Senior Category',
+      winners: [
+        { position: '01', name: 'Muhammed Abdullah', team: 'Wandoor Higher Secondary School' },
+        { position: '02', name: 'Aisha Farheen', team: 'Vaniyambalam Higher Secondary' },
+        { position: '03', name: 'Rahul Ramachandran', team: 'Koorad Arts & Science Campus' },
+        { position: '04', name: 'Fathima Raniya', team: 'Emangad Public Academy' },
+        { position: '05', name: 'Devanand K. V.', team: 'Kuttiyil Memorial High School' },
+        { position: '06', name: 'Ananya P. Nair', team: 'Thekkumpuram Higher Secondary' },
+      ]
+    };
 
     // Render using latest selections from refs to prevent rendering triggers
     posterEngine.render(canvasWrapRef.current, dummyResult, currentTemplate, {
@@ -83,17 +95,20 @@ export default function TemplateEditor({ isExpired, clientId }) {
       activeFieldId: activeFieldIdRef.current,
       onSelectField: (fKey, e) => {
         if (isExpired) return;
-        const shift = e.ctrlKey || e.metaKey || e.shiftKey;
-        setSelectedFieldIds(prev => {
-          if (shift) {
-            const idx = prev.indexOf(fKey);
-            if (idx !== -1) return prev.length > 1 ? prev.filter(id => id !== fKey) : prev;
-            return [...prev, fKey];
-          }
-          return [fKey];
-        });
-        setActiveFieldId(fKey);
-      },
+        const isMulti = e.shiftKey || e.ctrlKey || e.metaKey;
+        if (isMulti) {
+          setSelectedFieldIds(prev => {
+            const exists = prev.includes(fKey);
+            const next = exists ? prev.filter(k => k !== fKey) : [...prev, fKey];
+            const active = next.length > 0 ? next[next.length - 1] : null;
+            setActiveFieldId(active);
+            return next;
+          });
+        } else {
+          setSelectedFieldIds([fKey]);
+          setActiveFieldId(fKey);
+        }
+      }
     });
 
     // Re-setup interact after canvas DOM elements are created
@@ -115,15 +130,14 @@ export default function TemplateEditor({ isExpired, clientId }) {
     });
   }, [selectedFieldIds, activeFieldId]);
 
-  // interact.js drag + resize setup
+  // Setup interact.js for dragging & width resizing
   const setupInteract = useCallback(() => {
-    interact('.editable-active .poster-field').unset();
     if (isExpired) return;
+
+    try { interact('.editable-active .poster-field').unset(); } catch { }
 
     interact('.editable-active .poster-field')
       .draggable({
-        inertia: false,
-        autoScroll: false,
         listeners: {
           start: () => snapshotHistory(),
           move(event) {
@@ -131,28 +145,23 @@ export default function TemplateEditor({ isExpired, clientId }) {
             const canvasEl = document.getElementById('poster-engine-canvas');
             if (!canvasEl || !tpl) return;
             const scale = canvasEl.getBoundingClientRect().width / 1080;
-            const dx = event.dx / scale;
-            const dy = event.dy / scale;
-            const fKey = event.target.dataset.field;
-            const toMove = selectedFieldIdsRef.current.includes(fKey)
-              ? selectedFieldIdsRef.current : [fKey];
+            const el = event.target;
+            const fKey = el.dataset.field;
+            const fd = tpl.fields[fKey];
+            if (!fd) return;
 
-            toMove.forEach(id => {
-              const el = canvasEl.querySelector(`[data-field="${id}"]`);
-              const fd = tpl.fields[id];
-              if (!el || !fd) return;
-              let x = parseFloat(el.style.left) + dx;
-              let y = parseFloat(el.style.top) + dy;
-              x = Math.max(0, Math.min(1080 - fd.width, x));
-              y = Math.max(0, Math.min(1350 - fd.height, y));
-              el.style.left = `${x}px`;
-              el.style.top = `${y}px`;
-              fd.left = Math.round(x);
-              fd.top = Math.round(y);
-            });
+            let x = (parseFloat(el.style.left) || 0) + event.dx / scale;
+            let y = (parseFloat(el.style.top) || 0) + event.dy / scale;
+            x = Math.max(0, Math.min(1080 - fd.width, x));
+            y = Math.max(0, Math.min(1350 - fd.height, y));
+
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            fd.left = Math.round(x);
+            fd.top = Math.round(y);
           },
           end() {
-            // Commit drag changes to state to sync layout and trigger re-fitting if needed
+            // Commit drag position to React state
             const tpl = currentTemplateRef.current;
             if (!tpl) return;
             setCurrentTemplate(prev => ({
@@ -163,7 +172,7 @@ export default function TemplateEditor({ isExpired, clientId }) {
         },
       })
       .resizable({
-        edges: { bottom: true, right: true, bottomRight: true },
+        edges: { right: true },
         margin: 12,
         listeners: {
           start: () => snapshotHistory(),
@@ -178,15 +187,10 @@ export default function TemplateEditor({ isExpired, clientId }) {
             if (!fd) return;
 
             let w = parseFloat(el.style.width) + event.deltaRect.width / scale;
-            let h = parseFloat(el.style.height) + event.deltaRect.height / scale;
             const l = parseFloat(el.style.left) || 0;
-            const t = parseFloat(el.style.top) || 0;
             w = Math.max(120, Math.min(1080 - l, w));
-            h = Math.max(30, Math.min(1350 - t, h));
             el.style.width = `${w}px`;
-            el.style.height = `${h}px`;
             fd.width = Math.round(w);
-            fd.height = Math.round(h);
             posterEngine.fitText(el, fd.fontSize);
           },
           end() {
