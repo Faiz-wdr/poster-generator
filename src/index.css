@@ -916,14 +916,14 @@ header {
 
 .poster-field .resize-handle {
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: 10px;
+  top: 15%;
+  bottom: 15%;
+  right: -5px;
   background: var(--pink-accent);
   border: 2px solid #ffffff;
-  border-radius: 50%;
-  bottom: -4px;
-  right: -4px;
-  cursor: se-resize;
+  border-radius: 4px;
+  cursor: e-resize;
   display: none;
   z-index: 20;
   box-shadow: 0 2px 6px rgba(236, 72, 153, 0.5);
@@ -931,7 +931,7 @@ header {
 }
 
 .poster-field .resize-handle:hover {
-  transform: scale(1.3);
+  transform: scale(1.2);
 }
 
 .editable-active .selected-field .resize-handle {

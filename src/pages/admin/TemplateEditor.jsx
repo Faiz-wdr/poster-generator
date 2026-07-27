@@ -130,7 +130,7 @@ export default function TemplateEditor({ isExpired, clientId }) {
     });
   }, [selectedFieldIds, activeFieldId]);
 
-  // Setup interact.js for dragging ONLY (no mouse resizing/shrinking)
+  // Setup interact.js for dragging & width resizing
   const setupInteract = useCallback(() => {
     if (isExpired) return;
 
@@ -162,6 +162,39 @@ export default function TemplateEditor({ isExpired, clientId }) {
           },
           end() {
             // Commit drag position to React state
+            const tpl = currentTemplateRef.current;
+            if (!tpl) return;
+            setCurrentTemplate(prev => ({
+              ...prev,
+              fields: JSON.parse(JSON.stringify(tpl.fields))
+            }));
+          }
+        },
+      })
+      .resizable({
+        edges: { right: true },
+        margin: 12,
+        listeners: {
+          start: () => snapshotHistory(),
+          move(event) {
+            const tpl = currentTemplateRef.current;
+            const canvasEl = document.getElementById('poster-engine-canvas');
+            if (!canvasEl || !tpl) return;
+            const scale = canvasEl.getBoundingClientRect().width / 1080;
+            const el = event.target;
+            const fKey = el.dataset.field;
+            const fd = tpl.fields[fKey];
+            if (!fd) return;
+
+            let w = parseFloat(el.style.width) + event.deltaRect.width / scale;
+            const l = parseFloat(el.style.left) || 0;
+            w = Math.max(120, Math.min(1080 - l, w));
+            el.style.width = `${w}px`;
+            fd.width = Math.round(w);
+            posterEngine.fitText(el, fd.fontSize);
+          },
+          end() {
+            // Commit resize changes to state
             const tpl = currentTemplateRef.current;
             if (!tpl) return;
             setCurrentTemplate(prev => ({
@@ -260,34 +293,6 @@ export default function TemplateEditor({ isExpired, clientId }) {
       const updated = { ...tpl, fields: { ...tpl.fields } };
       selectedFieldIds.forEach(id => {
         if (updated.fields[id]) updated.fields[id] = { ...updated.fields[id], [prop]: val };
-      });
-      return updated;
-    });
-  };
-
-  const handleFitWidth = () => {
-    if (isExpired || !currentTemplate || !activeFieldId) return;
-    const canvasEl = document.getElementById('poster-engine-canvas');
-    if (!canvasEl) return;
-
-    snapshotHistory();
-    const toFit = selectedFieldIds.length > 0 ? selectedFieldIds : [activeFieldId];
-
-    setCurrentTemplate(tpl => {
-      const updated = { ...tpl, fields: { ...tpl.fields } };
-      toFit.forEach(id => {
-        const el = canvasEl.querySelector(`[data-field="${id}"]`);
-        if (!el) return;
-        const textSpan = el.querySelector('.poster-field-text');
-        if (!textSpan) return;
-
-        const measuredW = Math.ceil(textSpan.scrollWidth) + 12;
-        const currentLeft = updated.fields[id]?.left || 0;
-        const fitW = Math.max(60, Math.min(1080 - currentLeft, measuredW));
-
-        if (updated.fields[id]) {
-          updated.fields[id] = { ...updated.fields[id], width: fitW };
-        }
       });
       return updated;
     });
@@ -483,28 +488,16 @@ export default function TemplateEditor({ isExpired, clientId }) {
 
               {/* Position & Size */}
               <div className="control-panel-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <label style={{ margin: 0 }}>Position &amp; Size (px)</label>
-                  <button
-                    type="button"
-                    className="btn btn-outline btn-sm"
-                    style={{ fontSize: '0.75rem', padding: '3px 10px', display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: 6, fontWeight: 700 }}
-                    onClick={handleFitWidth}
-                    disabled={isExpired}
-                    title="Fit text bounding box width to exact text width"
-                  >
-                    ⚡ Fit Width
-                  </button>
-                </div>
+                <label>Position &amp; Size (px)</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {[['X', 'left', 'editor-pos-x'], ['Y', 'top', 'editor-pos-y'], ['Width', 'width', 'editor-pos-w']].map(([lbl, prop, id]) => (
+                  {[['X', 'left', 'editor-pos-x'], ['Y', 'top', 'editor-pos-y'], ['W', 'width', 'editor-pos-w'], ['H', 'height', 'editor-pos-h']].map(([lbl, prop, id]) => (
                     <div key={prop}>
                       <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>{lbl}</label>
                       <input
                         id={id}
                         type="number"
-                        value={Math.round(activeDef[prop] || 0)}
-                        onChange={e => updateActiveFields(prop, parseInt(e.target.value))}
+                        value={Math.round(activeDef[prop === 'left' ? 'left' : prop === 'top' ? 'top' : prop === 'width' ? 'width' : 'height'] || 0)}
+                        onChange={e => updateActiveFields(prop === 'left' ? 'left' : prop === 'top' ? 'top' : prop === 'width' ? 'width' : 'height', parseInt(e.target.value))}
                         disabled={isExpired}
                         style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}
                       />

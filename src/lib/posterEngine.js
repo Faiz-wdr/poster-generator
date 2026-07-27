@@ -165,6 +165,12 @@ export const posterEngine = {
         }
       }
 
+      if (opts.editable) {
+        const handle = document.createElement('div');
+        handle.className = 'resize-handle';
+        fieldDiv.appendChild(handle);
+      }
+
       fieldDiv.appendChild(textSpan);
       canvas.appendChild(fieldDiv);
     });
@@ -191,10 +197,10 @@ export const posterEngine = {
     return () => window.removeEventListener('resize', adjustScale);
   },
 
-  fitText(fieldEl, maxFontSize) {
+  fitText(fieldEl, fontSize) {
     const textEl = fieldEl.querySelector('.poster-field-text');
     if (!textEl) return;
-    textEl.style.fontSize = `${maxFontSize || 48}px`;
+    textEl.style.fontSize = `${fontSize || 40}px`;
   },
 
   exportJpg(container, fileName = 'arts-poster.jpg') {
