@@ -266,9 +266,16 @@ export default function SuperAdminDashboard() {
             <h1 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: 4 }}>Control Center</h1>
             <p style={{ color: 'var(--text-secondary)' }}>Manage client tenants, subscription parameters, and global system health.</p>
           </div>
-          <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={openNewClientWizard}>
-            <Plus size={18} /> Onboard New Tenant
-          </button>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {clients.length > 0 && (
+              <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#EF4444', borderColor: '#FEE2E2' }} onClick={handleWipeAllClients}>
+                <Trash2 size={16} /> Wipe All Events
+              </button>
+            )}
+            <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={openNewClientWizard}>
+              <Plus size={18} /> Onboard New Tenant
+            </button>
+          </div>
         </div>
 
         {/* Analytics Grid */}

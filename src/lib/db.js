@@ -48,53 +48,7 @@ function withTimeout(promise, label) {
 }
 
 // ── LOCAL STORAGE TENANCY SEED DATA ──────────────────────────────────────────
-const DEFAULT_CLIENTS = [
-  {
-    id: 'default-client',
-    organization_name: 'Wandoor Sector',
-    event_name: 'Sahityotsav 2026',
-    slug: 'wandoor-sahityotsav-2026',
-    logo: 'S',
-    primary_color: '#7C3AED',
-    secondary_color: '#0EA5E9',
-    accent_color: '#F59E0B',
-    admin_password: 'password',
-    start_date: '2026-05-01',
-    end_date: '2026-06-30',
-    expiry_date: '2030-01-01T00:00:00.000Z',
-    status: 'active',
-  },
-  {
-    id: 'alqamar-client',
-    organization_name: 'Al Qamar',
-    event_name: 'Arts Festival 2027',
-    slug: 'alqamar-2027',
-    logo: '🌙',
-    primary_color: '#06B6D4',
-    secondary_color: '#EC4899',
-    accent_color: '#F59E0B',
-    admin_password: 'password',
-    start_date: '2027-01-01',
-    end_date: '2027-01-10',
-    expiry_date: '2030-01-01T00:00:00.000Z',
-    status: 'active',
-  },
-  {
-    id: 'expired-client',
-    organization_name: 'Expired Event Org',
-    event_name: 'Expired Event 2020',
-    slug: 'expired-event',
-    logo: '⌛',
-    primary_color: '#EF4444',
-    secondary_color: '#6B7280',
-    accent_color: '#F59E0B',
-    admin_password: 'password',
-    start_date: '2020-01-01',
-    end_date: '2020-01-05',
-    expiry_date: '2020-01-10T00:00:00.000Z',
-    status: 'active',
-  }
-];
+const DEFAULT_CLIENTS = [];
 
 // Local Storage fallback write operations (used if Supabase fails)
 function saveLocalClientFallback(updatedClient, isNew) {
@@ -1015,4 +969,21 @@ export async function saveSchedule(clientId, items) {
   }
   return true;
 }
+
+export async function deleteAllClientsPermanently() {
+  localStorage.clear();
+  localStorage.setItem('arts_poster_clients', JSON.stringify([]));
+
+  if (!useLocal) {
+    try {
+      await supabase.from('results').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('templates').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('clients').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    } catch (e) {
+      showDbError('deleteAllClientsPermanently', e);
+    }
+  }
+  return true;
+}
+
 
