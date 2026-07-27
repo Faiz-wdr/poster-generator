@@ -932,35 +932,53 @@ export async function resetToDefault(clientId) {
 export async function getSchedule(clientId) {
   const cId = clientId || getFallbackClientId();
 
-  if (useLocal) {
-    const raw = localStorage.getItem(`arts_poster_schedule_${cId}`);
-    if (raw) {
-      try { return JSON.parse(raw); } catch { return []; }
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', cId)
+        .single();
+
+      if (data) {
+        if (Array.isArray(data.schedule)) return data.schedule;
+        if (data.programs && Array.isArray(data.programs.schedule)) return data.programs.schedule;
+      }
+    } catch (e) {
+      console.warn(`Supabase getSchedule error for ${cId}:`, e);
     }
-    const client = await getClient(cId);
-    return client?.schedule || [];
   }
 
-  try {
-    const client = await getClient(cId);
-    return client?.schedule || [];
-  } catch (e) {
-    showDbError(`fetching schedule for ${cId}`, e);
-    const raw = localStorage.getItem(`arts_poster_schedule_${cId}`);
-    return raw ? JSON.parse(raw) : [];
+  const raw = localStorage.getItem(`arts_poster_schedule_${cId}`);
+  if (raw) {
+    try { return JSON.parse(raw); } catch {}
   }
+  const client = await getClient(cId);
+  return client?.schedule || client?.programs?.schedule || [];
 }
 
 export async function saveSchedule(clientId, items) {
   const cId = clientId || getFallbackClientId();
-  const client = await getClient(cId);
 
   // Save to localStorage
   localStorage.setItem(`arts_poster_schedule_${cId}`, JSON.stringify(items));
 
-  if (!useLocal && client) {
+  if (supabase) {
     try {
-      await supabase.from('clients').update({ schedule: items }).eq('id', cId);
+      const client = await getClient(cId);
+      const currentPrograms = (client?.programs && typeof client.programs === 'object' && !Array.isArray(client.programs))
+        ? client.programs
+        : {};
+
+      const updatedPrograms = {
+        ...currentPrograms,
+        schedule: items
+      };
+
+      await supabase
+        .from('clients')
+        .update({ programs: updatedPrograms })
+        .eq('id', cId);
     } catch (e) {
       showDbError(`saving schedule for ${cId}`, e);
     }
