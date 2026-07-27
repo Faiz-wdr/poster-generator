@@ -2,10 +2,115 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getClientBySlug, getResults, getSchedule } from '../lib/db';
 import { applyClientTheme } from '../lib/theme';
-import { CATEGORY_OPTIONS } from '../data/defaults';
-import ResultRow from '../components/ResultRow';
-import ResultDetailModal from '../components/ResultDetailModal';
-import { Search, Trophy, Calendar, Award, Layers, CalendarDays, Clock, MapPin } from 'lucide-react';
+import { Search, Trophy, Calendar, Award, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react';
+
+function PublicResultAccordionCard({ result }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const winners = result.winners || [];
+
+  return (
+    <div
+      style={{
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
+        borderRadius: '12px',
+        marginBottom: '12px',
+        overflow: 'hidden',
+        boxShadow: isOpen ? '0 4px 12px rgba(15, 23, 42, 0.06)' : '0 1px 3px rgba(0,0,0,0.03)',
+        transition: 'all 0.2s ease'
+      }}
+    >
+      {/* Header — Click to Expand / Collapse */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          padding: '16px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          userSelect: 'none',
+          background: isOpen ? '#F8FAFC' : '#FFFFFF',
+          borderBottom: isOpen ? '1px solid #E2E8F0' : 'none'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flexGrow: 1 }}>
+          {result.resultNo && (
+            <span style={{
+              background: 'var(--primary-light, #EDE9FE)',
+              color: 'var(--primary, #7C3AED)',
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              padding: '4px 10px',
+              borderRadius: '8px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}>
+              #{result.resultNo}
+            </span>
+          )}
+          <h4 style={{
+            margin: 0,
+            fontSize: '1.05rem',
+            fontWeight: 700,
+            color: '#0F172A',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}>
+            {result.programName}
+          </h4>
+        </div>
+
+        <div style={{ color: '#64748B', display: 'flex', alignItems: 'center', paddingLeft: 12, flexShrink: 0 }}>
+          {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </div>
+      </div>
+
+      {/* Expanded Inline Body — Winner Standings */}
+      {isOpen && (
+        <div style={{ padding: '16px 20px', background: '#FFFFFF' }}>
+          {winners.length === 0 ? (
+            <p style={{ color: '#64748B', fontSize: '0.9rem', fontStyle: 'italic', margin: 0 }}>
+              No winner details recorded yet.
+            </p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #F1F5F9', textAlign: 'left', color: '#64748B', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <th style={{ padding: '8px 12px 8px 0', width: '70px' }}>Rank</th>
+                    <th style={{ padding: '8px 12px' }}>Winner Name</th>
+                    <th style={{ padding: '8px 0', textAlign: 'right' }}>Team / Group</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {winners.map((w, idx) => (
+                    <tr key={idx} style={{ borderBottom: idx < winners.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
+                      <td style={{ padding: '10px 12px 10px 0', fontWeight: 800, color: 'var(--primary)' }}>
+                        {w.position || `0${idx + 1}`}
+                      </td>
+                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0F172A' }}>
+                        {w.name}
+                      </td>
+                      <td style={{ padding: '10px 0', textAlign: 'right', color: '#475569', fontWeight: 600 }}>
+                        {w.team ? (
+                          <span className="badge" style={{ background: '#F1F5F9', color: '#334155', border: '1px solid #CBD5E1', fontSize: '0.75rem', borderRadius: '6px' }}>
+                            {w.team}
+                          </span>
+                        ) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function PublicEvent({ overrideSlug }) {
   const { slug: routeSlug } = useParams();
@@ -16,13 +121,7 @@ export default function PublicEvent({ overrideSlug }) {
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All');
   const [activeScheduleDate, setActiveScheduleDate] = useState('');
-  const [selectedResult, setSelectedResult] = useState(null);
-
-  // Check if current user is admin for this event client
-  const isAdmin = sessionStorage.getItem('client_admin_logged_in') === 'true' &&
-    sessionStorage.getItem('client_slug') === slug;
 
   useEffect(() => {
     async function load() {
@@ -58,13 +157,9 @@ export default function PublicEvent({ overrideSlug }) {
     };
   }, [slug]);
 
-  const handleDeleteSuccess = (deletedId) => {
-    setResults(prev => prev.filter(item => item.id !== deletedId));
-  };
-
   if (loading) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', fontFamily: 'var(--font-body)' }}>
         <div style={{ textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
           Loading event portal…
         </div>
@@ -75,7 +170,7 @@ export default function PublicEvent({ overrideSlug }) {
   if (!client) {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', padding: 24, textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2rem', marginBottom: 12, color: '#0F172A' }}>Event Not Found</h2>
+        <h2 style={{ fontSize: '2rem', marginBottom: 12, color: '#0F172A' }}>Event Portal Not Found</h2>
         <p style={{ color: '#64748B', marginBottom: 24, maxWidth: 420 }}>
           The event URL you are trying to access does not exist or has been removed.
         </p>
@@ -102,9 +197,6 @@ export default function PublicEvent({ overrideSlug }) {
       r.programName?.toLowerCase().includes(q) ||
       r.winners?.some(w => w.name?.toLowerCase().includes(q));
   });
-
-  const clientCats = Array.isArray(client?.categories) ? client.categories : [];
-  const categories = clientCats.length ? ['All', ...clientCats] : [];
 
   // Schedule Date Groupings
   const scheduleDates = Array.from(new Set(schedule.map(s => s.date || 'Scheduled Date'))).sort();
@@ -249,7 +341,7 @@ export default function PublicEvent({ overrideSlug }) {
           </section>
         )}
 
-        {/* 4. SOME RESULTS / PROGRAM RESULTS SECTION */}
+        {/* 4. PROGRAM RESULTS SECTION (INLINE ACCORDION DROPDOWNS) */}
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Program Results</h2>
@@ -261,30 +353,17 @@ export default function PublicEvent({ overrideSlug }) {
           {filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 48, background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', color: '#64748B' }}>
               <p style={{ fontWeight: 600, fontSize: '1rem', marginBottom: 6, color: '#0F172A' }}>No results found.</p>
-              <p style={{ fontSize: '0.9rem' }}>Try searching another keyword or selecting a different program theme.</p>
+              <p style={{ fontSize: '0.9rem' }}>Try searching another program or winner name.</p>
             </div>
           ) : (
             <div className="results-list-container">
               {filtered.map(r => (
-                <div key={r.id} onClick={() => setSelectedResult(r)} style={{ cursor: 'pointer' }}>
-                  <ResultRow result={r} />
-                </div>
+                <PublicResultAccordionCard key={r.id} result={r} />
               ))}
             </div>
           )}
         </section>
       </main>
-
-      {/* Result Detail Pop-up Modal */}
-      {selectedResult && (
-        <ResultDetailModal
-          result={selectedResult}
-          slug={slug}
-          isAdmin={isAdmin}
-          onClose={() => setSelectedResult(null)}
-          onDeleteSuccess={handleDeleteSuccess}
-        />
-      )}
 
       {/* 5. FOOTER SECTION */}
       <footer className="public-footer">
