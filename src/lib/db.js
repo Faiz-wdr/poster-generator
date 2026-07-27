@@ -967,9 +967,52 @@ export async function resetToDefault(clientId) {
     );
     await supabase.from('results').delete().eq('client_id', cId);
     await supabase.from('templates').delete().eq('client_id', cId);
+    localStorage.removeItem(`arts_poster_schedule_${cId}`);
     return true;
   } catch (e) {
     showDbError(`reset to default exception for ${cId}`, e);
     return false;
   }
 }
+
+// ── EVENT SCHEDULE (TENANT-SCOPED) ──────────────────────────────────────────
+
+export async function getSchedule(clientId) {
+  const cId = clientId || getFallbackClientId();
+
+  if (useLocal) {
+    const raw = localStorage.getItem(`arts_poster_schedule_${cId}`);
+    if (raw) {
+      try { return JSON.parse(raw); } catch { return []; }
+    }
+    const client = await getClient(cId);
+    return client?.schedule || [];
+  }
+
+  try {
+    const client = await getClient(cId);
+    return client?.schedule || [];
+  } catch (e) {
+    showDbError(`fetching schedule for ${cId}`, e);
+    const raw = localStorage.getItem(`arts_poster_schedule_${cId}`);
+    return raw ? JSON.parse(raw) : [];
+  }
+}
+
+export async function saveSchedule(clientId, items) {
+  const cId = clientId || getFallbackClientId();
+  const client = await getClient(cId);
+
+  // Save to localStorage
+  localStorage.setItem(`arts_poster_schedule_${cId}`, JSON.stringify(items));
+
+  if (!useLocal && client) {
+    try {
+      await supabase.from('clients').update({ schedule: items }).eq('id', cId);
+    } catch (e) {
+      showDbError(`saving schedule for ${cId}`, e);
+    }
+  }
+  return true;
+}
+

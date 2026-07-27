@@ -1,11 +1,12 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense, useMemo } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { getSubdomainInfo } from './lib/subdomain';
 
-// Lightweight pages loaded eagerly (login screens are tiny)
+// Lightweight pages loaded eagerly
 import Login from './pages/admin/Login';
 import SuperLogin from './pages/admin/SuperLogin';
 
-// Heavy pages lazy-loaded — only fetched when the route is visited
+// Heavy pages lazy-loaded
 const SaaSLanding = lazy(() => import('./pages/SaaSLanding'));
 const PublicEvent = lazy(() => import('./pages/PublicEvent'));
 const PublicEventDetail = lazy(() => import('./pages/PublicEventDetail'));
@@ -25,19 +26,55 @@ function PageLoader() {
   );
 }
 
+/** Wrapper component to inject subdomain slug into PublicEvent */
+function SubdomainEventWrapper({ slug }) {
+  return <PublicEvent overrideSlug={slug} />;
+}
+
+/** Wrapper component to inject subdomain slug into PublicEventDetail */
+function SubdomainEventDetailWrapper({ slug }) {
+  const { id } = useParams();
+  return <PublicEventDetail overrideSlug={slug} overrideId={id} />;
+}
+
 export default function App() {
+  const subdomainInfo = useMemo(() => getSubdomainInfo(), []);
+
   return (
     <BrowserRouter>
       <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<SaaSLanding />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/sadmin" element={<SuperLogin />} />
-          <Route path="/event/:slug" element={<PublicEvent />} />
-          <Route path="/event/:slug/detail/:id" element={<PublicEventDetail />} />
-          <Route path="/admin/*" element={<AdminApp />} />
-          <Route path="/super-admin/*" element={<SuperAdminDashboard />} />
-        </Routes>
+        {/* If visiting via wildcard client subdomain (e.g. alqamar.yourdomain.com) */}
+        {subdomainInfo.type === 'client' && subdomainInfo.slug ? (
+          <Routes>
+            <Route path="/" element={<SubdomainEventWrapper slug={subdomainInfo.slug} />} />
+            <Route path="/detail/:id" element={<SubdomainEventDetailWrapper slug={subdomainInfo.slug} />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/admin/*" element={<AdminApp />} />
+            <Route path="/event/:slug" element={<PublicEvent />} />
+            <Route path="/event/:slug/detail/:id" element={<PublicEventDetail />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        ) : subdomainInfo.type === 'superadmin' ? (
+          /* If visiting via admin.yourdomain.com */
+          <Routes>
+            <Route path="/" element={<SuperAdminDashboard />} />
+            <Route path="/login" element={<SuperLogin />} />
+            <Route path="/super-admin/*" element={<SuperAdminDashboard />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        ) : (
+          /* Standard domain or localhost path routing */
+          <Routes>
+            <Route path="/" element={<SaaSLanding />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/sadmin" element={<SuperLogin />} />
+            <Route path="/event/:slug" element={<PublicEvent />} />
+            <Route path="/event/:slug/detail/:id" element={<PublicEventDetail />} />
+            <Route path="/admin/*" element={<AdminApp />} />
+            <Route path="/super-admin/*" element={<SuperAdminDashboard />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        )}
       </Suspense>
     </BrowserRouter>
   );

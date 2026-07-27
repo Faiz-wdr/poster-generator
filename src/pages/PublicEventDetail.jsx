@@ -4,8 +4,10 @@ import { getClientBySlug, getResult, deleteResult } from '../lib/db';
 import { applyClientTheme } from '../lib/theme';
 import { ArrowLeft, Pencil, Trash2, Award, Share2, Check } from 'lucide-react';
 
-export default function PublicEventDetail() {
-  const { slug, id } = useParams();
+export default function PublicEventDetail({ overrideSlug, overrideId }) {
+  const { slug: routeSlug, id: routeId } = useParams();
+  const slug = overrideSlug || routeSlug;
+  const id = overrideId || routeId;
   const navigate = useNavigate();
 
   const [client, setClient] = useState(null);

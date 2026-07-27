@@ -6,10 +6,10 @@ import { Plus, Users, Award, Download, Power, Calendar, Shield, Settings, Trash2
 const renderLogo = (logoStr, size = '2.5rem', fontSize = '1.4rem', borderRadius = '12px') => {
   if (logoStr && (logoStr.startsWith('http') || logoStr.startsWith('data:image'))) {
     return (
-      <img 
-        src={logoStr} 
-        alt="Logo" 
-        style={{ width: size, height: size, objectFit: 'cover', borderRadius }} 
+      <img
+        src={logoStr}
+        alt="Logo"
+        style={{ width: size, height: size, objectFit: 'cover', borderRadius }}
       />
     );
   }
@@ -28,7 +28,7 @@ export default function SuperAdminDashboard() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState(null);
-  
+
   // Dashboard Metrics
   const [totalResultsCount, setTotalResultsCount] = useState(0);
 
@@ -121,7 +121,7 @@ export default function SuperAdminDashboard() {
     setEndDate(client.end_date || '');
     setClientStatus(client.status || 'active');
     setSlugManuallyEdited(true);
-    
+
     // Compute current remaining days from expiry_date
     const diffTime = new Date(client.expiry_date) - new Date();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -306,7 +306,7 @@ export default function SuperAdminDashboard() {
                   <thead>
                     <tr>
                       <th>Organization / Event</th>
-                      <th>Slug Page</th>
+                      <th>Event Link</th>
                       <th>Expiry</th>
                       <th>Status</th>
                       <th>Actions</th>
@@ -315,6 +315,13 @@ export default function SuperAdminDashboard() {
                   <tbody>
                     {clients.map(c => {
                       const isExpired = new Date(c.expiry_date) <= new Date();
+                      const host = window.location.host;
+                      const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+                      const hostParts = host.split('.');
+                      const rootDomain = (!isLocal && hostParts.length >= 2) ? hostParts.slice(-2).join('.') : 'yourdomain.com';
+                      const subdomainDisplay = `https://${c.slug}.${rootDomain}`;
+                      const targetUrl = isLocal ? `/event/${c.slug}` : `https://${c.slug}.${rootDomain}`;
+
                       return (
                         <tr
                           key={c.id}
@@ -332,13 +339,14 @@ export default function SuperAdminDashboard() {
                           </td>
                           <td>
                             <a
-                              href={`/event/${c.slug}`}
+                              href={targetUrl}
                               target="_blank"
                               rel="noreferrer"
                               onClick={e => e.stopPropagation()}
                               style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--primary)', fontWeight: 600, fontSize: '0.85rem' }}
+                              title={`Open ${subdomainDisplay}`}
                             >
-                              <span>/{c.slug}</span> <ExternalLink size={12} />
+                              <span>{subdomainDisplay}</span> <ExternalLink size={12} />
                             </a>
                           </td>
                           <td>
@@ -407,8 +415,23 @@ export default function SuperAdminDashboard() {
                   </div>
                 </div>
 
-                {/* Scope Expiry Info */}
+                {/* Scope Expiry Info & Tenant URLs */}
                 <div>
+                  <h4 style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Public Tenant Access</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                    <a
+                      href={`/event/${selectedClient.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                    >
+                      <span>Direct URL: /event/{selectedClient.slug}</span> <ExternalLink size={12} />
+                    </a>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      Subdomain: <code style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{selectedClient.slug}.yourdomain.com</code>
+                    </div>
+                  </div>
+
                   <h4 style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Subscription status</h4>
                   <p style={{ fontSize: '0.9rem', fontWeight: 600 }}>
                     Expiry Date: <span style={{ color: new Date(selectedClient.expiry_date) < new Date() ? '#EF4444' : 'inherit' }}>
@@ -469,34 +492,34 @@ export default function SuperAdminDashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div className="form-group">
                     <label>Event Name *</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Arts Festival 2027" 
-                      value={eventName} 
+                    <input
+                      type="text"
+                      placeholder="e.g. Arts Festival 2027"
+                      value={eventName}
                       onChange={e => {
                         const val = e.target.value;
                         setEventName(val);
                         if (!slugManuallyEdited) {
                           setSlug(val.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''));
                         }
-                      }} 
-                      required 
+                      }}
+                      required
                     />
                   </div>
                   <div className="form-group">
                     <label>Username / Event Slug *</label>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'var(--text-secondary)', padding: '0 8px', background: '#E2E8F0', height: 46, borderRadius: '10px 0 0 10px', display: 'flex', alignItems: 'center', border: '1px solid var(--border-color)', borderRight: 'none', fontSize: '0.85rem' }}>/event/</span>
-                      <input 
-                        type="text" 
-                        placeholder="alqamar-2027" 
-                        value={slug} 
+                      <input
+                        type="text"
+                        placeholder="alqamar-2027"
+                        value={slug}
                         onChange={e => {
                           setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''));
                           setSlugManuallyEdited(true);
-                        }} 
-                        required 
-                        style={{ borderRadius: '0 10px 10px 0' }} 
+                        }}
+                        required
+                        style={{ borderRadius: '0 10px 10px 0' }}
                       />
                     </div>
                     {slug.trim() && clients.some(c => c.slug === slug.trim().toLowerCase() && c.id !== clientId) && (
@@ -510,12 +533,12 @@ export default function SuperAdminDashboard() {
                   </div>
                   <div className="form-group">
                     <label>Client Admin Password *</label>
-                    <input 
-                      type="text" 
-                      placeholder="Password to unlock dashboard" 
-                      value={adminPassword} 
-                      onChange={e => setAdminPassword(e.target.value)} 
-                      required 
+                    <input
+                      type="text"
+                      placeholder="Password to unlock dashboard"
+                      value={adminPassword}
+                      onChange={e => setAdminPassword(e.target.value)}
+                      required
                     />
                   </div>
                   <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 12 }}>
@@ -538,9 +561,9 @@ export default function SuperAdminDashboard() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: 'var(--bg-page)', padding: 16, borderRadius: 12, border: '1px solid var(--border-color)' }}>
                       {renderLogo(logo, '64px', '1.6rem', '12px')}
                       <div style={{ flexGrow: 1 }}>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
+                        <input
+                          type="file"
+                          accept="image/*"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
@@ -559,7 +582,7 @@ export default function SuperAdminDashboard() {
                               setUploadingLogo(false);
                             }
                           }}
-                          style={{ fontSize: '0.85rem' }} 
+                          style={{ fontSize: '0.85rem' }}
                         />
                         <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 6, fontWeight: 600 }}>
                           💡 Logo in 500*500 pixel. PNG/JPG format.
@@ -567,7 +590,7 @@ export default function SuperAdminDashboard() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="form-group">
                     <label style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)', display: 'block', marginBottom: 8 }}>Event Colors</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>

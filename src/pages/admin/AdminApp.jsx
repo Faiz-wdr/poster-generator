@@ -7,15 +7,16 @@ import PublishResult from './PublishResult';
 import TemplateEditor from './TemplateEditor';
 import PublishedResults from './PublishedResults';
 import Settings from './Settings';
+import ScheduleManager from './ScheduleManager';
 import {
   LayoutDashboard,
   PlusCircle,
   Palette,
   ClipboardList,
+  CalendarDays,
   Settings as SettingsIcon,
   LogOut,
   ArrowLeft,
-  AlertTriangle,
   Lock
 } from 'lucide-react';
 
@@ -39,7 +40,6 @@ export default function AdminApp() {
     async function loadClient() {
       const c = await getClient(clientId);
       if (!c) {
-        // Client not found, logout
         sessionStorage.clear();
         navigate('/login');
         return;
@@ -47,7 +47,6 @@ export default function AdminApp() {
       setClient(c);
       applyClientTheme(c);
       
-      // Check expiry date
       const expiry = new Date(c.expiry_date);
       const expired = expiry <= new Date();
       setIsExpired(expired);
@@ -57,7 +56,6 @@ export default function AdminApp() {
     loadClient();
 
     return () => {
-      // Clean up theme on logout or unmount
       applyClientTheme(null);
     };
   }, [loggedIn, clientId, navigate]);
@@ -83,6 +81,7 @@ export default function AdminApp() {
     { to: '/admin/upload', label: 'Publish Result', icon: <PlusCircle size={18} /> },
     { to: '/admin/templates', label: 'Templates', icon: <Palette size={18} /> },
     { to: '/admin/results', label: 'Results', icon: <ClipboardList size={18} /> },
+    { to: '/admin/schedule', label: 'Event Schedule', icon: <CalendarDays size={18} /> },
     { to: '/admin/settings', label: 'Program Settings', icon: <SettingsIcon size={18} /> },
   ];
 
@@ -197,6 +196,7 @@ export default function AdminApp() {
             <Route path="upload" element={<PublishResult isExpired={isExpired} clientId={clientId} />} />
             <Route path="templates" element={<TemplateEditor isExpired={isExpired} clientId={clientId} />} />
             <Route path="results" element={<PublishedResults isExpired={isExpired} clientId={clientId} />} />
+            <Route path="schedule" element={<ScheduleManager isExpired={isExpired} clientId={clientId} />} />
             <Route path="settings" element={<Settings isExpired={isExpired} clientId={clientId} />} />
           </Routes>
         </div>
@@ -204,3 +204,4 @@ export default function AdminApp() {
     </div>
   );
 }
+
