@@ -186,14 +186,19 @@ export default function PublishResult({ isExpired, clientId }) {
         getSettings(clientId)
       ]);
       const settings = s || {};
-      const tpls = t || [];
+      const tpls = Array.isArray(t) ? t : [];
       setTemplates(tpls);
       setActiveTemplate(tpls[0] || null);
-      setClientPrograms(settings.programs || []);
-      setClientCategories(settings.categories || []);
-      setClientTeams(settings.teams || []);
 
-      const cats = settings.categories && settings.categories.length ? settings.categories : CATEGORY_OPTIONS;
+      const progList = Array.isArray(settings.programs) ? settings.programs : [];
+      const catList = Array.isArray(settings.categories) ? settings.categories : [];
+      const teamList = Array.isArray(settings.teams) ? settings.teams : [];
+
+      setClientPrograms(progList);
+      setClientCategories(catList);
+      setClientTeams(teamList);
+
+      const cats = catList.length ? catList : CATEGORY_OPTIONS;
 
       if (editId) {
         const r = await getResult(editId);
@@ -305,7 +310,7 @@ export default function PublishResult({ isExpired, clientId }) {
                   placeholder="e.g. Classical Violin Symphony Solo"
                   value={programName}
                   onChange={setProgramName}
-                  options={clientPrograms.map((p) => typeof p === 'string' ? p : p.name || '')}
+                  options={(Array.isArray(clientPrograms) ? clientPrograms : []).map((p) => typeof p === 'string' ? p : p?.name || '')}
                   disabled={isExpired}
                   required
                 />

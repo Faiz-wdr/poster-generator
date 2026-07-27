@@ -856,6 +856,18 @@ export async function getSettings(clientId) {
   const cId = clientId || getFallbackClientId();
   const client = await getClient(cId);
   if (client) {
+    let progs = [];
+    if (Array.isArray(client.programs)) {
+      progs = client.programs;
+    } else if (client.programs && typeof client.programs === 'object') {
+      if (Array.isArray(client.programs.list)) {
+        progs = client.programs.list;
+      }
+    }
+
+    let cats = Array.isArray(client.categories) ? client.categories : [];
+    let tms = Array.isArray(client.teams) ? client.teams : [];
+
     return {
       institutionName: client.event_name,
       organizationName: client.organization_name,
@@ -870,9 +882,9 @@ export async function getSettings(clientId) {
       status: client.status,
       slug: client.slug,
       adminPassword: client.admin_password,
-      programs: client.programs || [],
-      categories: client.categories || [],
-      teams: client.teams || [],
+      programs: progs,
+      categories: cats,
+      teams: tms,
     };
   }
   return { institutionName: 'Sahityotsav', primaryColor: '#7C3AED', programs: [], categories: [], teams: [] };
@@ -882,6 +894,15 @@ export async function saveSettings(clientId, data) {
   const cId = clientId || getFallbackClientId();
   const client = await getClient(cId);
   if (!client) return false;
+
+  let programsValue = client.programs;
+  if (data.programs !== undefined) {
+    if (client.programs && typeof client.programs === 'object' && !Array.isArray(client.programs)) {
+      programsValue = { ...client.programs, list: data.programs };
+    } else {
+      programsValue = data.programs;
+    }
+  }
 
   const updated = {
     ...client,
@@ -893,7 +914,7 @@ export async function saveSettings(clientId, data) {
     accent_color: data.accentColor || client.accent_color,
     slug: data.slug || client.slug,
     admin_password: data.adminPassword || client.admin_password,
-    programs: data.programs !== undefined ? data.programs : client.programs,
+    programs: programsValue,
     categories: data.categories !== undefined ? data.categories : client.categories,
     teams: data.teams !== undefined ? data.teams : client.teams,
   };
