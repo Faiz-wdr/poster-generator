@@ -17,6 +17,10 @@ function generateUUID() {
   });
 }
 
+function isValidUUID(str) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(str || ''));
+}
+
 // ── CIRCUIT BREAKER ──────────────────────────────────────────────────────────
 // If supabase is null (invalid key detected in supabase.js), we go local immediately.
 // If supabase exists but the first query fails, we trip the circuit breaker
@@ -567,7 +571,7 @@ export async function getResult(id) {
 
 export async function saveResult(resultData, clientId) {
   const cId = clientId || resultData.client_id || getFallbackClientId();
-  const id = resultData.id || 'result_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  const id = (resultData.id && isValidUUID(resultData.id)) ? resultData.id : generateUUID();
   const updatedResult = { ...resultData, id, client_id: cId };
 
   if (useLocal) {
@@ -655,7 +659,7 @@ export async function getTemplates(clientId) {
   }
 
   try {
-    const { data, error } = await withTimeout(
+    let { data, error } = await withTimeout(
       supabase
         .from('templates')
         .select('*')
@@ -670,7 +674,18 @@ export async function getTemplates(clientId) {
       return getLocalTemplates(cId);
     }
 
-    if (!data) return [];
+    if (!data || data.length === 0) {
+      await seedNewClientSupabaseData(cId);
+      const { data: reFetched } = await supabase
+        .from('templates')
+        .select('*')
+        .eq('client_id', cId)
+        .order('created_at', { ascending: true });
+      if (reFetched && reFetched.length > 0) {
+        data = reFetched;
+      }
+    }
+
     data.forEach(t => {
       if (t.fields && !t.fields.resultNo) {
         t.fields.resultNo = { left: 90, top: 160, width: 900, height: 40, fontSize: 24, color: '#7C3AED', align: 'center', shadow: false, visible: true };
@@ -718,10 +733,11 @@ export async function getTemplate(id) {
 
 export async function saveTemplate(templateData, clientId) {
   const cId = clientId || templateData.client_id || getFallbackClientId();
-  const updatedTemplate = { ...templateData, client_id: cId };
+  const id = (templateData.id && isValidUUID(templateData.id)) ? templateData.id : generateUUID();
+  const updatedTemplate = { ...templateData, id, client_id: cId };
   if (useLocal) {
     const templates = getLocalTemplates(cId);
-    const idx = templates.findIndex(t => t.id === templateData.id);
+    const idx = templates.findIndex(t => t.id === id);
     if (idx >= 0) {
       templates[idx] = updatedTemplate;
     } else {
