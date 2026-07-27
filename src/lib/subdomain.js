@@ -27,11 +27,16 @@ export function getSubdomainInfo(hostname = window.location.hostname) {
     return { type: 'root', slug: null };
   }
 
+  // Check for exact root platform domains (e.g. fest.faizrahim.online)
+  if (host === 'fest.faizrahim.online' || host === 'www.fest.faizrahim.online') {
+    return { type: 'root', slug: null };
+  }
+
   // Extract subdomain (first segment of hostname)
   const subdomain = parts[0];
 
-  // Reserved subdomains
-  if (subdomain === 'www' || subdomain === 'app' || subdomain === 'landing') {
+  // Reserved subdomains pointing to main SaaS landing page
+  if (subdomain === 'www' || subdomain === 'app' || subdomain === 'landing' || subdomain === 'fest') {
     return { type: 'root', slug: null };
   }
 
