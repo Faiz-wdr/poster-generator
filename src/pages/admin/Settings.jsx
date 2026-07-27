@@ -134,20 +134,21 @@ export default function Settings({ isExpired, clientId }) {
   useEffect(() => {
     async function load() {
       const s = await getSettings(clientId);
-      setOrgName(s.organizationName || '');
-      setEventName(s.eventName || '');
-      setLogo(s.logo || '');
-      setPrimaryColor(s.primaryColor || '#7C3AED');
-      setSecondaryColor(s.secondaryColor || '#0EA5E9');
-      setAccentColor(s.accentColor || '#F59E0B');
-      setSlug(s.slug || '');
-      setAdminPassword(s.adminPassword || '');
+      const settings = s || {};
+      setOrgName(settings.organizationName || '');
+      setEventName(settings.eventName || '');
+      setLogo(settings.logo || '');
+      setPrimaryColor(settings.primaryColor || '#7C3AED');
+      setSecondaryColor(settings.secondaryColor || '#0EA5E9');
+      setAccentColor(settings.accentColor || '#F59E0B');
+      setSlug(settings.slug || '');
+      setAdminPassword(settings.adminPassword || '');
       
-      const rawProgs = s.programs || [];
+      const rawProgs = settings.programs || [];
       const cleanProgs = rawProgs.map(p => typeof p === 'object' ? p.name : p);
       setPrograms(cleanProgs);
-      setCategories(s.categories || []);
-      setTeams(s.teams || []);
+      setCategories(settings.categories || []);
+      setTeams(settings.teams || []);
 
       // Load all client slugs to check for collisions
       try {

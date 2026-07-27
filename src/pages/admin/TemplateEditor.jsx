@@ -40,8 +40,9 @@ export default function TemplateEditor({ isExpired, clientId }) {
 
   useEffect(() => {
     getTemplates(clientId).then(t => {
-      setTemplates(t);
-      if (t.length) selectTemplate(t[0]);
+      const tpls = Array.isArray(t) ? t : [];
+      setTemplates(tpls);
+      if (tpls.length) selectTemplate(tpls[0]);
     });
   }, [clientId]);
 

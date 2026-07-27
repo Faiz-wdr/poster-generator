@@ -38,19 +38,24 @@ export default function AdminApp() {
     }
 
     async function loadClient() {
-      const c = await getClient(clientId);
-      if (!c) {
-        sessionStorage.clear();
-        navigate('/login');
-        return;
+      try {
+        const c = await getClient(clientId);
+        if (!c) {
+          sessionStorage.clear();
+          navigate('/login');
+          return;
+        }
+        setClient(c);
+        applyClientTheme(c);
+        
+        const expiry = c.expiry_date ? new Date(c.expiry_date) : null;
+        const expired = expiry ? expiry <= new Date() : false;
+        setIsExpired(expired);
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to load client details in AdminApp:", err);
+        setLoading(false);
       }
-      setClient(c);
-      applyClientTheme(c);
-      
-      const expiry = new Date(c.expiry_date);
-      const expired = expiry <= new Date();
-      setIsExpired(expired);
-      setLoading(false);
     }
 
     loadClient();

@@ -2,6 +2,8 @@ import { lazy, Suspense, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { getSubdomainInfo } from './lib/subdomain';
 
+import ErrorBoundary from './components/ErrorBoundary';
+
 // Lightweight pages loaded eagerly
 import Login from './pages/admin/Login';
 import SuperLogin from './pages/admin/SuperLogin';
@@ -41,41 +43,43 @@ export default function App() {
   const subdomainInfo = useMemo(() => getSubdomainInfo(), []);
 
   return (
-    <BrowserRouter>
-      <Suspense fallback={<PageLoader />}>
-        {/* If visiting via wildcard client subdomain (e.g. alqamar.yourdomain.com) */}
-        {subdomainInfo.type === 'client' && subdomainInfo.slug ? (
-          <Routes>
-            <Route path="/" element={<SubdomainEventWrapper slug={subdomainInfo.slug} />} />
-            <Route path="/detail/:id" element={<SubdomainEventDetailWrapper slug={subdomainInfo.slug} />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/admin/*" element={<AdminApp />} />
-            <Route path="/event/:slug" element={<PublicEvent />} />
-            <Route path="/event/:slug/detail/:id" element={<PublicEventDetail />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        ) : subdomainInfo.type === 'superadmin' ? (
-          /* If visiting via admin.yourdomain.com */
-          <Routes>
-            <Route path="/" element={<SuperAdminDashboard />} />
-            <Route path="/login" element={<SuperLogin />} />
-            <Route path="/super-admin/*" element={<SuperAdminDashboard />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        ) : (
-          /* Standard domain or localhost path routing */
-          <Routes>
-            <Route path="/" element={<SaaSLanding />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/sadmin" element={<SuperLogin />} />
-            <Route path="/event/:slug" element={<PublicEvent />} />
-            <Route path="/event/:slug/detail/:id" element={<PublicEventDetail />} />
-            <Route path="/admin/*" element={<AdminApp />} />
-            <Route path="/super-admin/*" element={<SuperAdminDashboard />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        )}
-      </Suspense>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Suspense fallback={<PageLoader />}>
+          {/* If visiting via wildcard client subdomain (e.g. alqamar.yourdomain.com) */}
+          {subdomainInfo.type === 'client' && subdomainInfo.slug ? (
+            <Routes>
+              <Route path="/" element={<SubdomainEventWrapper slug={subdomainInfo.slug} />} />
+              <Route path="/detail/:id" element={<SubdomainEventDetailWrapper slug={subdomainInfo.slug} />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/admin/*" element={<AdminApp />} />
+              <Route path="/event/:slug" element={<PublicEvent />} />
+              <Route path="/event/:slug/detail/:id" element={<PublicEventDetail />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          ) : subdomainInfo.type === 'superadmin' ? (
+            /* If visiting via admin.yourdomain.com */
+            <Routes>
+              <Route path="/" element={<SuperAdminDashboard />} />
+              <Route path="/login" element={<SuperLogin />} />
+              <Route path="/super-admin/*" element={<SuperAdminDashboard />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          ) : (
+            /* Standard domain or localhost path routing */
+            <Routes>
+              <Route path="/" element={<SaaSLanding />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/sadmin" element={<SuperLogin />} />
+              <Route path="/event/:slug" element={<PublicEvent />} />
+              <Route path="/event/:slug/detail/:id" element={<PublicEventDetail />} />
+              <Route path="/admin/*" element={<AdminApp />} />
+              <Route path="/super-admin/*" element={<SuperAdminDashboard />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          )}
+        </Suspense>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
