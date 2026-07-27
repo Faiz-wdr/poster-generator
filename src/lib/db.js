@@ -248,9 +248,8 @@ export async function saveClient(clientData) {
       end_date: clientData.end_date,
       expiry_date: clientData.expiry_date,
       status: clientData.status || 'active',
-      programs: clientData.programs || [],
+      programs: clientData.programs || {},
       categories: clientData.categories || [],
-      teams: clientData.teams || [],
     });
 
     if (error) {
@@ -857,16 +856,22 @@ export async function getSettings(clientId) {
   const client = await getClient(cId);
   if (client) {
     let progs = [];
+    let tms = [];
     if (Array.isArray(client.programs)) {
       progs = client.programs;
     } else if (client.programs && typeof client.programs === 'object') {
       if (Array.isArray(client.programs.list)) {
         progs = client.programs.list;
       }
+      if (Array.isArray(client.programs.teams)) {
+        tms = client.programs.teams;
+      }
     }
 
     let cats = Array.isArray(client.categories) ? client.categories : [];
-    let tms = Array.isArray(client.teams) ? client.teams : [];
+    if (tms.length === 0 && Array.isArray(client.teams)) {
+      tms = client.teams;
+    }
 
     return {
       institutionName: client.event_name,
@@ -895,28 +900,30 @@ export async function saveSettings(clientId, data) {
   const client = await getClient(cId);
   if (!client) return false;
 
-  let programsValue = client.programs;
+  let programsValue = client.programs || {};
+  if (typeof programsValue !== 'object' || Array.isArray(programsValue)) {
+    programsValue = { list: Array.isArray(programsValue) ? programsValue : [] };
+  }
+
   if (data.programs !== undefined) {
-    if (client.programs && typeof client.programs === 'object' && !Array.isArray(client.programs)) {
-      programsValue = { ...client.programs, list: data.programs };
-    } else {
-      programsValue = data.programs;
-    }
+    programsValue.list = data.programs;
+  }
+  if (data.teams !== undefined) {
+    programsValue.teams = data.teams;
   }
 
   const updated = {
     ...client,
-    organization_name: data.organizationName || client.organization_name,
-    event_name: data.eventName || client.event_name,
-    logo: data.logo || client.logo,
-    primary_color: data.primaryColor || client.primary_color,
-    secondary_color: data.secondaryColor || client.secondary_color,
-    accent_color: data.accentColor || client.accent_color,
-    slug: data.slug || client.slug,
-    admin_password: data.adminPassword || client.admin_password,
+    organization_name: data.organizationName !== undefined ? data.organizationName : client.organization_name,
+    event_name: data.eventName !== undefined ? data.eventName : client.event_name,
+    logo: data.logo !== undefined ? data.logo : client.logo,
+    primary_color: data.primaryColor !== undefined ? data.primaryColor : client.primary_color,
+    secondary_color: data.secondaryColor !== undefined ? data.secondaryColor : client.secondary_color,
+    accent_color: data.accentColor !== undefined ? data.accentColor : client.accent_color,
+    slug: data.slug !== undefined ? data.slug : client.slug,
+    admin_password: data.adminPassword !== undefined ? data.adminPassword : client.admin_password,
     programs: programsValue,
     categories: data.categories !== undefined ? data.categories : client.categories,
-    teams: data.teams !== undefined ? data.teams : client.teams,
   };
 
   const saved = await saveClient(updated);

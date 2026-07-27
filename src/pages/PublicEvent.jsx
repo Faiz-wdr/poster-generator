@@ -105,8 +105,8 @@ export default function PublicEvent({ overrideSlug }) {
     return matchCat && matchSearch;
   });
 
-  const clientCats = client?.categories && client.categories.length ? client.categories : CATEGORY_OPTIONS;
-  const categories = ['All', ...clientCats];
+  const clientCats = Array.isArray(client?.categories) ? client.categories : [];
+  const categories = clientCats.length ? ['All', ...clientCats] : [];
 
   // Schedule Date Groupings
   const scheduleDates = Array.from(new Set(schedule.map(s => s.date || 'Scheduled Date'))).sort();
@@ -197,17 +197,19 @@ export default function PublicEvent({ overrideSlug }) {
               />
             </div>
 
-            <div className="filter-pills">
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  className={`filter-pill ${activeCategory === cat ? 'active' : ''}`}
-                  onClick={() => setActiveCategory(cat)}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+            {categories.length > 0 && (
+              <div className="filter-pills">
+                {categories.map(cat => (
+                  <button
+                    key={cat}
+                    className={`filter-pill ${activeCategory === cat ? 'active' : ''}`}
+                    onClick={() => setActiveCategory(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

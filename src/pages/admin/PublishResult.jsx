@@ -318,15 +318,15 @@ export default function PublishResult({ isExpired, clientId }) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="form-category">Category *</label>
+              <label htmlFor="form-category">Category (Optional)</label>
               <SearchableDropdown
                 id="form-category"
-                placeholder="e.g. Junior"
+                placeholder="e.g. Junior (Optional)"
                 value={category}
                 onChange={setCategory}
-                options={clientCategories && clientCategories.length ? clientCategories : CATEGORY_OPTIONS}
+                options={clientCategories}
                 disabled={isExpired}
-                required
+                required={false}
               />
             </div>
 
@@ -372,10 +372,10 @@ export default function PublishResult({ isExpired, clientId }) {
                     style={{ padding: '12px 14px', borderRadius: 'var(--radius-input)', border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}
                   />
                   <SearchableDropdown
-                    placeholder="Team/Group"
+                    placeholder="Team/Group (Optional)"
                     value={w.team}
                     onChange={val => updateWinner(i, 'team', val)}
-                    options={clientTeams && clientTeams.length ? clientTeams : TEAM_OPTIONS}
+                    options={clientTeams}
                     disabled={isExpired}
                   />
                   <button
