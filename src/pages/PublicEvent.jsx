@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getClientBySlug, getResults, getSchedule } from '../lib/db';
+import { getClientBySlug, getResults, getSchedule, getSettings } from '../lib/db';
 import { applyClientTheme } from '../lib/theme';
 import { Search, Trophy, Calendar, Award, Home, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -123,6 +123,8 @@ export default function PublicEvent({ overrideSlug }) {
   const [search, setSearch] = useState('');
   const [activeScheduleDate, setActiveScheduleDate] = useState('');
   const [activeNavTab, setActiveNavTab] = useState('home');
+  const [teamPoints, setTeamPoints] = useState([]);
+  const [teamPointsAfterResults, setTeamPointsAfterResults] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -144,6 +146,15 @@ export default function PublicEvent({ overrideSlug }) {
       const published = r.filter(item => item.status === 'published');
       setResults(published);
       setSchedule(s || []);
+
+      // Load manual team points from settings
+      const settings = await getSettings(c.id);
+      if (settings) {
+        const pts = Array.isArray(settings.teamPoints) ? settings.teamPoints : [];
+        // Sort by points descending
+        setTeamPoints([...pts].sort((a, b) => b.points - a.points));
+        setTeamPointsAfterResults(settings.teamPointsAfterResults || 0);
+      }
 
       if (s && s.length > 0) {
         setActiveScheduleDate(s[0].date || 'Scheduled Date');
@@ -199,34 +210,7 @@ export default function PublicEvent({ overrideSlug }) {
       r.winners?.some(w => w.name?.toLowerCase().includes(q));
   });
 
-  // Calculate Team Points Tally
-  const teamPointsMap = {};
-  const clientTeams = Array.isArray(client?.programs?.teams) ? client.programs.teams : (Array.isArray(client?.teams) ? client.teams : []);
-  clientTeams.forEach(t => {
-    teamPointsMap[t] = { name: t, points: 0, firsts: 0, seconds: 0, thirds: 0 };
-  });
 
-  results.forEach(r => {
-    (r.winners || []).forEach(w => {
-      if (!w.team) return;
-      if (!teamPointsMap[w.team]) {
-        teamPointsMap[w.team] = { name: w.team, points: 0, firsts: 0, seconds: 0, thirds: 0 };
-      }
-      const pos = String(w.position || '').trim();
-      if (pos === '01' || pos === '1') {
-        teamPointsMap[w.team].points += 5;
-        teamPointsMap[w.team].firsts += 1;
-      } else if (pos === '02' || pos === '2') {
-        teamPointsMap[w.team].points += 3;
-        teamPointsMap[w.team].seconds += 1;
-      } else if (pos === '03' || pos === '3') {
-        teamPointsMap[w.team].points += 1;
-        teamPointsMap[w.team].thirds += 1;
-      }
-    });
-  });
-
-  const teamPointsList = Object.values(teamPointsMap).sort((a, b) => b.points - a.points);
 
   // Schedule Date Groupings
   const scheduleDates = Array.from(new Set(schedule.map(s => s.date || 'Scheduled Date'))).sort();
@@ -345,14 +329,18 @@ export default function PublicEvent({ overrideSlug }) {
           )}
         </section>
 
-        {/* 4. POINTS & TEAM STANDINGS TALLY SECTION */}
+        {/* 4. POINTS & TEAM STANDINGS SECTION */}
         <section id="public-points-section" style={{ marginBottom: 40 }}>
-          <div style={{ marginBottom: 14 }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Team Points & Standings</h2>
-            <p style={{ color: '#64748B', fontSize: '0.88rem', margin: '4px 0 0' }}>Overall team standings tally across published competition results.</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Team Points</h2>
+            {teamPointsAfterResults > 0 && (
+              <span style={{ color: '#64748B', fontWeight: 700, fontSize: '0.88rem' }}>
+                After #{teamPointsAfterResults} Results
+              </span>
+            )}
           </div>
 
-          {teamPointsList.length === 0 ? (
+          {teamPoints.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 36, background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', color: '#64748B' }}>
               No team standings recorded yet.
             </div>
@@ -364,14 +352,11 @@ export default function PublicEvent({ overrideSlug }) {
                     <tr>
                       <th style={{ width: '60px' }}>Rank</th>
                       <th>Team Name</th>
-                      <th style={{ width: '70px', textAlign: 'center' }}>1st</th>
-                      <th style={{ width: '70px', textAlign: 'center' }}>2nd</th>
-                      <th style={{ width: '70px', textAlign: 'center' }}>3rd</th>
-                      <th style={{ width: '100px', textAlign: 'right' }}>Total Points</th>
+                      <th style={{ width: '120px', textAlign: 'right' }}>Points</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {teamPointsList.map((t, idx) => (
+                    {teamPoints.map((t, idx) => (
                       <tr key={t.name}>
                         <td style={{ fontWeight: 800, color: 'var(--primary)' }}>
                           #{idx + 1}
@@ -379,17 +364,8 @@ export default function PublicEvent({ overrideSlug }) {
                         <td style={{ fontWeight: 700, color: '#0F172A' }}>
                           {t.name}
                         </td>
-                        <td style={{ textAlign: 'center', color: '#D97706', fontWeight: 700 }}>
-                          {t.firsts}
-                        </td>
-                        <td style={{ textAlign: 'center', color: '#475569', fontWeight: 700 }}>
-                          {t.seconds}
-                        </td>
-                        <td style={{ textAlign: 'center', color: '#B45309', fontWeight: 700 }}>
-                          {t.thirds}
-                        </td>
                         <td style={{ textAlign: 'right', fontWeight: 800, color: 'var(--primary)', fontSize: '1.05rem' }}>
-                          {t.points} pts
+                          {t.points}
                         </td>
                       </tr>
                     ))}

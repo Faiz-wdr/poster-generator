@@ -8,10 +8,12 @@ import TemplateEditor from './TemplateEditor';
 import PublishedResults from './PublishedResults';
 import Settings from './Settings';
 import ScheduleManager from './ScheduleManager';
+import TeamPoints from './TeamPoints';
 import {
   LayoutDashboard,
   PlusCircle,
   Palette,
+  Trophy,
   ClipboardList,
   CalendarDays,
   Settings as SettingsIcon,
@@ -87,6 +89,7 @@ export default function AdminApp() {
     { to: '/admin/templates', label: 'Templates', icon: <Palette size={18} /> },
     { to: '/admin/results', label: 'Results', icon: <ClipboardList size={18} /> },
     { to: '/admin/schedule', label: 'Event Schedule', icon: <CalendarDays size={18} /> },
+    { to: '/admin/team-points', label: 'Team Points', icon: <Trophy size={18} /> },
     { to: '/admin/settings', label: 'Program Settings', icon: <SettingsIcon size={18} /> },
   ];
 
@@ -202,6 +205,7 @@ export default function AdminApp() {
             <Route path="templates" element={<TemplateEditor isExpired={isExpired} clientId={clientId} />} />
             <Route path="results" element={<PublishedResults isExpired={isExpired} clientId={clientId} />} />
             <Route path="schedule" element={<ScheduleManager isExpired={isExpired} clientId={clientId} />} />
+            <Route path="team-points" element={<TeamPoints isExpired={isExpired} clientId={clientId} />} />
             <Route path="settings" element={<Settings isExpired={isExpired} clientId={clientId} />} />
           </Routes>
         </div>

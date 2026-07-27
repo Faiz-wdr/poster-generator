@@ -873,6 +873,8 @@ export async function getSettings(clientId) {
   if (client) {
     let progs = [];
     let tms = [];
+    let teamPoints = [];
+    let teamPointsAfterResults = 0;
     if (Array.isArray(client.programs)) {
       progs = client.programs;
     } else if (client.programs && typeof client.programs === 'object') {
@@ -881,6 +883,12 @@ export async function getSettings(clientId) {
       }
       if (Array.isArray(client.programs.teams)) {
         tms = client.programs.teams;
+      }
+      if (Array.isArray(client.programs.team_points)) {
+        teamPoints = client.programs.team_points;
+      }
+      if (client.programs.team_points_after_results !== undefined) {
+        teamPointsAfterResults = client.programs.team_points_after_results;
       }
     }
 
@@ -906,9 +914,11 @@ export async function getSettings(clientId) {
       programs: progs,
       categories: cats,
       teams: tms,
+      teamPoints: teamPoints,
+      teamPointsAfterResults: teamPointsAfterResults,
     };
   }
-  return { institutionName: 'Sahityotsav', primaryColor: '#7C3AED', programs: [], categories: [], teams: [] };
+  return { institutionName: 'Sahityotsav', primaryColor: '#7C3AED', programs: [], categories: [], teams: [], teamPoints: [], teamPointsAfterResults: 0 };
 }
 
 export async function saveSettings(clientId, data) {
@@ -926,6 +936,12 @@ export async function saveSettings(clientId, data) {
   }
   if (data.teams !== undefined) {
     programsValue.teams = data.teams;
+  }
+  if (data.teamPoints !== undefined) {
+    programsValue.team_points = data.teamPoints;
+  }
+  if (data.teamPointsAfterResults !== undefined) {
+    programsValue.team_points_after_results = data.teamPointsAfterResults;
   }
 
   const updated = {
