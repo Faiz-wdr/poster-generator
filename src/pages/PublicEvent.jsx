@@ -1,23 +1,25 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getClientBySlug, getResults, getTemplates } from '../lib/db';
+import { useParams, Link } from 'react-router-dom';
+import { getClientBySlug, getResults } from '../lib/db';
 import { applyClientTheme } from '../lib/theme';
 import { CATEGORY_OPTIONS } from '../data/defaults';
 import ResultRow from '../components/ResultRow';
-import PosterModal from '../components/PosterModal';
-import { Search, Trophy, Calendar, MapPin, Sparkles, Award } from 'lucide-react';
+import ResultDetailModal from '../components/ResultDetailModal';
+import { Search, Trophy, Calendar, Award } from 'lucide-react';
 
 export default function PublicEvent() {
   const { slug } = useParams();
-  const navigate = useNavigate();
 
   const [client, setClient] = useState(null);
   const [results, setResults] = useState([]);
-  const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
-  const [modalResult, setModalResult] = useState(null);
+  const [selectedResult, setSelectedResult] = useState(null);
+
+  // Check if current user is admin for this event client
+  const isAdmin = sessionStorage.getItem('client_admin_logged_in') === 'true' && 
+                  sessionStorage.getItem('client_slug') === slug;
 
   useEffect(() => {
     async function load() {
@@ -31,28 +33,26 @@ export default function PublicEvent() {
       setClient(c);
       applyClientTheme(c);
 
-      const [r, t] = await Promise.all([
-        getResults(c.id),
-        getTemplates(c.id)
-      ]);
-
+      const r = await getResults(c.id);
       const published = r.filter(item => item.status === 'published');
       setResults(published);
-      setTemplates(t);
       setLoading(false);
     }
     load();
 
     return () => {
-      // Reset theme on unmount
       applyClientTheme(null);
     };
   }, [slug]);
 
+  const handleDeleteSuccess = (deletedId) => {
+    setResults(prev => prev.filter(item => item.id !== deletedId));
+  };
+
   if (loading) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)' }}>
-        <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 600 }}>
+      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
+        <div style={{ textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
           Loading event portal…
         </div>
       </div>
@@ -61,9 +61,9 @@ export default function PublicEvent() {
 
   if (!client) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)', padding: 24, textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2rem', marginBottom: 12 }}>Event Not Found</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 24, maxWidth: 420 }}>
+      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', padding: 24, textAlign: 'center' }}>
+        <h2 style={{ fontSize: '2rem', marginBottom: 12, color: '#0F172A' }}>Event Not Found</h2>
+        <p style={{ color: '#64748B', marginBottom: 24, maxWidth: 420 }}>
           The event URL you are trying to access does not exist or has been removed.
         </p>
         <Link to="/" className="btn btn-primary">Return to Homepage</Link>
@@ -73,9 +73,9 @@ export default function PublicEvent() {
 
   if (client.status === 'suspended') {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)', padding: 24, textAlign: 'center' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', padding: 24, textAlign: 'center' }}>
         <h2 style={{ fontSize: '2rem', marginBottom: 12, color: '#EF4444' }}>Event Access Suspended</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 24, maxWidth: 420 }}>
+        <p style={{ color: '#64748B', marginBottom: 24, maxWidth: 420 }}>
           This event portal has been suspended by the administrator. Please contact support.
         </p>
         <Link to="/" className="btn btn-primary">Return to Homepage</Link>
@@ -94,18 +94,14 @@ export default function PublicEvent() {
 
   const clientCats = client?.categories && client.categories.length ? client.categories : CATEGORY_OPTIONS;
   const categories = ['All', ...clientCats];
-  const totalWinners = results.reduce((acc, r) => acc + (r.winners?.length || 0), 0);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC', fontFamily: 'var(--font-body)' }}>
       {/* Event Header */}
-      <header style={{ background: 'white', borderBottom: '1px solid var(--border-color)', sticky: 'top', top: 0, zIndex: 50, padding: '14px 0' }}>
+      <header style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 50, padding: '14px 0' }}>
         <div className="container nav-flex">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div className="logo-icon" style={{
-              background: `linear-gradient(135deg, var(--primary), var(--secondary))`,
-              overflow: 'hidden'
-            }}>
+            <div className="logo-icon" style={{ background: '#0F172A', color: '#FFFFFF', overflow: 'hidden' }}>
               {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image')) ? (
                 <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
               ) : (
@@ -113,17 +109,17 @@ export default function PublicEvent() {
               )}
             </div>
             <div>
-              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
                 {client.event_name}
               </div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {client.organization_name}
               </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <Link to={`/event/${slug}`} style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.95rem' }}>Results</Link>
+            <Link to={`/event/${slug}`} style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.95rem' }}>Results</Link>
             <Link to="/login" className="btn btn-outline btn-sm" style={{ padding: '6px 14px', fontSize: '0.85rem' }}>Admin Access</Link>
           </div>
         </div>
@@ -133,53 +129,53 @@ export default function PublicEvent() {
       <main className="container" style={{ flexGrow: 1, paddingBottom: 80 }}>
         {/* Hero Section */}
         <section className="hero-centered" style={{
-          background: `linear-gradient(-45deg, var(--primary-light), #FFFFFF, var(--primary-light))`,
-          padding: '100px 24px', margin: '32px 0 48px', border: '1px solid rgba(0, 0, 0, 0.05)'
+          background: '#FFFFFF',
+          padding: '60px 24px', margin: '24px 0 36px', border: '1px solid #E2E8F0', borderRadius: '16px'
         }}>
           <div className="hero-content">
-            <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-flex', gap: 6 }}>
-              <Trophy size={14} style={{ color: 'var(--accent)' }} /> Official Results Portal
+            <span className="badge" style={{ marginBottom: 12, display: 'inline-flex', gap: 6, background: '#F1F5F9', color: '#334155', border: '1px solid #CBD5E1', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.8rem' }}>
+              <Trophy size={14} style={{ color: '#D97706' }} /> Official Competition Results
             </span>
-            <h1 style={{ color: 'var(--text-primary)', fontSize: '3rem', fontWeight: 800, textAlign: 'center', marginBottom: 16 }}>
+            <h1 style={{ color: '#0F172A', fontSize: '2.5rem', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>
               {client.organization_name}<br />{client.event_name}
             </h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', textAlign: 'center', maxWidth: 580, marginBottom: 28 }}>
-              Browse standings, view winner announcements, and generate custom high-resolution result posters instantly.
+            <p style={{ color: '#475569', fontSize: '1rem', textAlign: 'center', maxWidth: 580, marginBottom: 24 }}>
+              Browse official program standings and verified winner placements.
             </p>
 
-            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>
+            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center', color: '#64748B', fontSize: '0.88rem', fontWeight: 600 }}>
               {client.start_date && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Calendar size={16} style={{ color: 'var(--primary)' }} />
+                  <Calendar size={16} style={{ color: '#475569' }} />
                   <span>{client.start_date} {client.end_date ? `to ${client.end_date}` : ''}</span>
                 </div>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Award size={16} style={{ color: 'var(--accent)' }} />
+                <Award size={16} style={{ color: '#0F172A' }} />
                 <span>{results.length} Programs Announced</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Gallery Content */}
-        <div style={{ marginBottom: 24 }}>
-          <h2 style={{ fontSize: '1.75rem', marginBottom: 4 }}>Program Results</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Click on any result card to view the placement standings and export poster flyers.
+        {/* Results Directory */}
+        <div style={{ marginBottom: 20 }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>Program Results</h2>
+          <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
+            Click any program row below to view winner standings in a pop-up card.
           </p>
         </div>
 
         {/* Search + Filter Bar */}
-        <div className="search-filter-bar" style={{ marginBottom: 32 }}>
+        <div className="search-filter-bar" style={{ marginBottom: 28, background: '#FFFFFF', border: '1px solid #E2E8F0' }}>
           <div className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Search size={18} className="search-icon" style={{ position: 'absolute', left: 14, color: 'var(--text-secondary)' }} />
+            <Search size={18} className="search-icon" style={{ position: 'absolute', left: 14, color: '#64748B' }} />
             <input
               type="search"
               placeholder="Search program or winner name…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ paddingLeft: 42 }}
+              style={{ paddingLeft: 42, background: '#F8FAFC', border: '1px solid #CBD5E1' }}
             />
           </div>
 
@@ -198,19 +194,19 @@ export default function PublicEvent() {
 
         {/* Results List */}
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 60, background: 'white', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-            <p style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: 8 }}>No results found.</p>
-            <p>Try searching another keyword or clearing filters.</p>
+          <div style={{ textAlign: 'center', padding: 48, background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', color: '#64748B' }}>
+            <p style={{ fontWeight: 600, fontSize: '1rem', marginBottom: 6, color: '#0F172A' }}>No results found.</p>
+            <p style={{ fontSize: '0.9rem' }}>Try searching another keyword or clearing filters.</p>
           </div>
         ) : (
           <>
-            <p style={{ color: 'var(--text-secondary)', fontWeight: 600, marginBottom: 16, fontSize: '0.88rem' }}>
+            <p style={{ color: '#64748B', fontWeight: 600, marginBottom: 14, fontSize: '0.85rem' }}>
               Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''}
             </p>
             <div className="results-list-container">
               {filtered.map(r => (
-                <div key={r.id} onClick={() => navigate(`/event/${slug}/detail/${r.id}`)} style={{ cursor: 'pointer' }}>
-                  <ResultRow result={r} onOpenModal={() => {}} />
+                <div key={r.id} onClick={() => setSelectedResult(r)} style={{ cursor: 'pointer' }}>
+                  <ResultRow result={r} />
                 </div>
               ))}
             </div>
@@ -218,29 +214,37 @@ export default function PublicEvent() {
         )}
       </main>
 
+      {/* Result Detail Pop-up Modal */}
+      {selectedResult && (
+        <ResultDetailModal
+          result={selectedResult}
+          slug={slug}
+          isAdmin={isAdmin}
+          onClose={() => setSelectedResult(null)}
+          onDeleteSuccess={handleDeleteSuccess}
+        />
+      )}
+
       {/* Event Footer */}
-      <footer style={{ background: '#0F172A', color: '#94A3B8', padding: '40px 0', fontSize: '0.85rem', borderTop: '1px solid var(--border-color)', marginTop: 'auto' }}>
-        <div className="container" style={{ display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontWeight: 800, color: 'white', fontSize: '1.1rem', marginBottom: 6 }}>
+      <footer className="public-footer">
+        <div className="container public-footer-content">
+          <div className="public-footer-brand">
+            <div className="public-footer-title">
               {client.event_name}
             </div>
-            <p>© {new Date().getFullYear()} {client.organization_name}. All rights reserved.</p>
+            <div className="public-footer-subtitle">
+              {client.organization_name}
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: 20 }}>
-            <Link to="/" style={{ color: '#94A3B8' }}>Powered by ResultFlow</Link>
-            <Link to="/login" style={{ color: '#94A3B8' }}>Admin Settings</Link>
+          <div className="public-footer-links">
+            <Link to="/">ResultFlow</Link>
+            <Link to="/login">Admin Login</Link>
+          </div>
+          <div className="public-footer-copyright">
+            © {new Date().getFullYear()} {client.organization_name}. All rights reserved.
           </div>
         </div>
       </footer>
-
-      {modalResult && templates.length > 0 && (
-        <PosterModal
-          result={modalResult}
-          templates={templates}
-          onClose={() => setModalResult(null)}
-        />
-      )}
     </div>
   );
 }

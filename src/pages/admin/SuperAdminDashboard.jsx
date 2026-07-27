@@ -65,15 +65,18 @@ export default function SuperAdminDashboard() {
     setLoading(true);
     const data = await getClients();
     setClients(data);
+    setLoading(false); // Show client list immediately
 
-    // Compute total results count across all clients
-    let total = 0;
-    for (const client of data) {
-      const results = await getResults(client.id);
-      total += results.length;
+    // Compute total results count in the background (parallel, non-blocking)
+    try {
+      const counts = await Promise.all(
+        data.map(client => getResults(client.id).then(r => r.length).catch(() => 0))
+      );
+      setTotalResultsCount(counts.reduce((sum, n) => sum + n, 0));
+    } catch (e) {
+      console.error('Failed to load result counts:', e);
+      setTotalResultsCount(0);
     }
-    setTotalResultsCount(total);
-    setLoading(false);
   };
 
   useEffect(() => {

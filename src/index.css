@@ -1945,3 +1945,159 @@ footer {
     font-size: 0.8rem;
   }
 }
+
+/* --- PUBLIC EVENT PAGE & POPUP MOBILE RESPONSIVE REFINEMENTS --- */
+.public-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.public-result-item:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.mobile-team-subtext {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .hero-centered {
+    padding: 32px 16px !important;
+    margin: 16px 0 24px !important;
+  }
+
+  .hero-content h1 {
+    font-size: 1.75rem !important;
+  }
+
+  .filter-pills {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 6px !important;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filter-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-pill {
+    flex-shrink: 0 !important;
+    padding: 8px 14px !important;
+    font-size: 0.82rem !important;
+  }
+
+  .public-result-item {
+    padding: 14px 14px !important;
+    gap: 10px !important;
+  }
+
+  .modal-overlay {
+    padding: 12px !important;
+  }
+
+  .desktop-team-badge {
+    display: none !important;
+  }
+
+  .mobile-team-subtext {
+    display: block !important;
+  }
+}
+
+/* --- RESPONSIVE PUBLIC FOOTER (CENTER ALIGNED ON MOBILE, COPYRIGHT LAST) --- */
+.public-footer {
+  background: #0F172A;
+  color: #94A3B8;
+  padding: 32px 0 24px;
+  font-size: 0.85rem;
+  margin-top: auto;
+  border-top: 1px solid #1E293B;
+  width: 100%;
+}
+
+.public-footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.public-footer-brand {
+  text-align: center;
+}
+
+.public-footer-title {
+  font-weight: 800;
+  color: #FFFFFF;
+  font-size: 1.05rem;
+  margin-bottom: 2px;
+}
+
+.public-footer-subtitle {
+  font-size: 0.78rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+.public-footer-links {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.public-footer-links a {
+  color: #94A3B8;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.public-footer-links a:hover {
+  color: #FFFFFF;
+}
+
+.public-footer-copyright {
+  font-size: 0.78rem;
+  color: #64748B;
+  text-align: center;
+  border-top: 1px solid #1E293B;
+  padding-top: 16px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+@media (min-width: 641px) {
+  .public-footer-content {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .public-footer-brand {
+    text-align: left;
+  }
+
+  .public-footer-links {
+    justify-content: flex-end;
+  }
+
+  .public-footer-copyright {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+}

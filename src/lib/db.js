@@ -17,8 +17,35 @@ function generateUUID() {
   });
 }
 
-// Helper to determine if we should use local fallback
-const useLocal = !supabase;
+// ── CIRCUIT BREAKER ──────────────────────────────────────────────────────────
+// If supabase is null (invalid key detected in supabase.js), we go local immediately.
+// If supabase exists but the first query fails, we trip the circuit breaker
+// so all subsequent calls skip the network for the rest of the session.
+let _circuitBroken = false;
+let useLocal = !supabase;
+
+function tripCircuitBreaker(action, error) {
+  if (!_circuitBroken) {
+    _circuitBroken = true;
+    useLocal = true;
+    console.warn(
+      `⚡ Circuit breaker tripped on "${action}". ` +
+      `All subsequent DB calls will use localStorage for this session. ` +
+      `Error: ${error?.message || error}`
+    );
+  }
+}
+
+/** Wrap a Supabase query promise with a 5-second timeout */
+const QUERY_TIMEOUT_MS = 5000;
+function withTimeout(promise, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`Timeout: ${label} took >${QUERY_TIMEOUT_MS}ms`)), QUERY_TIMEOUT_MS)
+    )
+  ]);
+}
 
 // ── LOCAL STORAGE TENANCY SEED DATA ──────────────────────────────────────────
 const DEFAULT_CLIENTS = [
@@ -155,30 +182,24 @@ export async function getClients() {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('organization_name', { ascending: true });
+    const { data, error } = await withTimeout(
+      supabase
+        .from('clients')
+        .select('*')
+        .order('organization_name', { ascending: true }),
+      'getClients'
+    );
 
     if (error) {
       showDbError('fetching clients', error);
+      tripCircuitBreaker('getClients', error);
       return getLocalClients();
     }
-    
-    // Merge local storage clients with Supabase clients to prevent data loss
-    const localClients = getLocalClients();
-    const supabaseClients = data || [];
-    const merged = [...supabaseClients];
-    
-    localClients.forEach(lc => {
-      if (lc && lc.id && !merged.some(sc => sc && sc.id === lc.id)) {
-        merged.push(lc);
-      }
-    });
 
-    return merged;
+    return data || [];
   } catch (e) {
     showDbError('fetching clients exception', e);
+    tripCircuitBreaker('getClients', e);
     return getLocalClients();
   }
 }
@@ -190,20 +211,25 @@ export async function getClient(id) {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await withTimeout(
+      supabase
+        .from('clients')
+        .select('*')
+        .eq('id', id)
+        .single(),
+      'getClient'
+    );
 
     if (error) {
       showDbError('fetching client', error);
+      tripCircuitBreaker('getClient', error);
       const clients = getLocalClients();
       return clients.find(c => c.id === id) || null;
     }
     return data;
   } catch (e) {
     showDbError('fetching client exception', e);
+    tripCircuitBreaker('getClient', e);
     const clients = getLocalClients();
     return clients.find(c => c.id === id) || null;
   }
@@ -216,20 +242,25 @@ export async function getClientBySlug(slug) {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('slug', slug)
-      .single();
+    const { data, error } = await withTimeout(
+      supabase
+        .from('clients')
+        .select('*')
+        .eq('slug', slug)
+        .single(),
+      'getClientBySlug'
+    );
 
     if (error) {
       showDbError('fetching client by slug', error);
+      tripCircuitBreaker('getClientBySlug', error);
       const clients = getLocalClients();
       return clients.find(c => c.slug === slug) || null;
     }
     return data;
   } catch (e) {
     showDbError('fetching client by slug exception', e);
+    tripCircuitBreaker('getClientBySlug', e);
     const clients = getLocalClients();
     return clients.find(c => c.slug === slug) || null;
   }
@@ -495,21 +526,25 @@ export async function getResults(clientId) {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('results')
-      .select(`
-        id,
-        programName:program_name,
-        category,
-        client_id,
-        created:created_at,
-        winners:placements ( position, name, team )
-      `)
-      .eq('client_id', cId)
-      .order('created_at', { ascending: false });
+    const { data, error } = await withTimeout(
+      supabase
+        .from('results')
+        .select(`
+          id,
+          programName:program_name,
+          category,
+          client_id,
+          created:created_at,
+          winners:placements ( position, name, team )
+        `)
+        .eq('client_id', cId)
+        .order('created_at', { ascending: false }),
+      'getResults'
+    );
 
     if (error) {
       showDbError(`fetching results for ${cId}`, error);
+      tripCircuitBreaker('getResults', error);
       return getLocalResults(cId);
     }
 
@@ -525,6 +560,7 @@ export async function getResults(clientId) {
     return data;
   } catch (e) {
     showDbError('fetching results exception', e);
+    tripCircuitBreaker('getResults', e);
     return getLocalResults(cId);
   }
 }
@@ -542,21 +578,25 @@ export async function getResult(id) {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('results')
-      .select(`
-        id,
-        programName:program_name,
-        category,
-        client_id,
-        created:created_at,
-        winners:placements ( position, name, team )
-      `)
-      .eq('id', id)
-      .single();
+    const { data, error } = await withTimeout(
+      supabase
+        .from('results')
+        .select(`
+          id,
+          programName:program_name,
+          category,
+          client_id,
+          created:created_at,
+          winners:placements ( position, name, team )
+        `)
+        .eq('id', id)
+        .single(),
+      'getResult'
+    );
 
     if (error) {
       showDbError('fetching result', error);
+      tripCircuitBreaker('getResult', error);
       return null;
     }
     if (data) {
@@ -569,6 +609,7 @@ export async function getResult(id) {
     return data;
   } catch (e) {
     showDbError('fetching result exception', e);
+    tripCircuitBreaker('getResult', e);
     return null;
   }
 }
@@ -663,14 +704,18 @@ export async function getTemplates(clientId) {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('templates')
-      .select('*')
-      .eq('client_id', cId)
-      .order('created_at', { ascending: true });
+    const { data, error } = await withTimeout(
+      supabase
+        .from('templates')
+        .select('*')
+        .eq('client_id', cId)
+        .order('created_at', { ascending: true }),
+      'getTemplates'
+    );
       
     if (error) {
       showDbError(`fetching templates for ${cId}`, error);
+      tripCircuitBreaker('getTemplates', error);
       return getLocalTemplates(cId);
     }
 
@@ -683,6 +728,7 @@ export async function getTemplates(clientId) {
     return data;
   } catch (e) {
     showDbError('fetching templates exception', e);
+    tripCircuitBreaker('getTemplates', e);
     return getLocalTemplates(cId);
   }
 }
@@ -699,9 +745,13 @@ export async function getTemplate(id) {
   }
 
   try {
-    const { data, error } = await supabase.from('templates').select('*').eq('id', id).single();
+    const { data, error } = await withTimeout(
+      supabase.from('templates').select('*').eq('id', id).single(),
+      'getTemplate'
+    );
     if (error) {
       showDbError('fetching template', error);
+      tripCircuitBreaker('getTemplate', error);
       return null;
     }
     if (data && data.fields && !data.fields.resultNo) {
@@ -710,6 +760,7 @@ export async function getTemplate(id) {
     return data;
   } catch (e) {
     showDbError('fetching template exception', e);
+    tripCircuitBreaker('getTemplate', e);
     return null;
   }
 }

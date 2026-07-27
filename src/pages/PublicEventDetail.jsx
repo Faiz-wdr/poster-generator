@@ -1,20 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getClientBySlug, getResult, getTemplates, deleteResult } from '../lib/db';
+import { getClientBySlug, getResult, deleteResult } from '../lib/db';
 import { applyClientTheme } from '../lib/theme';
-import { posterEngine } from '../lib/posterEngine';
-import { ArrowLeft, Download, Pencil, Trash2, Award, Palette, Calendar } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Award, Share2, Check } from 'lucide-react';
 
 export default function PublicEventDetail() {
   const { slug, id } = useParams();
   const navigate = useNavigate();
-  const containerRef = useRef(null);
 
   const [client, setClient] = useState(null);
   const [result, setResult] = useState(null);
-  const [templates, setTemplates] = useState([]);
-  const [activeTemplate, setActiveTemplate] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   // Check if current user is the admin for this event client
   const isAdmin = sessionStorage.getItem('client_admin_logged_in') === 'true' && 
@@ -32,35 +29,16 @@ export default function PublicEventDetail() {
       setClient(c);
       applyClientTheme(c);
 
-      const [r, t] = await Promise.all([
-        getResult(id),
-        getTemplates(c.id)
-      ]);
-
+      const r = await getResult(id);
       setResult(r);
-      setTemplates(t);
-      setActiveTemplate(t[0] || null);
       setLoading(false);
     }
     load();
 
     return () => {
-      // Reset theme on unmount
       applyClientTheme(null);
     };
   }, [slug, id]);
-
-  // Render poster whenever result or template changes
-  useEffect(() => {
-    if (!containerRef.current || !result || !activeTemplate) return;
-    const cleanup = posterEngine.render(containerRef.current, result, activeTemplate, {});
-    return cleanup;
-  }, [result, activeTemplate]);
-
-  const handleDownload = () => {
-    if (!containerRef.current) return;
-    posterEngine.exportJpg(containerRef.current, `${result.programName}.jpg`);
-  };
 
   const handleDelete = async () => {
     if (!window.confirm(`Delete result "${result.programName}"? This cannot be undone.`)) return;
@@ -69,17 +47,32 @@ export default function PublicEventDetail() {
     else alert('Failed to delete result.');
   };
 
-  const getPlaceBadge = (pos) => {
-    if (pos === '01' || pos === '1') return { cls: 'winner-place-1', label: '1st' };
-    if (pos === '02' || pos === '2') return { cls: 'winner-place-2', label: '2nd' };
-    if (pos === '03' || pos === '3') return { cls: 'winner-place-3', label: '3rd' };
-    return { cls: 'winner-place-2', label: pos };
+  const handleShare = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const getPlaceBadge = (pos, index) => {
+    const positionStr = pos || String(index + 1).padStart(2, '0');
+    if (positionStr === '01' || positionStr === '1') {
+      return { label: '1st Place', bg: '#FEF3C7', color: '#92400E', border: '#FCD34D' };
+    }
+    if (positionStr === '02' || positionStr === '2') {
+      return { label: '2nd Place', bg: '#F1F5F9', color: '#334155', border: '#CBD5E1' };
+    }
+    if (positionStr === '03' || positionStr === '3') {
+      return { label: '3rd Place', bg: '#FFEDD5', color: '#9A3412', border: '#FDBA74' };
+    }
+    return { label: `Rank ${positionStr}`, bg: '#F8FAFC', color: '#475569', border: '#E2E8F0' };
   };
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)' }}>
-        <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 600 }}>
+      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
+        <div style={{ textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
           Loading result details…
         </div>
       </div>
@@ -88,9 +81,9 @@ export default function PublicEventDetail() {
 
   if (!client) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)', padding: 24, textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2rem', marginBottom: 12 }}>Event Not Found</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 24, maxWidth: 420 }}>
+      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', padding: 24, textAlign: 'center' }}>
+        <h2 style={{ fontSize: '2rem', marginBottom: 12, color: '#0F172A' }}>Event Not Found</h2>
+        <p style={{ color: '#64748B', marginBottom: 24, maxWidth: 420 }}>
           The event portal you are trying to access does not exist.
         </p>
         <Link to="/" className="btn btn-primary">Return to Homepage</Link>
@@ -100,8 +93,8 @@ export default function PublicEventDetail() {
 
   if (!result) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
-        <header style={{ background: 'white', borderBottom: '1px solid var(--border-color)', padding: '14px 0' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
+        <header style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '14px 0' }}>
           <div className="container nav-flex">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div className="logo-icon" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -111,15 +104,15 @@ export default function PublicEventDetail() {
                   client.logo || 'E'
                 )}
               </div>
-              <div style={{ fontWeight: 800 }}>{client.event_name}</div>
+              <div style={{ fontWeight: 800, color: '#0F172A' }}>{client.event_name}</div>
             </div>
-            <Link to={`/event/${slug}`} className="btn btn-outline btn-sm">Results Gallery</Link>
+            <Link to={`/event/${slug}`} className="btn btn-outline btn-sm">Results Directory</Link>
           </div>
         </header>
         <main className="container section-padding" style={{ textAlign: 'center', flexGrow: 1 }}>
-          <h2>Result not found</h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>This program result could not be located.</p>
-          <Link to={`/event/${slug}`} className="btn btn-primary" style={{ marginTop: 24 }}>← Back to Gallery</Link>
+          <h2 style={{ color: '#0F172A' }}>Result not found</h2>
+          <p style={{ color: '#64748B', marginTop: 8 }}>This program result could not be located.</p>
+          <Link to={`/event/${slug}`} className="btn btn-primary" style={{ marginTop: 24 }}>← Back to Results</Link>
         </main>
       </div>
     );
@@ -128,12 +121,12 @@ export default function PublicEventDetail() {
   const winners = result.winners || [];
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC', fontFamily: 'var(--font-body)' }}>
       {/* Event Header */}
-      <header style={{ background: 'white', borderBottom: '1px solid var(--border-color)', padding: '14px 0' }}>
+      <header style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '14px 0', position: 'sticky', top: 0, zIndex: 50 }}>
         <div className="container nav-flex">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div className="logo-icon" style={{ background: `linear-gradient(135deg, var(--primary), var(--secondary))`, overflow: 'hidden' }}>
+            <div className="logo-icon" style={{ background: '#0F172A', color: '#FFFFFF', overflow: 'hidden' }}>
               {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image')) ? (
                 <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
               ) : (
@@ -141,142 +134,194 @@ export default function PublicEventDetail() {
               )}
             </div>
             <div>
-              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
                 {client.event_name}
               </div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {client.organization_name}
               </div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <Link to={`/event/${slug}`} style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.95rem' }}>Results</Link>
+            <Link to={`/event/${slug}`} style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.95rem' }}>All Results</Link>
             <Link to="/login" className="btn btn-outline btn-sm" style={{ padding: '6px 14px', fontSize: '0.85rem' }}>Admin Access</Link>
           </div>
         </div>
       </header>
 
-      {/* Main Grid */}
-      <main className="container section-padding" style={{ paddingTop: 40, flexGrow: 1 }}>
-        <div style={{ marginBottom: 24 }}>
-          <Link to={`/event/${slug}`} style={{ fontWeight: 700, color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <ArrowLeft size={16} /> Back to Results Gallery
+      {/* Main Container */}
+      <main className="container" style={{ flexGrow: 1, paddingTop: 32, paddingBottom: 64, maxWidth: 760, margin: '0 auto' }}>
+        {/* Navigation & Share */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <Link to={`/event/${slug}`} style={{ fontWeight: 600, color: '#475569', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.9rem' }}>
+            <ArrowLeft size={16} /> Back to Results List
           </Link>
+          
+          <button
+            onClick={handleShare}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+              background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px',
+              color: '#334155', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer'
+            }}
+          >
+            {copied ? <Check size={14} style={{ color: '#16A34A' }} /> : <Share2 size={14} />}
+            <span>{copied ? 'Link Copied' : 'Share Result'}</span>
+          </button>
         </div>
 
-        <div className="detail-grid">
-          {/* Left: Poster Preview */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div ref={containerRef} className="poster-preview-container" />
-
-            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 480, gap: 12, marginTop: 24 }}>
-              <button className="btn btn-primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={handleDownload}>
-                <Download size={18} /> Download Poster (High-Res JPG)
-              </button>
-
-              {isAdmin && (
-                <div style={{ display: 'flex', gap: 12 }} id="admin-actions-shortcut">
-                  <button
-                    className="btn btn-outline btn-sm"
-                    style={{ flexGrow: 1, padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                    onClick={() => navigate(`/admin/upload?edit=${result.id}`)}
-                  >
-                    <Pencil size={14} /> Edit Result Details
-                  </button>
-                  <button
-                    className="btn btn-outline btn-sm btn-danger"
-                    style={{ flexGrow: 1, padding: 12, color: '#FFFFFF', borderColor: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                    onClick={handleDelete}
-                  >
-                    <Trash2 size={14} /> Delete Result
-                  </button>
-                </div>
+        {/* Professional Result Card */}
+        <div style={{
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.05)',
+          overflow: 'hidden'
+        }}>
+          {/* Card Header */}
+          <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid #F1F5F9' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+              <span style={{
+                background: '#F1F5F9', color: '#334155', border: '1px solid #E2E8F0',
+                fontSize: '0.75rem', fontWeight: 700, padding: '4px 10px', borderRadius: '6px'
+              }}>
+                {result.category}
+              </span>
+              {result.resultNo && (
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748B' }}>
+                  Result No: #{result.resultNo}
+                </span>
               )}
             </div>
+
+            <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#0F172A', margin: 0, lineHeight: 1.25 }}>
+              {result.programName}
+            </h1>
           </div>
 
-          {/* Right: Details & Theme Selector */}
-          <div className="detail-sidebar">
-            <span className="badge badge-primary" style={{ marginBottom: 12 }}>{result.category}</span>
-            <h1>{result.programName}</h1>
-
-            <div className="detail-divider" />
-            <h3 style={{ fontSize: '1.15rem', marginBottom: 16, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Award size={20} style={{ color: 'var(--accent)' }} />
-              <span>Placement Standings</span>
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {winners.length === 0 ? (
-                <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No winners recorded for this event yet.</p>
-              ) : (
-                winners.map((w, i) => {
-                  const badge = getPlaceBadge(w.position);
-                  const borderCls = i === 0 ? 'winner-item-1' : i === 1 ? 'winner-item-2' : i === 2 ? 'winner-item-3' : '';
-                  return (
-                    <div key={i} className={`winner-item ${borderCls}`}>
-                      <div className={`winner-place ${badge.cls}`}>{badge.label}</div>
-                      <div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
-                          {w.team || 'No Team'}
-                        </div>
-                        <div className="winner-name">{w.name}</div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+          {/* Standings Downward List Section */}
+          <div style={{ padding: '28px 32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+              <Award size={20} style={{ color: '#0F172A' }} />
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Official Placement Standings
+              </h2>
             </div>
 
-            <div className="detail-divider" />
-
-            {/* Template Picker */}
-            <h3 style={{ fontSize: '1.15rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Palette size={20} style={{ color: 'var(--primary)' }} />
-              <span>Apply Brand Layout Style</span>
-            </h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 16 }}>
-              Click any layout thumbnail to instantly apply event graphics.
-            </p>
-
-            {templates.length === 0 ? (
-              <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '0.88rem' }}>No templates registered for this event.</p>
+            {winners.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px 0', color: '#64748B', fontStyle: 'italic' }}>
+                No winners listed for this program yet.
+              </div>
             ) : (
-              <div className="template-slider-container" style={{ margin: 0 }}>
-                <div className="template-slider" style={{ paddingBottom: 12 }}>
-                  {templates.map(tpl => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {winners.map((w, index) => {
+                  const badge = getPlaceBadge(w.position, index);
+                  return (
                     <div
-                      key={tpl.id}
-                      className={`template-slide ${activeTemplate?.id === tpl.id ? 'active' : ''}`}
-                      onClick={() => setActiveTemplate(tpl)}
-                      title={tpl.name}
+                      key={index}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justify: 'space-between',
+                        padding: '16px 20px',
+                        background: '#F8FAFC',
+                        borderRadius: '12px',
+                        border: `1px solid ${badge.border}`,
+                        gap: '16px'
+                      }}
                     >
-                      <div
-                        className="template-slide-img"
-                        style={{ backgroundImage: `url("${tpl.background}")`, backgroundSize: 'cover' }}
-                      />
-                      <div className="template-slide-name">{tpl.name}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        {/* Position Tag */}
+                        <div style={{
+                          minWidth: '84px',
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          background: badge.bg,
+                          color: badge.color,
+                          fontWeight: 800,
+                          fontSize: '0.85rem',
+                          textAlign: 'center',
+                          border: `1px solid ${badge.border}`
+                        }}>
+                          {badge.label}
+                        </div>
+
+                        {/* Winner Name */}
+                        <div>
+                          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0F172A', lineHeight: 1.3 }}>
+                            {w.name}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Team Name */}
+                      {w.team && (
+                        <div style={{
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: '#475569',
+                          background: '#FFFFFF',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid #E2E8F0',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {w.team}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             )}
           </div>
+
+          {/* Admin Controls Footer (Only visible when logged in as admin) */}
+          {isAdmin && (
+            <div style={{
+              padding: '20px 32px',
+              background: '#F8FAFC',
+              borderTop: '1px solid #E2E8F0',
+              display: 'flex',
+              gap: 12,
+              justify: 'flex-end'
+            }}>
+              <button
+                className="btn btn-outline btn-sm"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}
+                onClick={() => navigate(`/admin/upload?edit=${result.id}`)}
+              >
+                <Pencil size={14} /> Edit Result
+              </button>
+              <button
+                className="btn btn-outline btn-sm"
+                style={{ color: '#DC2626', borderColor: '#FCA5A5', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}
+                onClick={handleDelete}
+              >
+                <Trash2 size={14} /> Delete
+              </button>
+            </div>
+          )}
         </div>
       </main>
 
-      {/* Event Footer */}
-      <footer style={{ background: '#0F172A', color: '#94A3B8', padding: '40px 0', fontSize: '0.85rem', borderTop: '1px solid var(--border-color)', marginTop: 'auto' }}>
-        <div className="container" style={{ display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontWeight: 800, color: 'white', fontSize: '1.1rem', marginBottom: 6 }}>
+      {/* Footer */}
+      <footer className="public-footer">
+        <div className="container public-footer-content">
+          <div className="public-footer-brand">
+            <div className="public-footer-title">
               {client.event_name}
             </div>
-            <p>© {new Date().getFullYear()} {client.organization_name}. All rights reserved.</p>
+            <div className="public-footer-subtitle">
+              {client.organization_name}
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: 20 }}>
-            <Link to="/" style={{ color: '#94A3B8' }}>Powered by ResultFlow</Link>
-            <Link to="/login" style={{ color: '#94A3B8' }}>Admin Settings</Link>
+          <div className="public-footer-links">
+            <Link to="/">ResultFlow</Link>
+            <Link to="/login">Admin Login</Link>
+          </div>
+          <div className="public-footer-copyright">
+            © {new Date().getFullYear()} {client.organization_name}. All rights reserved.
           </div>
         </div>
       </footer>
