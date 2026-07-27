@@ -317,10 +317,11 @@ export default function SuperAdminDashboard() {
                       const isExpired = new Date(c.expiry_date) <= new Date();
                       const host = window.location.host;
                       const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+                      const isPlatformDomain = isLocal || host.endsWith('.vercel.app') || host.endsWith('.netlify.app') || host.endsWith('.onrender.com');
                       const hostParts = host.split('.');
-                      const rootDomain = (!isLocal && hostParts.length >= 2) ? hostParts.slice(-2).join('.') : 'yourdomain.com';
-                      const subdomainDisplay = `https://${c.slug}.${rootDomain}`;
-                      const targetUrl = isLocal ? `/event/${c.slug}` : `https://${c.slug}.${rootDomain}`;
+                      const rootDomain = (!isPlatformDomain && hostParts.length >= 2) ? hostParts.slice(-2).join('.') : 'yourdomain.com';
+                      const subdomainDisplay = isPlatformDomain ? `/event/${c.slug}` : `https://${c.slug}.${rootDomain}`;
+                      const targetUrl = isPlatformDomain ? `/event/${c.slug}` : `https://${c.slug}.${rootDomain}`;
 
                       return (
                         <tr
