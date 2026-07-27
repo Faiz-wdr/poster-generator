@@ -154,8 +154,8 @@ export default function PublicEvent({ overrideSlug }) {
           padding: '48px 24px', margin: '24px 0 32px', border: '1px solid #E2E8F0', borderRadius: '16px'
         }}>
           <div className="hero-content">
-            <span className="badge" style={{ marginBottom: 12, display: 'inline-flex', gap: 6, background: '#F1F5F9', color: '#334155', border: '1px solid #CBD5E1', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.8rem' }}>
-              <Trophy size={14} style={{ color: '#D97706' }} /> Official Competition Results
+            <span className="badge" style={{ marginBottom: 12, display: 'inline-flex', background: '#F1F5F9', color: '#334155', border: '1px solid #CBD5E1', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.8rem' }}>
+              Official Competition Results
             </span>
             <h1 style={{ color: '#0F172A', fontSize: '2.5rem', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>
               {client.organization_name}<br />{client.event_name}
@@ -167,12 +167,10 @@ export default function PublicEvent({ overrideSlug }) {
             <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center', color: '#64748B', fontSize: '0.88rem', fontWeight: 600 }}>
               {client.start_date && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Calendar size={16} style={{ color: '#475569' }} />
                   <span>{client.start_date} {client.end_date ? `to ${client.end_date}` : ''}</span>
                 </div>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Award size={16} style={{ color: 'var(--primary)' }} />
                 <span>{results.length} Programs Announced</span>
               </div>
             </div>
@@ -181,8 +179,7 @@ export default function PublicEvent({ overrideSlug }) {
 
         {/* 2. PROGRAM THEME / CATEGORIES SECTION */}
         <section style={{ marginBottom: 36 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Layers size={18} style={{ color: 'var(--primary)' }} />
+          <div style={{ marginBottom: 12 }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Program Themes & Categories
             </h3>
@@ -217,13 +214,10 @@ export default function PublicEvent({ overrideSlug }) {
         {/* 3. EVENT SCHEDULE SECTION */}
         {schedule.length > 0 && (
           <section style={{ marginBottom: 40 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <CalendarDays size={18} style={{ color: 'var(--primary)' }} />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Event Schedule & Timetable
-                </h3>
-              </div>
+            <div style={{ marginBottom: 14 }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Event Schedule & Timetable
+              </h3>
             </div>
 
             {/* Schedule Date Tabs */}
@@ -233,9 +227,7 @@ export default function PublicEvent({ overrideSlug }) {
                   key={dateStr}
                   className={`filter-pill ${currentActiveDate === dateStr ? 'active' : ''}`}
                   onClick={() => setActiveScheduleDate(dateStr)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  <Calendar size={14} />
                   <span>{dateStr}</span>
                 </button>
               ))}
