@@ -288,7 +288,7 @@ export default function SuperAdminDashboard() {
         </div>
 
         {/* Dashboard Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 28, alignItems: 'start' }}>
+        <div className="superadmin-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 28, alignItems: 'start' }}>
           {/* Left: Client List */}
           <div className="card-form" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
