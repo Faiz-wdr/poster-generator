@@ -164,7 +164,7 @@ export default function PublishResult({ isExpired, clientId }) {
 
   const [resultNo, setResultNo] = useState('01');
   const [programName, setProgramName] = useState('');
-  const [category, setCategory] = useState('Junior');
+  const [category, setCategory] = useState('');
   const [winners, setWinners] = useState([EMPTY_WINNER()]);
   const [templates, setTemplates] = useState([]);
   const [activeTemplate, setActiveTemplate] = useState(null);
@@ -198,13 +198,11 @@ export default function PublishResult({ isExpired, clientId }) {
       setClientCategories(catList);
       setClientTeams(teamList);
 
-      const cats = catList.length ? catList : CATEGORY_OPTIONS;
-
       if (editId) {
         const r = await getResult(editId);
         if (r) {
           setProgramName(r.programName);
-          setCategory(r.category);
+          setCategory(r.category || '');
           setResultNo(r.resultNo || '');
           setWinners(r.winners?.length ? r.winners : [EMPTY_WINNER()]);
           setIsEditing(true);
@@ -214,9 +212,7 @@ export default function PublishResult({ isExpired, clientId }) {
         const allResults = await getResults(clientId);
         const nextNo = calculateNextResultNo(allResults || []);
         setResultNo(nextNo);
-        if (cats.length > 0) {
-          setCategory(cats[0]);
-        }
+        setCategory('');
       }
     }
     load();
