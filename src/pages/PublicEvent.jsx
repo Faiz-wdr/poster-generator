@@ -110,7 +110,10 @@ export default function PublicEvent({ overrideSlug }) {
 
   // Schedule Date Groupings
   const scheduleDates = Array.from(new Set(schedule.map(s => s.date || 'Scheduled Date'))).sort();
-  const activeDateItems = schedule.filter(s => (s.date || 'Scheduled Date') === activeScheduleDate);
+  const currentActiveDate = (activeScheduleDate && scheduleDates.includes(activeScheduleDate))
+    ? activeScheduleDate
+    : (scheduleDates[0] || '');
+  const activeDateItems = schedule.filter(s => (s.date || 'Scheduled Date') === currentActiveDate);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC', fontFamily: 'var(--font-body)' }}>
@@ -228,7 +231,7 @@ export default function PublicEvent({ overrideSlug }) {
               {scheduleDates.map(dateStr => (
                 <button
                   key={dateStr}
-                  className={`filter-pill ${activeScheduleDate === dateStr ? 'active' : ''}`}
+                  className={`filter-pill ${currentActiveDate === dateStr ? 'active' : ''}`}
                   onClick={() => setActiveScheduleDate(dateStr)}
                   style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                 >
