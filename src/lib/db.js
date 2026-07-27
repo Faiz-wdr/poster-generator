@@ -190,34 +190,25 @@ export async function getClient(id) {
 }
 
 export async function getClientBySlug(slug) {
-  if (useLocal) {
-    const clients = getLocalClients();
-    return clients.find(c => c.slug === slug) || null;
-  }
-
-  try {
-    const { data, error } = await withTimeout(
-      supabase
-        .from('clients')
-        .select('*')
-        .eq('slug', slug)
-        .single(),
-      'getClientBySlug'
-    );
-
-    if (error) {
-      showDbError('fetching client by slug', error);
-      tripCircuitBreaker('getClientBySlug', error);
-      const clients = getLocalClients();
-      return clients.find(c => c.slug === slug) || null;
+  if (supabase) {
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('clients')
+          .select('*')
+          .eq('slug', slug)
+          .single(),
+        'getClientBySlug'
+      );
+      if (data) return data;
+    } catch (e) {
+      console.warn("Supabase fetch client error:", e);
     }
-    return data;
-  } catch (e) {
-    showDbError('fetching client by slug exception', e);
-    tripCircuitBreaker('getClientBySlug', e);
-    const clients = getLocalClients();
-    return clients.find(c => c.slug === slug) || null;
   }
+
+  // Fallback to local storage if Supabase fails or record not in DB
+  const clients = getLocalClients();
+  return clients.find(c => c.slug === slug) || null;
 }
 
 export async function saveClient(clientData) {
