@@ -2301,3 +2301,15 @@ html, body, #root {
     text-align: center;
   }
 }
+
+/* ── MOBILE BOTTOM NAVIGATION BAR ─────────────────────────────────────── */
+.mobile-bottom-nav {
+  display: flex !important;
+  justify-content: space-around !important;
+}
+
+@media (min-width: 769px) {
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+}

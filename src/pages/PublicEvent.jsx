@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getClientBySlug, getResults, getSchedule } from '../lib/db';
 import { applyClientTheme } from '../lib/theme';
-import { Search, Trophy, Calendar, Award, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Trophy, Calendar, Award, Home, ChevronDown, ChevronUp } from 'lucide-react';
 
 function PublicResultAccordionCard({ result }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -122,6 +122,7 @@ export default function PublicEvent({ overrideSlug }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeScheduleDate, setActiveScheduleDate] = useState('');
+  const [activeNavTab, setActiveNavTab] = useState('home');
 
   useEffect(() => {
     async function load() {
@@ -198,12 +199,50 @@ export default function PublicEvent({ overrideSlug }) {
       r.winners?.some(w => w.name?.toLowerCase().includes(q));
   });
 
+  // Calculate Team Points Tally
+  const teamPointsMap = {};
+  const clientTeams = Array.isArray(client?.programs?.teams) ? client.programs.teams : (Array.isArray(client?.teams) ? client.teams : []);
+  clientTeams.forEach(t => {
+    teamPointsMap[t] = { name: t, points: 0, firsts: 0, seconds: 0, thirds: 0 };
+  });
+
+  results.forEach(r => {
+    (r.winners || []).forEach(w => {
+      if (!w.team) return;
+      if (!teamPointsMap[w.team]) {
+        teamPointsMap[w.team] = { name: w.team, points: 0, firsts: 0, seconds: 0, thirds: 0 };
+      }
+      const pos = String(w.position || '').trim();
+      if (pos === '01' || pos === '1') {
+        teamPointsMap[w.team].points += 5;
+        teamPointsMap[w.team].firsts += 1;
+      } else if (pos === '02' || pos === '2') {
+        teamPointsMap[w.team].points += 3;
+        teamPointsMap[w.team].seconds += 1;
+      } else if (pos === '03' || pos === '3') {
+        teamPointsMap[w.team].points += 1;
+        teamPointsMap[w.team].thirds += 1;
+      }
+    });
+  });
+
+  const teamPointsList = Object.values(teamPointsMap).sort((a, b) => b.points - a.points);
+
   // Schedule Date Groupings
   const scheduleDates = Array.from(new Set(schedule.map(s => s.date || 'Scheduled Date'))).sort();
   const currentActiveDate = (activeScheduleDate && scheduleDates.includes(activeScheduleDate))
     ? activeScheduleDate
     : (scheduleDates[0] || '');
   const activeDateItems = schedule.filter(s => (s.date || 'Scheduled Date') === currentActiveDate);
+
+  // Scroll Helper for Navigation Bar
+  const scrollToSection = (sectionId, tabName) => {
+    setActiveNavTab(tabName);
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC', fontFamily: 'var(--font-body)' }}>
@@ -229,29 +268,29 @@ export default function PublicEvent({ overrideSlug }) {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <Link to={`/event/${slug}`} style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.95rem' }}>Results</Link>
+            <button onClick={() => scrollToSection('public-results-section', 'results')} style={{ background: 'none', border: 'none', fontWeight: 700, color: 'var(--primary)', fontSize: '0.95rem', cursor: 'pointer' }}>Results</button>
             <Link to="/login" className="btn btn-outline btn-sm" style={{ padding: '6px 14px', fontSize: '0.85rem' }}>Admin Access</Link>
           </div>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="container" style={{ flexGrow: 1, paddingBottom: 80 }}>
+      <main className="container" style={{ flexGrow: 1, paddingBottom: 100 }}>
 
         {/* 1. HERO SECTION */}
-        <section className="hero-centered" style={{
+        <section id="public-hero-section" className="hero-centered" style={{
           background: '#FFFFFF',
           padding: '48px 24px', margin: '24px 0 32px', border: '1px solid #E2E8F0', borderRadius: '16px'
         }}>
           <div className="hero-content">
             <span className="badge" style={{ marginBottom: 12, display: 'inline-flex', background: '#F1F5F9', color: '#334155', border: '1px solid #CBD5E1', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.8rem' }}>
-              Official Competition Results
+              Official Competition Portal
             </span>
             <h1 style={{ color: '#0F172A', fontSize: '2.5rem', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>
               {client.organization_name}<br />{client.event_name}
             </h1>
             <p style={{ color: '#475569', fontSize: '1rem', textAlign: 'center', maxWidth: 580, marginBottom: 20 }}>
-              Browse official program standings, competition schedules, and verified winner placements.
+              Browse official program standings, team point tallies, competition schedules, and verified winner placements.
             </p>
 
             <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center', color: '#64748B', fontSize: '0.88rem', fontWeight: 600 }}>
@@ -267,7 +306,7 @@ export default function PublicEvent({ overrideSlug }) {
           </div>
         </section>
 
-        {/* 2. PROGRAM SEARCH SECTION */}
+        {/* 2. PROGRAM SEARCH BAR */}
         <section style={{ marginBottom: 36 }}>
           <div className="search-filter-bar" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', padding: '16px' }}>
             <div className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -283,13 +322,89 @@ export default function PublicEvent({ overrideSlug }) {
           </div>
         </section>
 
-        {/* 3. EVENT SCHEDULE SECTION */}
+        {/* 3. PROGRAM RESULTS SECTION */}
+        <section id="public-results-section" style={{ marginBottom: 40 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Program Results</h2>
+            <span style={{ color: '#64748B', fontWeight: 600, fontSize: '0.85rem' }}>
+              Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 48, background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', color: '#64748B' }}>
+              <p style={{ fontWeight: 600, fontSize: '1rem', marginBottom: 6, color: '#0F172A' }}>No results found.</p>
+              <p style={{ fontSize: '0.9rem' }}>Try searching another program or winner name.</p>
+            </div>
+          ) : (
+            <div className="results-list-container">
+              {filtered.map(r => (
+                <PublicResultAccordionCard key={r.id} result={r} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* 4. POINTS & TEAM STANDINGS TALLY SECTION */}
+        <section id="public-points-section" style={{ marginBottom: 40 }}>
+          <div style={{ marginBottom: 14 }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Team Points & Standings</h2>
+            <p style={{ color: '#64748B', fontSize: '0.88rem', margin: '4px 0 0' }}>Overall team standings tally across published competition results.</p>
+          </div>
+
+          {teamPointsList.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 36, background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', color: '#64748B' }}>
+              No team standings recorded yet.
+            </div>
+          ) : (
+            <div className="card-form" style={{ padding: 0, overflow: 'hidden', background: '#FFFFFF', border: '1px solid #E2E8F0' }}>
+              <div className="published-list-table-wrapper">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '60px' }}>Rank</th>
+                      <th>Team Name</th>
+                      <th style={{ width: '70px', textAlign: 'center' }}>1st</th>
+                      <th style={{ width: '70px', textAlign: 'center' }}>2nd</th>
+                      <th style={{ width: '70px', textAlign: 'center' }}>3rd</th>
+                      <th style={{ width: '100px', textAlign: 'right' }}>Total Points</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {teamPointsList.map((t, idx) => (
+                      <tr key={t.name}>
+                        <td style={{ fontWeight: 800, color: 'var(--primary)' }}>
+                          #{idx + 1}
+                        </td>
+                        <td style={{ fontWeight: 700, color: '#0F172A' }}>
+                          {t.name}
+                        </td>
+                        <td style={{ textAlign: 'center', color: '#D97706', fontWeight: 700 }}>
+                          {t.firsts}
+                        </td>
+                        <td style={{ textAlign: 'center', color: '#475569', fontWeight: 700 }}>
+                          {t.seconds}
+                        </td>
+                        <td style={{ textAlign: 'center', color: '#B45309', fontWeight: 700 }}>
+                          {t.thirds}
+                        </td>
+                        <td style={{ textAlign: 'right', fontWeight: 800, color: 'var(--primary)', fontSize: '1.05rem' }}>
+                          {t.points} pts
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* 5. EVENT SCHEDULE & TIMETABLE SECTION */}
         {schedule.length > 0 && (
-          <section style={{ marginBottom: 40 }}>
+          <section id="public-schedule-section" style={{ marginBottom: 40 }}>
             <div style={{ marginBottom: 14 }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Event Schedule & Timetable
-              </h3>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Event Schedule & Timetable</h2>
             </div>
 
             {/* Schedule Date Tabs */}
@@ -340,33 +455,79 @@ export default function PublicEvent({ overrideSlug }) {
             </div>
           </section>
         )}
-
-        {/* 4. PROGRAM RESULTS SECTION (INLINE ACCORDION DROPDOWNS) */}
-        <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Program Results</h2>
-            <span style={{ color: '#64748B', fontWeight: 600, fontSize: '0.85rem' }}>
-              Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-
-          {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 48, background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', color: '#64748B' }}>
-              <p style={{ fontWeight: 600, fontSize: '1rem', marginBottom: 6, color: '#0F172A' }}>No results found.</p>
-              <p style={{ fontSize: '0.9rem' }}>Try searching another program or winner name.</p>
-            </div>
-          ) : (
-            <div className="results-list-container">
-              {filtered.map(r => (
-                <PublicResultAccordionCard key={r.id} result={r} />
-              ))}
-            </div>
-          )}
-        </section>
       </main>
 
-      {/* 5. FOOTER SECTION */}
-      <footer className="public-footer">
+      {/* 6. MOBILE BOTTOM NAVIGATION BAR */}
+      <nav className="mobile-bottom-nav" style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'rgba(255, 255, 255, 0.96)',
+        backdropFilter: 'blur(12px)',
+        borderTop: '1px solid #E2E8F0',
+        display: 'flex',
+        justify: 'space-around',
+        alignItems: 'center',
+        padding: '8px 0 10px',
+        zIndex: 999,
+        boxShadow: '0 -4px 20px rgba(15, 23, 42, 0.08)'
+      }}>
+        <button
+          onClick={() => scrollToSection('public-hero-section', 'home')}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px',
+            color: activeNavTab === 'home' ? 'var(--primary)' : '#64748B',
+            fontWeight: activeNavTab === 'home' ? 800 : 600, fontSize: '0.72rem'
+          }}
+        >
+          <Home size={20} />
+          <span>Home</span>
+        </button>
+
+        <button
+          onClick={() => scrollToSection('public-results-section', 'results')}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px',
+            color: activeNavTab === 'results' ? 'var(--primary)' : '#64748B',
+            fontWeight: activeNavTab === 'results' ? 800 : 600, fontSize: '0.72rem'
+          }}
+        >
+          <Trophy size={20} />
+          <span>Results</span>
+        </button>
+
+        <button
+          onClick={() => scrollToSection('public-points-section', 'points')}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px',
+            color: activeNavTab === 'points' ? 'var(--primary)' : '#64748B',
+            fontWeight: activeNavTab === 'points' ? 800 : 600, fontSize: '0.72rem'
+          }}
+        >
+          <Award size={20} />
+          <span>Points</span>
+        </button>
+
+        <button
+          onClick={() => scrollToSection('public-schedule-section', 'schedule')}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px',
+            color: activeNavTab === 'schedule' ? 'var(--primary)' : '#64748B',
+            fontWeight: activeNavTab === 'schedule' ? 800 : 600, fontSize: '0.72rem'
+          }}
+        >
+          <Calendar size={20} />
+          <span>Schedule</span>
+        </button>
+      </nav>
+
+      {/* 7. FOOTER SECTION */}
+      <footer className="public-footer" style={{ paddingBottom: 60 }}>
         <div className="container public-footer-content">
           <div className="public-footer-brand">
             <div className="public-footer-title">
