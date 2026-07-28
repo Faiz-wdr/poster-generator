@@ -86,10 +86,15 @@ export default function SaaSLanding() {
           font-size: 1.1rem;
         }
         .landing-logo-text {
-          font-weight: 800;
+          font-family: 'Geist', var(--font-geist), system-ui, sans-serif;
+          font-weight: 700;
           font-size: 1.25rem;
           color: #0F172A;
           letter-spacing: -0.02em;
+        }
+        h1, h2, h3, h4, h5, .landing-title {
+          font-family: 'Geist', var(--font-geist), system-ui, sans-serif !important;
+          font-weight: 600 !important;
         }
         .landing-nav-pill {
           background: #FFFFFF;
@@ -117,13 +122,13 @@ export default function SaaSLanding() {
           padding: 90px 0;
         }
         .landing-title {
-          font-size: 2.8rem;
-          line-height: 1.18;
+          font-size: 2.5rem;
+          line-height: 1.2;
           text-align: center;
           margin-bottom: 18px;
-          font-family: var(--font-title);
+          font-family: 'Geist', var(--font-geist), system-ui, sans-serif;
           color: #0F172A;
-          font-weight: 800;
+          font-weight: 600;
           letter-spacing: -0.02em;
         }
         .landing-subtitle {
@@ -298,109 +303,13 @@ export default function SaaSLanding() {
                 Publish event results, customize beautiful layouts, and download print-quality branded posters instantly. Sell and deploy to multiple festivals, colleges, and schools from a single system.
               </p>
 
-              <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginBottom: 48, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginBottom: 0, flexWrap: 'wrap' }}>
                 <Link to="/event/wandoor-sahityotsav-2026" className="hz-btn-dark" style={{ padding: '14px 28px', fontSize: '0.95rem' }}>
                   <span>View Sample Event</span> <ArrowRight size={16} />
                 </Link>
                 <Link to="/login" className="hz-btn-light" style={{ padding: '14px 28px', fontSize: '0.95rem' }}>
                   Admin Login Portal
                 </Link>
-              </div>
-            </div>
-
-            {/* Actual App Mockup Screen */}
-            <div className="app-mockup">
-              <div className="mockup-header">
-                <div className="mockup-dot" style={{ background: '#EF4444' }} />
-                <div className="mockup-dot" style={{ background: '#F59E0B' }} />
-                <div className="mockup-dot" style={{ background: '#10B981' }} />
-                <div style={{ marginLeft: 20, background: '#0F172A', color: '#94A3B8', fontSize: '0.75rem', padding: '3px 18px', borderRadius: 9999, fontFamily: 'monospace' }}>
-                  https://resultflow.io/event/alqamar-2027
-                </div>
-              </div>
-              <div className="mockup-body" style={{ display: 'flex', minHeight: 440 }}>
-                {/* Mockup Sidebar */}
-                <div className="mockup-sidebar" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 20 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#0F172A' }} />
-                      <div style={{ height: 10, width: 80, background: '#94A3B8', borderRadius: 9999 }} />
-                    </div>
-                    <div className="mockup-nav-item active" />
-                    <div className="mockup-nav-item" />
-                    <div className="mockup-nav-item" />
-                    <div className="mockup-nav-item" />
-                  </div>
-                  <div className="mockup-nav-item" style={{ background: '#FCA5A5' }} />
-                </div>
-
-                {/* Mockup Workspace */}
-                <div className="mockup-content">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                    <div>
-                      <div style={{ height: 14, width: 140, background: '#1E293B', borderRadius: 4, marginBottom: 6 }} />
-                      <div style={{ height: 10, width: 220, background: '#94A3B8', borderRadius: 4 }} />
-                    </div>
-                    <div style={{ height: 32, width: 120, background: '#0066FF', borderRadius: 9999 }} />
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: 20 }}>
-                    {/* Left Column: Data Input */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      <div className="mockup-card">
-                        <div style={{ height: 10, width: 100, background: '#94A3B8', borderRadius: 4, marginBottom: 8 }} />
-                        <div style={{ height: 32, background: '#F1F5F9', borderRadius: 8 }} />
-                      </div>
-                      <div className="mockup-card">
-                        <div style={{ height: 10, width: 80, background: '#94A3B8', borderRadius: 4, marginBottom: 8 }} />
-                        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                          <div style={{ height: 28, flex: 1, background: '#F1F5F9', borderRadius: 8 }} />
-                          <div style={{ height: 28, flex: 1, background: '#F1F5F9', borderRadius: 8 }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <div style={{ height: 28, flex: 1, background: '#F1F5F9', borderRadius: 8 }} />
-                          <div style={{ height: 28, flex: 1, background: '#F1F5F9', borderRadius: 8 }} />
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 8, alignSelf: 'flex-end' }}>
-                        <div style={{ height: 28, width: 90, background: '#E2E8F0', borderRadius: 9999 }} />
-                        <div style={{ height: 28, width: 90, background: '#0F172A', borderRadius: 9999 }} />
-                      </div>
-                    </div>
-
-                    {/* Right Column: Poster Canvas */}
-                    <div className="mockup-canvas">
-                      <div className="mockup-canvas-bg" />
-                      <div style={{ position: 'relative', height: '100%', padding: 12, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ height: 6, width: 60, background: '#0066FF', borderRadius: 9999, margin: '2px auto 4px' }} />
-                          <div style={{ height: 12, width: 140, background: '#111827', borderRadius: 4, margin: '0 auto' }} />
-                          <div style={{ height: 8, width: 80, background: '#EC4899', borderRadius: 4, margin: '6px auto' }} />
-                        </div>
-
-                        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.9)', padding: 4, borderRadius: 6, border: '0.5px solid #E5E7EB' }}>
-                            <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.45rem', color: 'white', fontWeight: 800 }}>1</div>
-                            <div style={{ height: 6, width: 60, background: '#111827', borderRadius: 2 }} />
-                            <div style={{ height: 6, width: 30, background: '#94A3B8', borderRadius: 2 }} />
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.9)', padding: 4, borderRadius: 6, border: '0.5px solid #E5E7EB' }}>
-                            <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.45rem', color: 'white', fontWeight: 800 }}>2</div>
-                            <div style={{ height: 6, width: 55, background: '#111827', borderRadius: 2 }} />
-                            <div style={{ height: 6, width: 25, background: '#94A3B8', borderRadius: 2 }} />
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.9)', padding: 4, borderRadius: 6, border: '0.5px solid #E5E7EB' }}>
-                            <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#B45309', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.45rem', color: 'white', fontWeight: 800 }}>3</div>
-                            <div style={{ height: 6, width: 50, background: '#111827', borderRadius: 2 }} />
-                            <div style={{ height: 6, width: 35, background: '#94A3B8', borderRadius: 2 }} />
-                          </div>
-                        </div>
-
-                        <div style={{ height: 6, width: 40, background: '#94A3B8', borderRadius: 2 }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
