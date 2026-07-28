@@ -248,7 +248,7 @@ export default function PublicEvent({ overrideSlug }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div className="header-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <button onClick={() => scrollToSection('public-results-section', 'results')} className="hz-btn-light" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
               Results
             </button>
@@ -266,7 +266,7 @@ export default function PublicEvent({ overrideSlug }) {
         <section id="public-hero-section" style={{ margin: '24px 0 32px' }}>
           <div className="hz-card" style={{ padding: '48px 32px', textAlign: 'center' }}>
             <span className="hz-pill-badge" style={{ marginBottom: 16 }}>
-              ✨ Official Competition Portal
+              Official Competition Portal
             </span>
             <h1 style={{ color: '#0F172A', fontSize: '2.8rem', fontWeight: 800, textAlign: 'center', marginBottom: 12, letterSpacing: '-0.02em' }}>
               {client.organization_name}<br />{client.event_name}

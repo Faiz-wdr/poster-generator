@@ -144,7 +144,7 @@ export default function PublicEventDetail({ overrideSlug, overrideId }) {
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div className="header-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <Link to={`/event/${slug}`} className="hz-btn-light" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>All Results</Link>
             <Link to="/login" className="hz-btn-dark" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>Admin Access</Link>
           </div>

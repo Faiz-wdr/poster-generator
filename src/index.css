@@ -212,6 +212,12 @@
   background-color: #E2E8F0;
 }
 
+@media (max-width: 768px) {
+  .header-nav-actions {
+    display: none !important;
+  }
+}
+
 /* --- RESET & GLOBALS --- */
 * {
   margin: 0;
