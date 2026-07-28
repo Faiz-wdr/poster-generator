@@ -244,6 +244,7 @@ export async function saveClient(clientData) {
       event_name: clientData.event_name,
       slug: clientData.slug,
       logo: clientData.logo,
+      hero_logo: clientData.hero_logo || (clientData.programs && clientData.programs.hero_logo) || null,
       primary_color: clientData.primary_color,
       secondary_color: clientData.secondary_color,
       accent_color: clientData.accent_color,
@@ -924,6 +925,8 @@ export async function getSettings(clientId) {
       organizationName: client.organization_name,
       eventName: client.event_name,
       logo: client.logo,
+      heroLogo: client.hero_logo || client.heroLogo || (client.programs && client.programs.hero_logo) || '',
+      hero_logo: client.hero_logo || client.heroLogo || (client.programs && client.programs.hero_logo) || '',
       primaryColor: client.primary_color,
       secondaryColor: client.secondary_color,
       accentColor: client.accent_color,
@@ -965,12 +968,17 @@ export async function saveSettings(clientId, data) {
   if (data.teamPointsAfterResults !== undefined) {
     programsValue.team_points_after_results = data.teamPointsAfterResults;
   }
+  if (data.heroLogo !== undefined || data.hero_logo !== undefined) {
+    const hLogo = data.heroLogo !== undefined ? data.heroLogo : data.hero_logo;
+    programsValue.hero_logo = hLogo;
+  }
 
   const updated = {
     ...client,
     organization_name: data.organizationName !== undefined ? data.organizationName : client.organization_name,
     event_name: data.eventName !== undefined ? data.eventName : client.event_name,
     logo: data.logo !== undefined ? data.logo : client.logo,
+    hero_logo: (data.heroLogo !== undefined ? data.heroLogo : data.hero_logo) !== undefined ? (data.heroLogo !== undefined ? data.heroLogo : data.hero_logo) : client.hero_logo,
     primary_color: data.primaryColor !== undefined ? data.primaryColor : client.primary_color,
     secondary_color: data.secondaryColor !== undefined ? data.secondaryColor : client.secondary_color,
     accent_color: data.accentColor !== undefined ? data.accentColor : client.accent_color,

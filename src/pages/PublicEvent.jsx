@@ -136,6 +136,7 @@ export default function PublicEvent({ overrideSlug }) {
   const [teamPoints, setTeamPoints] = useState([]);
   const [teamPointsAfterResults, setTeamPointsAfterResults] = useState(0);
   const [programsCount, setProgramsCount] = useState(0);
+  const [heroLogo, setHeroLogo] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -148,6 +149,10 @@ export default function PublicEvent({ overrideSlug }) {
       }
       setClient(c);
       applyClientTheme(c);
+
+      if (c.hero_logo || c.heroLogo || (c.programs && c.programs.hero_logo)) {
+        setHeroLogo(c.hero_logo || c.heroLogo || (c.programs && c.programs.hero_logo));
+      }
 
       // Set Website Title & Meta Description to Event Name & Description
       document.title = `${c.event_name} — ${c.organization_name}`;
@@ -178,6 +183,10 @@ export default function PublicEvent({ overrideSlug }) {
         // Sort by points descending
         setTeamPoints([...pts].sort((a, b) => b.points - a.points));
         setTeamPointsAfterResults(settings.teamPointsAfterResults || 0);
+
+        if (settings.heroLogo || settings.hero_logo) {
+          setHeroLogo(settings.heroLogo || settings.hero_logo);
+        }
 
         if (Array.isArray(settings.programs) && settings.programs.length > 0) {
           setProgramsCount(settings.programs.length);
@@ -313,17 +322,33 @@ export default function PublicEvent({ overrideSlug }) {
               {client.organization_name}
             </div>
 
-            {/* Event Hero Logo Image (/fuego -centr.svg) */}
+            {/* Event Hero Logo Image (Per-Event Custom Title Image) */}
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 22 }}>
-              <img
-                src="/fuego -centr.svg"
-                alt={client.event_name || "Fuego Athletica"}
-                style={{
-                  height: '76px',
-                  maxWidth: '100%',
-                  objectFit: 'contain'
-                }}
-              />
+              {heroLogo || client.hero_logo || client.heroLogo || (client.programs && client.programs.hero_logo) ? (
+                <img
+                  src={heroLogo || client.hero_logo || client.heroLogo || (client.programs && client.programs.hero_logo)}
+                  alt={client.event_name}
+                  style={{
+                    height: '76px',
+                    maxWidth: '100%',
+                    objectFit: 'contain'
+                  }}
+                />
+              ) : client.slug === 'fuego' || client.event_name?.toLowerCase().includes('fuego') ? (
+                <img
+                  src="/fuego -centr.svg"
+                  alt={client.event_name || "Fuego Athletica"}
+                  style={{
+                    height: '76px',
+                    maxWidth: '100%',
+                    objectFit: 'contain'
+                  }}
+                />
+              ) : (
+                <h1 style={{ fontSize: '2.4rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', margin: 0 }}>
+                  {client.event_name}
+                </h1>
+              )}
             </div>
             <p style={{ color: '#64748B', fontSize: '1.05rem', textAlign: 'center', maxWidth: 600, margin: '0 auto 28px', lineHeight: 1.6 }}>
               Browse official program standings, team point tallies, competition schedules, and verified winner placements.

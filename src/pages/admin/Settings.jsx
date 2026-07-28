@@ -8,6 +8,8 @@ export default function Settings({ isExpired, clientId }) {
   const [eventName, setEventName] = useState('');
   const [logo, setLogo] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [heroLogo, setHeroLogo] = useState('');
+  const [uploadingHeroLogo, setUploadingHeroLogo] = useState(false);
   const [primaryColor, setPrimaryColor] = useState('#7C3AED');
   const [secondaryColor, setSecondaryColor] = useState('#0EA5E9');
   const [accentColor, setAccentColor] = useState('#F59E0B');
@@ -138,6 +140,7 @@ export default function Settings({ isExpired, clientId }) {
       setOrgName(settings.organizationName || '');
       setEventName(settings.eventName || '');
       setLogo(settings.logo || '');
+      setHeroLogo(settings.heroLogo || settings.hero_logo || '');
       setPrimaryColor(settings.primaryColor || '#7C3AED');
       setSecondaryColor(settings.secondaryColor || '#0EA5E9');
       setAccentColor(settings.accentColor || '#F59E0B');
@@ -185,6 +188,7 @@ export default function Settings({ isExpired, clientId }) {
       organizationName: orgName.trim(),
       eventName: eventName.trim(),
       logo: logo.trim(),
+      heroLogo: heroLogo.trim(),
       primaryColor,
       secondaryColor,
       accentColor,
@@ -468,6 +472,54 @@ export default function Settings({ isExpired, clientId }) {
                 />
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 6, fontWeight: 600 }}>
                   💡 Recommended logo in 500*500 pixel. PNG/JPG format.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-group" style={{ marginBottom: 24 }}>
+            <label style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)', display: 'block', marginBottom: 8 }}>
+              Hero Title Image (Program / Event Title Banner)
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: 'var(--bg-page)', padding: 16, borderRadius: 12, border: '1px solid var(--border-color)' }}>
+              {heroLogo && (heroLogo.startsWith('http') || heroLogo.startsWith('data:image') || heroLogo.startsWith('/')) ? (
+                <img 
+                  src={heroLogo} 
+                  alt="Hero Banner Preview" 
+                  style={{ height: 50, maxWidth: 160, objectFit: 'contain', borderRadius: 8, background: '#FFFFFF', padding: 4, border: '1px solid var(--border-color)' }} 
+                />
+              ) : (
+                <div style={{ height: 50, width: 100, borderRadius: 8, background: '#E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#64748B', border: '1px solid var(--border-color)' }}>
+                  Title Image
+                </div>
+              )}
+              <div style={{ flexGrow: 1 }}>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploadingHeroLogo(true);
+                    try {
+                      const url = await uploadClientLogo(file, `hero_${file.name}`);
+                      if (url) {
+                        setHeroLogo(url);
+                      } else {
+                        alert('Failed to upload hero title image.');
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      alert('Error uploading hero title image.');
+                    } finally {
+                      setUploadingHeroLogo(false);
+                    }
+                  }}
+                  disabled={isExpired}
+                  style={{ fontSize: '0.85rem' }} 
+                />
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 6, fontWeight: 600 }}>
+                  💡 Upload custom title banner image displayed at the top of public event portal (SVG/PNG/JPG).
                 </p>
               </div>
             </div>
