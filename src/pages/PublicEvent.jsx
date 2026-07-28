@@ -135,6 +135,7 @@ export default function PublicEvent({ overrideSlug }) {
   const [activeNavTab, setActiveNavTab] = useState('home');
   const [teamPoints, setTeamPoints] = useState([]);
   const [teamPointsAfterResults, setTeamPointsAfterResults] = useState(0);
+  const [programsCount, setProgramsCount] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -177,6 +178,12 @@ export default function PublicEvent({ overrideSlug }) {
         // Sort by points descending
         setTeamPoints([...pts].sort((a, b) => b.points - a.points));
         setTeamPointsAfterResults(settings.teamPointsAfterResults || 0);
+
+        if (Array.isArray(settings.programs) && settings.programs.length > 0) {
+          setProgramsCount(settings.programs.length);
+        } else if (Array.isArray(c.programs) && c.programs.length > 0) {
+          setProgramsCount(c.programs.length);
+        }
       }
 
       if (s && s.length > 0) {
@@ -333,7 +340,7 @@ export default function PublicEvent({ overrideSlug }) {
                 <div className="hz-stat-label">Teams Competing</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div className="hz-stat-num" style={{ fontSize: '2.4rem' }}>{schedule.length}</div>
+                <div className="hz-stat-num" style={{ fontSize: '2.4rem' }}>{programsCount || schedule.length}</div>
                 <div className="hz-stat-label">Scheduled Events</div>
               </div>
             </div>
