@@ -27,7 +27,7 @@ export default function TemplateEditor({ isExpired, clientId }) {
   const [redoStack, setRedoStack] = useState([]);
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
-  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [hexInput, setHexInput] = useState('');
   const [copiedLayout, setCopiedLayout] = useState(() => {
     try {
       const raw = localStorage.getItem('resultflow_copied_layout');
@@ -293,6 +293,28 @@ export default function TemplateEditor({ isExpired, clientId }) {
     return currentTemplate.fields[activeFieldId];
   };
 
+  const activeDef = getActiveDef();
+
+  useEffect(() => {
+    if (activeDef?.color) {
+      setHexInput(activeDef.color.toUpperCase());
+    }
+  }, [activeDef?.color, activeFieldId]);
+
+  const handleHexInputChange = (e) => {
+    const raw = e.target.value;
+    setHexInput(raw);
+
+    let clean = raw.trim();
+    if (!clean.startsWith('#') && clean.length > 0) {
+      clean = '#' + clean;
+    }
+
+    if (/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(clean)) {
+      updateActiveFields('color', clean.toUpperCase());
+    }
+  };
+
   const updateActiveFields = (prop, val) => {
     if (isExpired) return;
     snapshotHistory();
@@ -330,16 +352,15 @@ export default function TemplateEditor({ isExpired, clientId }) {
     const defaultFields = allTemplates[0]?.fields || DEFAULT_TEMPLATES[0].fields;
 
     const newTpl = {
-      id: 'custom-template-' + Date.now(),
       name: file.name.split('.')[0] || 'Custom Template',
       background: url,
       fields: JSON.parse(JSON.stringify(defaultFields)),
       client_id: clientId,
     };
-    await saveTemplate(newTpl, clientId);
+    const saved = await saveTemplate(newTpl, clientId);
     const updated = await getTemplates(clientId);
     setTemplates(updated);
-    selectTemplate(newTpl);
+    selectTemplate(saved || newTpl);
     alert(`Template "${newTpl.name}" uploaded & registered!`);
   };
 
@@ -356,7 +377,7 @@ export default function TemplateEditor({ isExpired, clientId }) {
       ...prev,
       fields: copiedFields
     }));
-    setSavedMsg(`📋 Layout fields copied from "${sourceTpl.name}"! Click "Save Layout" to save.`);
+    setSavedMsg(`Layout fields copied from "${sourceTpl.name}"! Click "Save Layout" to save.`);
     setTimeout(() => setSavedMsg(''), 4000);
   };
 
@@ -367,18 +388,17 @@ export default function TemplateEditor({ isExpired, clientId }) {
     if (!newName) return;
 
     const newTpl = {
-      id: 'custom-template-' + Date.now(),
       name: newName,
       background: sourceTpl.background,
       fields: JSON.parse(JSON.stringify(sourceTpl.fields)),
       client_id: clientId,
     };
 
-    await saveTemplate(newTpl, clientId);
+    const saved = await saveTemplate(newTpl, clientId);
     const updated = await getTemplates(clientId);
     setTemplates(updated);
-    selectTemplate(newTpl);
-    setSavedMsg(`✨ Created duplicate template "${newName}"!`);
+    selectTemplate(saved || newTpl);
+    setSavedMsg(`Created duplicate template "${newName}"!`);
     setTimeout(() => setSavedMsg(''), 3000);
   };
 
@@ -408,30 +428,7 @@ export default function TemplateEditor({ isExpired, clientId }) {
       fields: JSON.parse(JSON.stringify(copiedLayout.fields))
     }));
     setSavedMsg(`📋 Pasted layout from "${copiedLayout.sourceName}" onto "${currentTemplate.name}"! Click "Save Layout" to save.`);
-    setTimeout(() => setSavedMsg(''), 4000);
   };
-
-  const handleApplyLayoutToTarget = async (targetId) => {
-    if (isExpired) { alert('Action locked: Event license expired.'); return; }
-    const targetTpl = templates.find(t => t.id === targetId);
-    if (!targetTpl || !currentTemplate) return;
-
-    if (!window.confirm(`Apply saved layout of "${currentTemplate.name}" directly onto "${targetTpl.name}" and save?`)) return;
-
-    const updatedTarget = {
-      ...targetTpl,
-      fields: JSON.parse(JSON.stringify(currentTemplate.fields))
-    };
-
-    await saveTemplate(updatedTarget, clientId);
-    const updatedList = await getTemplates(clientId);
-    setTemplates(updatedList);
-    setShowCopyModal(false);
-    setSavedMsg(`✅ Layout of "${currentTemplate.name}" applied and saved to "${targetTpl.name}"!`);
-    setTimeout(() => setSavedMsg(''), 4000);
-  };
-
-  const activeDef = getActiveDef();
 
   return (
     <div>
@@ -466,16 +463,6 @@ export default function TemplateEditor({ isExpired, clientId }) {
             <Clipboard size={14} /> Paste Layout {copiedLayout ? `(${copiedLayout.sourceName})` : ''}
           </button>
 
-          <button
-            className="btn btn-outline btn-sm"
-            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-            onClick={() => setShowCopyModal(true)}
-            disabled={isExpired || templates.length <= 1}
-            title="Copy this layout directly to another template"
-          >
-            <ArrowRightLeft size={14} /> Copy Layout To…
-          </button>
-
           <button className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="btn-editor-undo" onClick={applyUndo} disabled={isExpired || !undoStack.length} title="Undo (Ctrl+Z)"><Undo size={14} /> Undo</button>
           <button className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="btn-editor-redo" onClick={applyRedo} disabled={isExpired || !redoStack.length} title="Redo (Ctrl+Y)"><Redo size={14} /> Redo</button>
 
@@ -504,7 +491,7 @@ export default function TemplateEditor({ isExpired, clientId }) {
                 {currentTemplate?.name || '—'}
               </p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 220, overflowY: 'auto', paddingRight: 4 }}>
               {templates.map(tpl => (
                 <div key={tpl.id} style={{ display: 'flex', gap: 4, width: '100%' }}>
                   <button
@@ -545,7 +532,7 @@ export default function TemplateEditor({ isExpired, clientId }) {
             {templates.length > 1 && currentTemplate && (
               <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed #CBD5E1' }}>
                 <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-                  📋 Copy Layout From Another Template:
+                  Copy Layout From Another Template:
                 </label>
                 <select
                   value=""
@@ -621,13 +608,13 @@ export default function TemplateEditor({ isExpired, clientId }) {
             )}
             <div className="editor-field-selector-list" id="editor-field-selector-list">
               <div style={{ padding: '4px 14px', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)' }}>
-                ℹ️ Global Details
+                Global Details
               </div>
               {posterEngine.FIELDS.map(fKey => {
                 if (fKey === 'winner_1_pos') {
                   return [
                     <div key="win-header" style={{ padding: '8px 14px 4px', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', marginTop: 6 }}>
-                      🏆 Standings slots
+                      Standings Slots
                     </div>,
                     <FieldBtn key={fKey} fKey={fKey} currentTemplate={currentTemplate} selectedFieldIds={selectedFieldIds} activeFieldId={activeFieldId} setSelectedFieldIds={setSelectedFieldIds} setActiveFieldId={setActiveFieldId} disabled={isExpired} />,
                   ];
@@ -768,12 +755,14 @@ export default function TemplateEditor({ isExpired, clientId }) {
                   <input
                     id="editor-custom-color-hex"
                     type="text"
-                    value={(activeDef.color || '#111827').toUpperCase()}
-                    onChange={e => {
-                      const v = e.target.value;
-                      if (/^#[0-9A-Fa-f]{3}$|^#[0-9A-Fa-f]{6}$/.test(v)) updateActiveFields('color', v);
+                    value={hexInput}
+                    onChange={handleHexInputChange}
+                    onBlur={() => {
+                      if (activeDef?.color) setHexInput(activeDef.color.toUpperCase());
                     }}
+                    placeholder="#000000"
                     disabled={isExpired}
+                    maxLength={7}
                     style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'monospace', fontSize: '0.9rem' }}
                   />
                 </div>
@@ -820,48 +809,6 @@ export default function TemplateEditor({ isExpired, clientId }) {
           )}
         </div>
       </div>
-
-      {/* Copy Layout To Another Template Modal */}
-      {showCopyModal && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ maxWidth: 480, width: '100%', background: '#FFFFFF', borderRadius: 16, border: '1px solid #E2E8F0', padding: 24, boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>
-                Copy Layout To Another Template
-              </h3>
-              <button onClick={() => setShowCopyModal(false)} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontWeight: 700, color: '#64748B' }}>✕</button>
-            </div>
-
-            <p style={{ color: '#64748B', fontSize: '0.9rem', marginBottom: 20 }}>
-              Apply all text field positions, sizes, font families, and colors from <strong>"{currentTemplate?.name}"</strong> directly into another template:
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24, maxHeight: 260, overflowY: 'auto' }}>
-              {templates.filter(t => t.id !== currentTemplate?.id).map(t => (
-                <div
-                  key={t.id}
-                  onClick={() => handleApplyLayoutToTarget(t.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '12px 16px', borderRadius: 10, cursor: 'pointer',
-                    border: '1px solid #E2E8F0', background: '#F8FAFC',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <div style={{ fontWeight: 700, color: '#0F172A' }}>{t.name}</div>
-                  <button className="btn btn-primary btn-sm" style={{ pointerEvents: 'none' }}>
-                    Apply Layout
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button className="btn btn-outline" onClick={() => setShowCopyModal(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 

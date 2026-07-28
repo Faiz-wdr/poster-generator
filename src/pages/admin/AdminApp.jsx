@@ -120,11 +120,11 @@ export default function AdminApp() {
       <aside className={`admin-sidebar ${sidebarOpen ? 'mobile-open' : ''}`}>
         <div>
           <div className="logo-group" style={{ padding: '0 8px' }}>
-            <div className="logo-icon" style={{ background: `linear-gradient(135deg, var(--primary), var(--secondary))`, overflow: 'hidden' }}>
-              {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image')) ? (
-                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+            <div className="logo-icon" style={{ background: 'transparent', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image') || client.logo.startsWith('/')) ? (
+                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
-                client.logo || 'E'
+                <img src="/logo.svg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               )}
             </div>
             <div>
@@ -182,11 +182,11 @@ export default function AdminApp() {
         {/* Mobile header */}
         <div className="admin-mobile-header">
           <div className="logo-group">
-            <div className="logo-icon" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image')) ? (
-                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+            <div className="logo-icon" style={{ background: 'transparent', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image') || client.logo.startsWith('/')) ? (
+                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
-                client.logo || 'E'
+                <img src="/logo.svg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               )}
             </div>
             <div className="logo-text">{client.event_name}</div>

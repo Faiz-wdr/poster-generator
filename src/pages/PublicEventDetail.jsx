@@ -134,11 +134,11 @@ export default function PublicEventDetail({ overrideSlug, overrideId }) {
       <header style={{ background: 'rgba(244, 245, 247, 0.95)', backdropFilter: 'blur(16px)', borderBottom: '1px solid #E2E8F0', padding: '16px 0', position: 'sticky', top: 0, zIndex: 50 }}>
         <div className="container nav-flex">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#0F172A', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontWeight: 800 }}>
-              {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image')) ? (
-                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image') || client.logo.startsWith('/')) ? (
+                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
-                client.logo || 'E'
+                <img src="/logo.svg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               )}
             </div>
             <div>

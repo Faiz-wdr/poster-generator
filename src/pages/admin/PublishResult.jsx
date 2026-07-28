@@ -99,13 +99,14 @@ function SearchableDropdown({ id, placeholder, value, onChange, options = [], di
             top: '100%',
             left: 0,
             right: 0,
-            zIndex: 1000,
+            zIndex: 1050,
             background: 'white',
             border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-input, 10px)',
-            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)',
-            maxHeight: '180px',
+            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+            maxHeight: '220px',
             overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
             margin: '4px 0 0 0',
             padding: '6px 0',
             listStyle: 'none',
@@ -285,7 +286,7 @@ export default function PublishResult({ isExpired, clientId }) {
         {/* Form */}
         <div className="card-form">
           <form onSubmit={(e) => e.preventDefault()} id="result-publish-form">
-            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 16 }}>
+            <div className="upload-header-row">
               <div className="form-group">
                 <label htmlFor="form-result-no">Result No. *</label>
                 <input
@@ -341,8 +342,8 @@ export default function PublishResult({ isExpired, clientId }) {
                 </button>
               </div>
 
-              {/* Header row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr auto', gap: 8, marginBottom: 6 }}>
+              {/* Header row (Desktop) */}
+              <div className="winner-header-row">
                 <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-secondary)', padding: '0 4px' }}>Position</span>
                 <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-secondary)', padding: '0 4px' }}>Winner Name *</span>
                 <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-secondary)', padding: '0 4px' }}>Team / Group</span>
@@ -350,39 +351,54 @@ export default function PublishResult({ isExpired, clientId }) {
               </div>
 
               {winners.map((w, i) => (
-                <div key={i} className="winner-entry-row" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr auto', gap: 8, marginBottom: 8 }}>
-                  <select
-                    value={w.position}
-                    onChange={e => updateWinner(i, 'position', e.target.value)}
-                    disabled={isExpired}
-                    style={{ padding: '12px 8px', borderRadius: 'var(--radius-input)', border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--text-primary)' }}
-                  >
-                    {['01','02','03','04','05','06'].map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                  <input
-                    type="text"
-                    placeholder="Full name"
-                    value={w.name}
-                    onChange={e => updateWinner(i, 'name', e.target.value)}
-                    disabled={isExpired}
-                    style={{ padding: '12px 14px', borderRadius: 'var(--radius-input)', border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}
-                  />
-                  <SearchableDropdown
-                    placeholder="Team/Group (Optional)"
-                    value={w.team}
-                    onChange={val => updateWinner(i, 'team', val)}
-                    options={clientTeams}
-                    disabled={isExpired}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-outline btn-sm"
-                    style={{ color: '#EF4444', padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    onClick={() => removeWinner(i)}
-                    disabled={isExpired || winners.length === 1}
-                  >
-                    <X size={14} />
-                  </button>
+                <div key={i} className="winner-entry-row">
+                  <div className="winner-entry-pos">
+                    <span className="winner-entry-label">Position</span>
+                    <select
+                      value={w.position}
+                      onChange={e => updateWinner(i, 'position', e.target.value)}
+                      disabled={isExpired}
+                      style={{ width: '100%', padding: '12px 8px', borderRadius: 'var(--radius-input)', border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--text-primary)' }}
+                    >
+                      {['01','02','03','04','05','06'].map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="winner-entry-name">
+                    <span className="winner-entry-label">Winner Name *</span>
+                    <input
+                      type="text"
+                      placeholder="Full name"
+                      value={w.name}
+                      onChange={e => updateWinner(i, 'name', e.target.value)}
+                      disabled={isExpired}
+                      style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--radius-input)', border: '1px solid var(--border-color)', background: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}
+                    />
+                  </div>
+
+                  <div className="winner-entry-team">
+                    <span className="winner-entry-label">Team / Group (Optional)</span>
+                    <SearchableDropdown
+                      placeholder="Team/Group (Optional)"
+                      value={w.team}
+                      onChange={val => updateWinner(i, 'team', val)}
+                      options={clientTeams}
+                      disabled={isExpired}
+                    />
+                  </div>
+
+                  <div className="winner-entry-remove">
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      style={{ color: '#EF4444', padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '42px', minWidth: '42px' }}
+                      onClick={() => removeWinner(i)}
+                      disabled={isExpired || winners.length === 1}
+                      title="Remove winner row"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -406,11 +422,11 @@ export default function PublishResult({ isExpired, clientId }) {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+            <div className="upload-action-btns">
               <button
                 type="button"
                 className="btn btn-outline"
-                style={{ flexGrow: 1, borderColor: 'var(--primary)', color: 'var(--primary)' }}
+                style={{ borderColor: 'var(--primary)', color: 'var(--primary)' }}
                 onClick={() => handleSave('pending')}
                 disabled={isExpired || saving}
               >
@@ -419,7 +435,7 @@ export default function PublishResult({ isExpired, clientId }) {
               <button
                 type="button"
                 className="btn btn-primary"
-                style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 onClick={() => handleSave('published')}
                 disabled={isExpired || saving}
                 id="btn-submit-result"
@@ -448,7 +464,7 @@ export default function PublishResult({ isExpired, clientId }) {
         </div>
 
         {/* Live Preview */}
-        <div style={{ position: 'sticky', top: 24 }}>
+        <div className="upload-preview-sticky" style={{ position: 'sticky', top: 24 }}>
           <div className="card-form" style={{ padding: 20 }}>
             <h3 style={{ marginBottom: 16, fontSize: '1rem' }}>Live Preview</h3>
             <div ref={previewRef} className="poster-preview-container" />

@@ -2513,3 +2513,102 @@ html, body, #root {
     text-align: center !important;
   }
 }
+
+/* ── RESULT UPLOAD SECTION MOBILE RESPONSIVENESS ───────────────────────── */
+.upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .upload-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .upload-preview-sticky {
+    position: static !important;
+    margin-top: 16px;
+  }
+}
+
+.upload-header-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 520px) {
+  .upload-header-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+.winner-entry-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 1fr auto;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.winner-header-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 1fr auto;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 640px) {
+  .winner-header-row {
+    display: none !important;
+  }
+  .winner-entry-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    padding: 12px;
+    background: var(--bg-page);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 12px !important;
+    position: relative;
+  }
+  .winner-entry-pos {
+    flex: 0 0 80px !important;
+  }
+  .winner-entry-name {
+    flex: 1 1 100% !important;
+  }
+  .winner-entry-team {
+    flex: 1 1 100% !important;
+  }
+  .winner-entry-remove {
+    margin-left: auto !important;
+  }
+  .winner-entry-label {
+    display: block !important;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+}
+
+@media (min-width: 641px) {
+  .winner-entry-label {
+    display: none !important;
+  }
+}
+
+.upload-action-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.upload-action-btns > button {
+  flex: 1 1 140px;
+  min-height: 46px;
+}

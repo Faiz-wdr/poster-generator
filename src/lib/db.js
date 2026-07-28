@@ -771,7 +771,7 @@ export async function saveTemplate(templateData, clientId) {
 
   try {
     const { error } = await supabase.from('templates').upsert({
-      id: templateData.id,
+      id: updatedTemplate.id,
       name: templateData.name,
       background: templateData.background,
       fields: templateData.fields,

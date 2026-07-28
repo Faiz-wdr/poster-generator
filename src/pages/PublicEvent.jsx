@@ -242,6 +242,9 @@ export default function PublicEvent({ overrideSlug }) {
     : (scheduleDates[0] || '');
   const activeDateItems = schedule.filter(s => (s.date || 'Scheduled Date') === currentActiveDate);
 
+  // Show team points section ONLY when at least one team has points > 0
+  const hasAnyTeamPoints = teamPoints.length > 0 && teamPoints.some(t => (Number(t.points) || 0) > 0);
+
   // Scroll Helper for Navigation Bar
   const scrollToSection = (sectionId, tabName) => {
     setActiveNavTab(tabName);
@@ -257,11 +260,11 @@ export default function PublicEvent({ overrideSlug }) {
       <header style={{ background: 'rgba(244, 245, 247, 0.95)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 50, padding: '16px 0' }}>
         <div className="container nav-flex">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#0F172A', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontWeight: 800 }}>
-              {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image')) ? (
-                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image') || client.logo.startsWith('/')) ? (
+                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
-                client.logo || 'E'
+                <img src="/logo.svg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               )}
             </div>
             <div>
@@ -543,22 +546,18 @@ export default function PublicEvent({ overrideSlug }) {
           )}
         </section>
 
-        {/* 4. POINTS & TEAM STANDINGS SECTION */}
-        <section id="public-points-section" style={{ marginBottom: 40 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Team Points</h2>
-            {teamPointsAfterResults > 0 && (
-              <span className="hz-pill-badge">
-                After #{teamPointsAfterResults} Results
-              </span>
-            )}
-          </div>
-
-          {teamPoints.length === 0 ? (
-            <div className="hz-card" style={{ textAlign: 'center', padding: 36, color: '#64748B' }}>
-              No team standings recorded yet.
+        {/* 4. POINTS & TEAM STANDINGS SECTION — Only shown when points > 0 */}
+        {hasAnyTeamPoints && (
+          <section id="public-points-section" style={{ marginBottom: 40 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Team Points</h2>
+              {teamPointsAfterResults > 0 && (
+                <span className="hz-pill-badge">
+                  After #{teamPointsAfterResults} Results
+                </span>
+              )}
             </div>
-          ) : (
+
             <div className="hz-card" style={{ padding: 0 }}>
               <div className="published-list-table-wrapper">
                 <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -589,8 +588,8 @@ export default function PublicEvent({ overrideSlug }) {
                 </table>
               </div>
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* 5. EVENT SCHEDULE & TIMETABLE SECTION */}
         {schedule.length > 0 && (
@@ -692,18 +691,20 @@ export default function PublicEvent({ overrideSlug }) {
           <span>Results</span>
         </button>
 
-        <button
-          onClick={() => scrollToSection('public-points-section', 'points')}
-          style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 16px',
-            color: activeNavTab === 'points' ? '#0066FF' : '#64748B',
-            fontWeight: activeNavTab === 'points' ? 800 : 600, fontSize: '0.75rem'
-          }}
-        >
-          <Award size={20} />
-          <span>Points</span>
-        </button>
+        {hasAnyTeamPoints && (
+          <button
+            onClick={() => scrollToSection('public-points-section', 'points')}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+              background: 'none', border: 'none', cursor: 'pointer', padding: '4px 16px',
+              color: activeNavTab === 'points' ? '#0066FF' : '#64748B',
+              fontWeight: activeNavTab === 'points' ? 800 : 600, fontSize: '0.75rem'
+            }}
+          >
+            <Award size={20} />
+            <span>Points</span>
+          </button>
+        )}
 
         <button
           onClick={() => scrollToSection('public-schedule-section', 'schedule')}

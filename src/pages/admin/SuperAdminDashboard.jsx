@@ -4,22 +4,21 @@ import { getClients, saveClient, deleteClient, resetToDefault, getResults, uploa
 import { Plus, Users, Award, Download, Power, Calendar, Shield, Settings, Trash2, RotateCcw, AlertTriangle, FileText, CheckCircle, ExternalLink, Image } from 'lucide-react';
 
 const renderLogo = (logoStr, size = '2.5rem', fontSize = '1.4rem', borderRadius = '12px') => {
-  if (logoStr && (logoStr.startsWith('http') || logoStr.startsWith('data:image'))) {
+  if (logoStr && (logoStr.startsWith('http') || logoStr.startsWith('data:image') || logoStr.startsWith('/'))) {
     return (
       <img
         src={logoStr}
         alt="Logo"
-        style={{ width: size, height: size, objectFit: 'cover', borderRadius }}
+        style={{ width: size, height: size, objectFit: 'contain', borderRadius }}
       />
     );
   }
   return (
-    <div style={{
-      width: size, height: size, borderRadius, fontSize,
-      background: '#E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center'
-    }}>
-      {logoStr || '🏆'}
-    </div>
+    <img
+      src="/logo.svg"
+      alt="Logo"
+      style={{ width: size, height: size, objectFit: 'contain', borderRadius }}
+    />
   );
 };
 

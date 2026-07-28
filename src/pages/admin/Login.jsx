@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getClientBySlug } from '../../lib/db';
-import { AlertCircle, Lock, LayoutDashboard, Globe, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Lock, Globe, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -61,43 +61,32 @@ export default function Login() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%)', padding: 24,
-      fontFamily: 'var(--font-body)'
+      background: '#F8FAFC', padding: 24,
+      fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <div style={{
-        background: 'white', padding: '48px 40px', borderRadius: 'var(--radius-card)',
-        boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)',
-        width: '100%', maxWidth: 420, position: 'relative', overflow: 'hidden'
+        background: '#FFFFFF', padding: '40px 36px', borderRadius: 16,
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.01)',
+        border: '1px solid #E2E8F0',
+        width: '100%', maxWidth: 400
       }}>
-        {/* Decorative corner background shapes */}
-        <div style={{
-          position: 'absolute', top: -30, right: -30, width: 90, height: 90,
-          background: 'rgba(124, 58, 237, 0.1)',
-          borderRadius: '50%', filter: 'blur(10px)'
-        }} />
-
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div className="logo-icon" style={{
-            margin: '0 auto 16px', width: 52, height: 52, fontSize: '1.6rem',
-            background: 'linear-gradient(135deg, #7C3AED, #DB2777)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '12px', color: '#FFFFFF', fontWeight: 800
-          }}>
-            C
-          </div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>ResultFlow Portal</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: 4 }}>
+        {/* Header — Event Portal title, no logo icon, no accent line */}
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
+            Event Portal
+          </h2>
+          <p style={{ color: '#64748B', fontSize: '0.9rem', marginTop: 6, marginBottom: 0 }}>
             Enter event credentials to access your coordinator workspace.
           </p>
         </div>
 
         <form onSubmit={handleLogin} id="login-auth-form">
           <div className="form-group" style={{ marginBottom: 20 }}>
-            <label htmlFor="login-username-input" style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)', display: 'block', marginBottom: 8 }}>
-              Event Slug / Username *
+            <label htmlFor="login-username-input" style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1E293B', display: 'block', marginBottom: 6 }}>
+              Username *
             </label>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <Globe size={16} style={{ position: 'absolute', left: 14, color: 'var(--text-secondary)' }} />
+              <Globe size={16} style={{ position: 'absolute', left: 14, color: '#94A3B8' }} />
               <input
                 id="login-username-input"
                 type="text"
@@ -105,9 +94,9 @@ export default function Login() {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 style={{
-                  width: '100%', padding: '12px 14px 12px 42px', borderRadius: 10,
-                  border: '1px solid var(--border-color)', background: 'var(--bg-page)',
-                  fontFamily: 'var(--font-body)'
+                  width: '100%', padding: '12px 14px 12px 42px', borderRadius: 8,
+                  border: '1px solid #CBD5E1', background: '#FFFFFF',
+                  fontSize: '0.95rem', color: '#0F172A', outline: 'none'
                 }}
                 disabled={loading}
                 required
@@ -117,11 +106,11 @@ export default function Login() {
           </div>
 
           <div className="form-group" style={{ marginBottom: 24 }}>
-            <label htmlFor="login-password-input" style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)', display: 'block', marginBottom: 8 }}>
+            <label htmlFor="login-password-input" style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1E293B', display: 'block', marginBottom: 6 }}>
               Password *
             </label>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <Lock size={16} style={{ position: 'absolute', left: 14, color: 'var(--text-secondary)' }} />
+              <Lock size={16} style={{ position: 'absolute', left: 14, color: '#94A3B8' }} />
               <input
                 id="login-password-input"
                 type={showPassword ? "text" : "password"}
@@ -129,9 +118,9 @@ export default function Login() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 style={{
-                  width: '100%', padding: '12px 42px 12px 42px', borderRadius: 10,
-                  border: '1px solid var(--border-color)', background: 'var(--bg-page)',
-                  fontFamily: 'var(--font-body)'
+                  width: '100%', padding: '12px 42px 12px 42px', borderRadius: 8,
+                  border: '1px solid #CBD5E1', background: '#FFFFFF',
+                  fontSize: '0.95rem', color: '#0F172A', outline: 'none'
                 }}
                 disabled={loading}
                 required
@@ -140,16 +129,9 @@ export default function Login() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
-                  position: 'absolute',
-                  right: 14,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  color: 'var(--text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  position: 'absolute', right: 14, background: 'none', border: 'none',
+                  cursor: 'pointer', padding: 0, color: '#94A3B8',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
                 disabled={loading}
                 title={showPassword ? "Hide password" : "Show password"}
@@ -162,7 +144,7 @@ export default function Login() {
           {error && (
             <div
               style={{
-                color: '#EF4444', fontWeight: 700, marginBottom: 20, fontSize: '0.88rem',
+                color: '#DC2626', fontWeight: 600, marginBottom: 20, fontSize: '0.875rem',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 background: '#FEF2F2', padding: '10px 14px', borderRadius: 8, border: '1px solid #FCA5A5',
                 animation: shake ? 'shake 0.4s ease' : 'none',
@@ -173,24 +155,24 @@ export default function Login() {
             </div>
           )}
 
+          {/* Button — Clean label, no icons, no arrow */}
           <button
             type="submit"
             className="btn btn-primary"
             disabled={loading}
             style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              background: 'var(--primary)',
-              boxShadow: '0 8px 24px rgba(124, 58, 237, 0.25)'
+              width: '100%', height: 44, padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: '#001735ff', color: '#FFFFFF', fontSize: '0.95rem', fontWeight: 700, borderRadius: 8,
+              border: 'none', cursor: loading ? 'not-allowed' : 'pointer'
             }}
           >
-            <LayoutDashboard size={18} />
-            <span>{loading ? 'Logging in...' : 'Unlock Event Dashboard →'}</span>
+            <span>{loading ? 'Logging in...' : 'Login'}</span>
           </button>
         </form>
 
-        <div style={{ marginTop: 24, textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Link to="/" style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)', textDecoration: 'none' }}>
-            ← Back to Product Homepage
+        <div style={{ marginTop: 20, textAlign: 'center' }}>
+          <Link to="/" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#001735ff', textDecoration: 'none' }}>
+            Back to Homepage
           </Link>
         </div>
 
