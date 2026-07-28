@@ -302,7 +302,8 @@ export default function PublicEventDetail({ overrideSlug, overrideId }) {
               {client.organization_name}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 20 }}>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            <Link to={overrideSlug ? '/rules' : `/event/${client.slug}/rules`} style={{ color: '#94A3B8', fontWeight: 600 }}>Rules and Regulations</Link>
             <Link to="/" style={{ color: '#94A3B8', fontWeight: 600 }}>ResultFlow</Link>
             <Link to="/login" style={{ color: '#94A3B8', fontWeight: 600 }}>Admin Login</Link>
           </div>

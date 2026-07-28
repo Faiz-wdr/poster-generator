@@ -278,6 +278,9 @@ export default function PublicEvent({ overrideSlug }) {
           </div>
 
           <div className="header-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <Link to={overrideSlug ? '/rules' : `/event/${client.slug}/rules`} className="hz-btn-light" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
+              Rules
+            </Link>
             <button onClick={() => scrollToSection('public-results-section', 'results')} className="hz-btn-light" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
               Results
             </button>
@@ -309,10 +312,9 @@ export default function PublicEvent({ overrideSlug }) {
                 src="/fuego -centr.svg"
                 alt={client.event_name || "Fuego Athletica"}
                 style={{
-                  height: '68px',
+                  height: '76px',
                   maxWidth: '100%',
-                  objectFit: 'contain',
-                  filter: 'brightness(0.08)'
+                  objectFit: 'contain'
                 }}
               />
             </div>
@@ -731,7 +733,8 @@ export default function PublicEvent({ overrideSlug }) {
               {client.organization_name}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 20 }}>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            <Link to={overrideSlug ? '/rules' : `/event/${client.slug}/rules`} style={{ color: '#94A3B8', fontWeight: 600 }}>Rules and Regulations</Link>
             <Link to="/" style={{ color: '#94A3B8', fontWeight: 600 }}>ResultFlow</Link>
             <Link to="/login" style={{ color: '#94A3B8', fontWeight: 600 }}>Admin Login</Link>
           </div>

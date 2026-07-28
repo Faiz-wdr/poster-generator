@@ -2,6 +2,9 @@
 
 /* --- DESIGN SYSTEM SYSTEM (Horizon Courts Aesthetic) --- */
 :root {
+  color-scheme: light !important;
+  supported-color-schemes: light !important;
+  
   --bg-page: #F4F5F7;
   --bg-surface: #FFFFFF;
   --bg-dark-card: #0F172A;
@@ -40,6 +43,24 @@
   --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html, body {
+  color-scheme: light !important;
+  background-color: #F4F5F7 !important;
+  color: #0F172A !important;
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root, html, body {
+    color-scheme: light !important;
+    background-color: #F4F5F7 !important;
+    color: #0F172A !important;
+  }
 }
 
 /* --- HORIZON COURTS DESIGN SYSTEM UTILITIES --- */

@@ -12,6 +12,7 @@ import SuperLogin from './pages/admin/SuperLogin';
 const SaaSLanding = lazy(() => import('./pages/SaaSLanding'));
 const PublicEvent = lazy(() => import('./pages/PublicEvent'));
 const PublicEventDetail = lazy(() => import('./pages/PublicEventDetail'));
+const RulesAndRegulations = lazy(() => import('./pages/RulesAndRegulations'));
 const AdminApp = lazy(() => import('./pages/admin/AdminApp'));
 const SuperAdminDashboard = lazy(() => import('./pages/admin/SuperAdminDashboard'));
 
@@ -39,6 +40,11 @@ function SubdomainEventDetailWrapper({ slug }) {
   return <PublicEventDetail overrideSlug={slug} overrideId={id} />;
 }
 
+/** Wrapper component to inject subdomain slug into RulesAndRegulations */
+function SubdomainRulesWrapper({ slug }) {
+  return <RulesAndRegulations overrideSlug={slug} />;
+}
+
 export default function App() {
   const subdomainInfo = useMemo(() => getSubdomainInfo(), []);
 
@@ -51,10 +57,13 @@ export default function App() {
             <Routes>
               <Route path="/" element={<SubdomainEventWrapper slug={subdomainInfo.slug} />} />
               <Route path="/detail/:id" element={<SubdomainEventDetailWrapper slug={subdomainInfo.slug} />} />
+              <Route path="/rules" element={<SubdomainRulesWrapper slug={subdomainInfo.slug} />} />
+              <Route path="/rules-and-regulations" element={<SubdomainRulesWrapper slug={subdomainInfo.slug} />} />
               <Route path="/login" element={<Login />} />
               <Route path="/admin/*" element={<AdminApp />} />
               <Route path="/event/:slug" element={<PublicEvent />} />
               <Route path="/event/:slug/detail/:id" element={<PublicEventDetail />} />
+              <Route path="/event/:slug/rules" element={<RulesAndRegulations />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           ) : subdomainInfo.type === 'superadmin' ? (
@@ -73,6 +82,8 @@ export default function App() {
               <Route path="/sadmin" element={<SuperLogin />} />
               <Route path="/event/:slug" element={<PublicEvent />} />
               <Route path="/event/:slug/detail/:id" element={<PublicEventDetail />} />
+              <Route path="/event/:slug/rules" element={<RulesAndRegulations />} />
+              <Route path="/event/:slug/rules-and-regulations" element={<RulesAndRegulations />} />
               <Route path="/admin/*" element={<AdminApp />} />
               <Route path="/super-admin/*" element={<SuperAdminDashboard />} />
               <Route path="*" element={<Navigate to="/" replace />} />
