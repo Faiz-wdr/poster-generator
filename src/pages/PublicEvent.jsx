@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getClientBySlug, getResults, getSchedule, getSettings, sortResultsByResultNoDesc } from '../lib/db';
 import { applyClientTheme } from '../lib/theme';
-import { Search, Trophy, Calendar, Award, Home, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Trophy, Calendar, Award, Home, ChevronDown, ChevronUp, Sparkles, Flame, Megaphone, Zap } from 'lucide-react';
 
 function PublicResultAccordionCard({ result }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -305,9 +305,146 @@ export default function PublicEvent({ overrideSlug }) {
           </div>
         </section>
 
-        {/* 2. PROGRAM SEARCH BAR — Sleek Pill Search Card */}
-        <section style={{ marginBottom: 32 }}>
-          <div className="hz-card" style={{ padding: '16px 20px', borderRadius: 9999 }}>
+        {/* FESTIVAL THEME & IDENTITY SECTION */}
+        <section id="public-theme-section" style={{ marginBottom: 36 }}>
+          <div style={{ textAlign: 'center', marginBottom: 24 }}>
+            <span className="hz-pill-badge" style={{ marginBottom: 10 }}>
+              <Sparkles size={14} style={{ color: '#0066FF' }} /> Festival Identity &amp; Motto
+            </span>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
+              The Spirit of the Fest
+            </h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, marginBottom: 24 }}>
+            {/* Card 1: MLC FIESTA '26 */}
+            <div className="hz-card-dark" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <span className="hz-pill-badge-dark" style={{ fontSize: '0.78rem' }}>
+                    <Megaphone size={14} style={{ color: '#A7F3D0' }} /> Cultural Fest Theme
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 700, letterSpacing: '0.05em' }}>EDITION '26</span>
+                </div>
+                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#FFFFFF', marginBottom: 14, letterSpacing: '-0.02em' }}>
+                  MLC FIESTA '26
+                </h3>
+                <p style={{ color: '#E2E8F0', fontSize: '0.98rem', lineHeight: 1.65, fontStyle: 'italic' }}>
+                  "This generation is the echo of every voice that has gone unheard. It stands as a reminder that silence is never destiny, that questioning is never a crime, and that every voice raised in the pursuit of justice becomes a new line in the pages of history."
+                </p>
+              </div>
+              <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(255, 255, 255, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Official Cultural Declaration
+                </span>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} />
+              </div>
+            </div>
+
+            {/* Card 2: FUEGO ATHLETICA '26 */}
+            <div className="hz-card-blue" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <span className="hz-pill-badge-dark" style={{ fontSize: '0.78rem', background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)' }}>
+                    <Flame size={14} style={{ color: '#FCD34D' }} /> Sports Identity
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', fontWeight: 700, letterSpacing: '0.05em' }}>ATHLETICA '26</span>
+                </div>
+                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#FFFFFF', marginBottom: 14, letterSpacing: '-0.02em' }}>
+                  FUEGO ATHLETICA '26
+                </h3>
+                <p style={{ color: 'rgba(255, 255, 255, 0.92)', fontSize: '0.95rem', lineHeight: 1.65 }}>
+                  Not every victory is seen. Not every effort is applauded. But every athlete deserves a moment to shine. This year, we celebrate determination over doubt, discipline over limits, and the unbreakable spirit of competition. Presenting the official identity of FUEGO ATHLETICA'26 — where passion ignites, champions rise, and every finish line marks the beginning of a greater journey.
+                </p>
+              </div>
+              <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(255, 255, 255, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255, 255, 255, 0.85)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Passion Ignites • Champions Rise
+                </span>
+                <Flame size={16} style={{ color: '#FFFFFF' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Our Three Teams Grid */}
+          <div className="hz-card" style={{ padding: '32px 28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+              <div>
+                <span className="hz-pill-badge" style={{ marginBottom: 6, fontSize: '0.78rem' }}>
+                  House Alliances
+                </span>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  Our Three Teams
+                </h3>
+              </div>
+              <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 600 }}>
+                3 Official Competing Houses
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+              {/* Team 1: AAWAZ */}
+              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '18px', padding: '20px', transition: 'all 0.2s ease' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <span className="hz-pill-badge" style={{ background: '#0F172A', color: '#FFFFFF', border: 'none', padding: '4px 14px', fontSize: '0.78rem' }}>
+                    AAWAZ
+                  </span>
+                  <Megaphone size={16} style={{ color: '#0F172A' }} />
+                </div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>
+                  AAWAZ
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.4 }}>
+                  The Voice that dares to speak.
+                </div>
+              </div>
+
+              {/* Team 2: RAFTAR */}
+              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '18px', padding: '20px', transition: 'all 0.2s ease' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <span className="hz-pill-badge" style={{ background: '#0066FF', color: '#FFFFFF', border: 'none', padding: '4px 14px', fontSize: '0.78rem' }}>
+                    RAFTAR
+                  </span>
+                  <Zap size={16} style={{ color: '#0066FF' }} />
+                </div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>
+                  RAFTAR
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.4 }}>
+                  The Momentum that refuses to stop.
+                </div>
+              </div>
+
+              {/* Team 3: JWALA */}
+              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '18px', padding: '20px', transition: 'all 0.2s ease' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <span className="hz-pill-badge" style={{ background: '#DC2626', color: '#FFFFFF', border: 'none', padding: '4px 14px', fontSize: '0.78rem' }}>
+                    JWALA
+                  </span>
+                  <Flame size={16} style={{ color: '#DC2626' }} />
+                </div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>
+                  JWALA
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.4 }}>
+                  The Flame that ignites change.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 2. PROGRAM RESULTS SECTION */}
+        <section id="public-results-section" style={{ marginBottom: 40 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Program Results</h2>
+            <span className="hz-pill-badge">
+              Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+
+          {/* Program Search Bar Under Heading */}
+          <div className="hz-card" style={{ padding: '14px 18px', borderRadius: 9999, marginBottom: 20 }}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
               <Search size={20} style={{ position: 'absolute', left: 16, color: '#0066FF' }} />
               <input
@@ -328,16 +465,6 @@ export default function PublicEvent({ overrideSlug }) {
                 }}
               />
             </div>
-          </div>
-        </section>
-
-        {/* 3. PROGRAM RESULTS SECTION */}
-        <section id="public-results-section" style={{ marginBottom: 40 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Program Results</h2>
-            <span className="hz-pill-badge">
-              Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''}
-            </span>
           </div>
 
           {filtered.length === 0 ? (
