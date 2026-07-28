@@ -50,6 +50,19 @@ export default function AdminApp() {
         setClient(c);
         applyClientTheme(c);
         
+        // Set Event Admin Control Panel Title & Description
+        document.title = `${c.event_name} Control Panel — ResultFlow Admin`;
+        let metaDesc = document.querySelector('meta[name="description"]');
+        const adminDesc = `Event coordinator control panel for ${c.event_name} (${c.organization_name}). Manage program standings, publish live winner announcements, generate batch poster graphics, and configure team points.`;
+        if (metaDesc) {
+          metaDesc.setAttribute('content', adminDesc);
+        } else {
+          metaDesc = document.createElement('meta');
+          metaDesc.name = 'description';
+          metaDesc.content = adminDesc;
+          document.head.appendChild(metaDesc);
+        }
+
         const expiry = c.expiry_date ? new Date(c.expiry_date) : null;
         const expired = expiry ? expiry <= new Date() : false;
         setIsExpired(expired);

@@ -33,12 +33,18 @@ export default function PublicEventDetail({ overrideSlug, overrideId }) {
 
       const r = await getResult(id);
       setResult(r);
+      if (r) {
+        document.title = `${r.programName} — ${c.event_name}`;
+      } else {
+        document.title = `${c.event_name} — ${c.organization_name}`;
+      }
       setLoading(false);
     }
     load();
 
     return () => {
       applyClientTheme(null);
+      document.title = 'ResultFlow - Dynamic Result Poster Engine';
     };
   }, [slug, id]);
 
@@ -286,8 +292,8 @@ export default function PublicEventDetail({ overrideSlug, overrideId }) {
       </main>
 
       {/* Footer */}
-      <footer style={{ background: '#0F172A', color: '#94A3B8', padding: '40px 0 60px', fontSize: '0.9rem' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
+      <footer className="public-footer" style={{ background: '#0F172A', color: '#94A3B8', padding: '40px 0 60px', fontSize: '0.9rem' }}>
+        <div className="container public-footer-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
           <div>
             <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#FFFFFF', marginBottom: 4 }}>
               {client.event_name}

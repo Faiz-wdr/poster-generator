@@ -2494,3 +2494,22 @@ html, body, #root {
     display: none !important;
   }
 }
+
+/* ── PUBLIC SITE FOOTER MOBILE CENTER ALIGNMENT ────────────────────────── */
+@media (max-width: 768px) {
+  .public-footer {
+    text-align: center !important;
+  }
+  .public-footer-container {
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .public-footer-container > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+}

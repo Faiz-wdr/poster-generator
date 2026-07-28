@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Sparkles, Trophy, Palette, ClipboardList, Shield, Layers, Layout, Download, Settings, Users, CheckCircle, ArrowRight, HelpCircle, ChevronDown, Monitor } from 'lucide-react';
 
@@ -7,6 +7,20 @@ export default function SaaSLanding() {
   const [openFaq, setOpenFaq] = useState(null);
   const [demoRequested, setDemoRequested] = useState(false);
   const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    document.title = 'ResultFlow — Automated Fest Result Poster Generator & Event Portal';
+    let metaDesc = document.querySelector('meta[name="description"]');
+    const pageDesc = 'ResultFlow is the premier cloud platform for competitive arts festivals, sports meets, and committees to generate high-resolution winner posters, track live team points, and publish instant result portals.';
+    if (metaDesc) {
+      metaDesc.setAttribute('content', pageDesc);
+    } else {
+      metaDesc = document.createElement('meta');
+      metaDesc.name = 'description';
+      metaDesc.content = pageDesc;
+      document.head.appendChild(metaDesc);
+    }
+  }, []);
 
   const handleDemoSubmit = (e) => {
     e.preventDefault();
@@ -858,8 +872,32 @@ export default function SaaSLanding() {
               </ul>
             </div>
           </div>
+
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, textAlign: 'center', fontSize: '0.85rem' }}>
-            <p>© {new Date().getFullYear()} ResultFlow SaaS Platform. All rights reserved.</p>
+            <p style={{ margin: 0, color: '#94A3B8' }}>
+              © {new Date().getFullYear()} ResultFlow by{' '}
+              <a
+                href="https://www.faizrahim.online"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: '#38BDF8',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = '#60A5FA';
+                  e.currentTarget.style.textDecoration = 'underline';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = '#38BDF8';
+                  e.currentTarget.style.textDecoration = 'none';
+                }}
+              >
+                faizrahim
+              </a>
+            </p>
           </div>
         </div>
       </footer>

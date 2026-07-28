@@ -1,0 +1,3 @@
+# Public directory for static images and assets
+# Place your images here (e.g. public/logo.png, public/banner.jpg)
+# Reference them in React as <img src="/logo.png" />

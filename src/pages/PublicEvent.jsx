@@ -13,8 +13,8 @@ function PublicResultAccordionCard({ result }) {
       style={{
         background: '#FFFFFF',
         border: '1px solid #E2E8F0',
-        borderRadius: '20px',
-        marginBottom: '14px',
+        borderRadius: '16px',
+        marginBottom: '8px',
         overflow: 'hidden',
         boxShadow: isOpen ? '0 10px 24px rgba(15, 23, 42, 0.06)' : '0 2px 8px rgba(0,0,0,0.02)',
         transition: 'all 0.2s ease'
@@ -148,6 +148,19 @@ export default function PublicEvent({ overrideSlug }) {
       setClient(c);
       applyClientTheme(c);
 
+      // Set Website Title & Meta Description to Event Name & Description
+      document.title = `${c.event_name} — ${c.organization_name}`;
+      let metaDesc = document.querySelector('meta[name="description"]');
+      const pageDesc = `${c.event_name} by ${c.organization_name}. Browse official program standings, team point tallies, competition schedules, and verified winner placements.`;
+      if (metaDesc) {
+        metaDesc.setAttribute('content', pageDesc);
+      } else {
+        metaDesc = document.createElement('meta');
+        metaDesc.name = 'description';
+        metaDesc.content = pageDesc;
+        document.head.appendChild(metaDesc);
+      }
+
       const [r, s] = await Promise.all([
         getResults(c.id),
         getSchedule(c.id)
@@ -176,6 +189,7 @@ export default function PublicEvent({ overrideSlug }) {
 
     return () => {
       applyClientTheme(null);
+      document.title = 'ResultFlow - Dynamic Result Poster Engine';
     };
   }, [slug]);
 
@@ -277,12 +291,28 @@ export default function PublicEvent({ overrideSlug }) {
         {/* 1. HERO SECTION — Horizon Courts Rounded Card Container */}
         <section id="public-hero-section" style={{ margin: '24px 0 32px' }}>
           <div className="hz-card" style={{ padding: '48px 32px', textAlign: 'center' }}>
-            <span className="hz-pill-badge" style={{ marginBottom: 16 }}>
+            <span className="hz-pill-badge" style={{ marginBottom: 14 }}>
               Official Competition Portal
             </span>
-            <h1 style={{ color: '#0F172A', fontSize: '2.8rem', fontWeight: 800, textAlign: 'center', marginBottom: 12, letterSpacing: '-0.02em' }}>
-              {client.organization_name}<br />{client.event_name}
-            </h1>
+            
+            {/* Organization Name — Smaller & Thin Font */}
+            <div style={{ fontSize: '0.85rem', fontWeight: 500, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 10, marginBottom: 16 }}>
+              {client.organization_name}
+            </div>
+
+            {/* Event Hero Logo Image (/fuego -centr.svg) */}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 22 }}>
+              <img
+                src="/fuego -centr.svg"
+                alt={client.event_name || "Fuego Athletica"}
+                style={{
+                  height: '68px',
+                  maxWidth: '100%',
+                  objectFit: 'contain',
+                  filter: 'brightness(0.08)'
+                }}
+              />
+            </div>
             <p style={{ color: '#64748B', fontSize: '1.05rem', textAlign: 'center', maxWidth: 600, margin: '0 auto 28px', lineHeight: 1.6 }}>
               Browse official program standings, team point tallies, competition schedules, and verified winner placements.
             </p>
@@ -326,9 +356,13 @@ export default function PublicEvent({ overrideSlug }) {
                   </span>
                   <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 700, letterSpacing: '0.05em' }}>EDITION '26</span>
                 </div>
-                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#FFFFFF', marginBottom: 14, letterSpacing: '-0.02em' }}>
-                  MLC FIESTA '26
-                </h3>
+                <div style={{ marginBottom: 16 }}>
+                  <img
+                    src="/mlc-lef.svg"
+                    alt="MLC FIESTA '26"
+                    style={{ height: '52px', maxWidth: '100%', objectFit: 'contain', display: 'block' }}
+                  />
+                </div>
                 <p style={{ color: '#E2E8F0', fontSize: '0.98rem', lineHeight: 1.65, fontStyle: 'italic' }}>
                   "This generation is the echo of every voice that has gone unheard. It stands as a reminder that silence is never destiny, that questioning is never a crime, and that every voice raised in the pursuit of justice becomes a new line in the pages of history."
                 </p>
@@ -350,9 +384,13 @@ export default function PublicEvent({ overrideSlug }) {
                   </span>
                   <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', fontWeight: 700, letterSpacing: '0.05em' }}>ATHLETICA '26</span>
                 </div>
-                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#FFFFFF', marginBottom: 14, letterSpacing: '-0.02em' }}>
-                  FUEGO ATHLETICA '26
-                </h3>
+                <div style={{ marginBottom: 16 }}>
+                  <img
+                    src="/fuego.svg"
+                    alt="FUEGO ATHLETICA '26"
+                    style={{ height: '40px', maxWidth: '100%', objectFit: 'contain', display: 'block' }}
+                  />
+                </div>
                 <p style={{ color: 'rgba(255, 255, 255, 0.92)', fontSize: '0.95rem', lineHeight: 1.65 }}>
                   Not every victory is seen. Not every effort is applauded. But every athlete deserves a moment to shine. This year, we celebrate determination over doubt, discipline over limits, and the unbreakable spirit of competition. Presenting the official identity of FUEGO ATHLETICA'26 — where passion ignites, champions rise, and every finish line marks the beginning of a greater journey.
                 </p>
@@ -658,8 +696,8 @@ export default function PublicEvent({ overrideSlug }) {
       </nav>
 
       {/* 7. FOOTER SECTION */}
-      <footer style={{ background: '#0F172A', color: '#94A3B8', padding: '48px 0 60px', fontSize: '0.9rem' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
+      <footer className="public-footer" style={{ background: '#0F172A', color: '#94A3B8', padding: '48px 0 60px', fontSize: '0.9rem' }}>
+        <div className="container public-footer-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
           <div>
             <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#FFFFFF', marginBottom: 4 }}>
               {client.event_name}
