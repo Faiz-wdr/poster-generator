@@ -272,7 +272,7 @@ export default function PublicEvent({ overrideSlug }) {
                 {client.event_name}
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {client.organization_name}
+                MLC FIESTA 26
               </div>
             </div>
           </div>
