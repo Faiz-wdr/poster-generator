@@ -346,7 +346,7 @@ export default function PublicEvent({ overrideSlug }) {
             </h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, marginBottom: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24, marginBottom: 24 }}>
             {/* Card 1: MLC FIESTA '26 */}
             <div className="hz-card-dark" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
               <div>
@@ -363,8 +363,8 @@ export default function PublicEvent({ overrideSlug }) {
                     style={{ height: '52px', maxWidth: '100%', objectFit: 'contain', display: 'block' }}
                   />
                 </div>
-                <p style={{ color: '#E2E8F0', fontSize: '0.98rem', lineHeight: 1.65, fontStyle: 'italic' }}>
-                  "This generation is the echo of every voice that has gone unheard. It stands as a reminder that silence is never destiny, that questioning is never a crime, and that every voice raised in the pursuit of justice becomes a new line in the pages of history."
+                <p style={{ color: '#E2E8F0', fontSize: '0.96rem', lineHeight: 1.65, fontStyle: 'italic' }}>
+                  "This generation is the echo of every voice that has gone <span style={{ color: '#FCD34D', fontWeight: 800, textDecoration: 'underline', textUnderlineOffset: '4px' }}>unheard</span>. It stands as a reminder that silence is never destiny, that questioning is never a crime, and that every voice raised in the pursuit of justice becomes a new line in the pages of history."
                 </p>
               </div>
               <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(255, 255, 255, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -375,7 +375,31 @@ export default function PublicEvent({ overrideSlug }) {
               </div>
             </div>
 
-            {/* Card 2: FUEGO ATHLETICA '26 */}
+            {/* Card 2: NIVĀRA (Arts Theme) */}
+            <div style={{ background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)', borderRadius: '28px', padding: '32px 28px', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15)' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <span className="hz-pill-badge-dark" style={{ fontSize: '0.78rem', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)' }}>
+                    <Award size={14} style={{ color: '#C084FC' }} /> Arts Theme
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', fontWeight: 700, letterSpacing: '0.05em' }}>EXPRESSION</span>
+                </div>
+                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#FFFFFF', marginBottom: 14, letterSpacing: '0.04em' }}>
+                  NIVĀRA
+                </h3>
+                <p style={{ color: '#E0E7FF', fontSize: '0.96rem', lineHeight: 1.65 }}>
+                  NIVĀRA is where silence transforms into expression. A stage where art is more than entertainment—it is truth, resistance, and hope. Every performance becomes a voice, every creation a statement, and every participant a reminder that no story deserves to remain <span style={{ color: '#F472B6', fontWeight: 800, textDecoration: 'underline', textUnderlineOffset: '4px' }}>unheard</span>.
+                </p>
+              </div>
+              <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(255, 255, 255, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#A5B4FC', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Silence Transforms into Expression
+                </span>
+                <Award size={16} style={{ color: '#C084FC' }} />
+              </div>
+            </div>
+
+            {/* Card 3: FUEGO ATHLETICA '26 */}
             <div className="hz-card-blue" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
