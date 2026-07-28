@@ -348,7 +348,7 @@ function getLocalResults(clientId) {
           if (!r.status) r.status = 'published';
           if (!r.resultNo) r.resultNo = '01';
         });
-        return parsed;
+        return sortResultsByResultNoDesc(parsed);
       }
     }
   } catch (e) {
@@ -362,7 +362,7 @@ function getLocalResults(clientId) {
       if (!r.resultNo) r.resultNo = '01';
     });
     localStorage.setItem(`arts_poster_results_${cId}`, JSON.stringify(seeded));
-    return seeded;
+    return sortResultsByResultNoDesc(seeded);
   }
   return [];
 }
@@ -474,10 +474,32 @@ export function decodeProgramName(encodedName) {
 
 // ── RESULTS ───────────────────────────────────────────────────────────────────
 
+export function sortResultsByResultNoDesc(results) {
+  if (!Array.isArray(results)) return [];
+  return [...results].sort((a, b) => {
+    const rawA = a.resultNo != null ? String(a.resultNo).trim() : '';
+    const rawB = b.resultNo != null ? String(b.resultNo).trim() : '';
+
+    const numA = parseFloat(rawA.replace(/[^\d.]/g, ''));
+    const numB = parseFloat(rawB.replace(/[^\d.]/g, ''));
+
+    const validA = !isNaN(numA);
+    const validB = !isNaN(numB);
+
+    if (validA && validB && numA !== numB) {
+      return numB - numA;
+    }
+    if (validA && !validB) return -1;
+    if (!validA && validB) return 1;
+
+    return rawB.localeCompare(rawA, undefined, { numeric: true, sensitivity: 'base' });
+  });
+}
+
 export async function getResults(clientId) {
   const cId = clientId || getFallbackClientId();
   if (useLocal) {
-    return getLocalResults(cId);
+    return sortResultsByResultNoDesc(getLocalResults(cId));
   }
 
   try {
@@ -500,7 +522,7 @@ export async function getResults(clientId) {
     if (error) {
       showDbError(`fetching results for ${cId}`, error);
       tripCircuitBreaker('getResults', error);
-      return getLocalResults(cId);
+      return sortResultsByResultNoDesc(getLocalResults(cId));
     }
 
     if (!data) return [];
@@ -512,11 +534,11 @@ export async function getResults(clientId) {
       r.status = decoded.status;
       r.winners?.sort((a, b) => (a.position || '').localeCompare(b.position || ''));
     });
-    return data;
+    return sortResultsByResultNoDesc(data);
   } catch (e) {
     showDbError('fetching results exception', e);
     tripCircuitBreaker('getResults', e);
-    return getLocalResults(cId);
+    return sortResultsByResultNoDesc(getLocalResults(cId));
   }
 }
 

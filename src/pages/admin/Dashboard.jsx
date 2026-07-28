@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getResults, getTemplates } from '../../lib/db';
+import { getResults, getTemplates, sortResultsByResultNoDesc } from '../../lib/db';
 import { ClipboardList, Trophy, Palette, Pencil, Plus } from 'lucide-react';
 
 export default function Dashboard({ isExpired, clientId }) {
@@ -15,7 +15,7 @@ export default function Dashboard({ isExpired, clientId }) {
         getResults(clientId),
         getTemplates(clientId)
       ]);
-      setResults(r || []);
+      setResults(sortResultsByResultNoDesc(r || []));
       setTemplates(t || []);
       setLoading(false);
     }

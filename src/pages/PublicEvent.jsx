@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getClientBySlug, getResults, getSchedule, getSettings } from '../lib/db';
+import { getClientBySlug, getResults, getSchedule, getSettings, sortResultsByResultNoDesc } from '../lib/db';
 import { applyClientTheme } from '../lib/theme';
 import { Search, Trophy, Calendar, Award, Home, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -34,7 +34,7 @@ function PublicResultAccordionCard({ result }) {
           borderBottom: isOpen ? '1px solid #E2E8F0' : 'none'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flexGrow: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexGrow: 1 }}>
           {result.resultNo && (
             <span className="hz-pill-badge" style={{
               background: '#0F172A',
@@ -59,6 +59,17 @@ function PublicResultAccordionCard({ result }) {
           }}>
             {result.programName}
           </h4>
+          {result.category && (
+            <span style={{
+              color: '#64748B',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}>
+              • {result.category}
+            </span>
+          )}
         </div>
 
         <div style={{ color: '#0066FF', display: 'flex', alignItems: 'center', paddingLeft: 12, flexShrink: 0 }}>
@@ -206,6 +217,7 @@ export default function PublicEvent({ overrideSlug }) {
     const q = search.toLowerCase();
     return !q ||
       r.programName?.toLowerCase().includes(q) ||
+      r.category?.toLowerCase().includes(q) ||
       r.winners?.some(w => w.name?.toLowerCase().includes(q));
   });
 

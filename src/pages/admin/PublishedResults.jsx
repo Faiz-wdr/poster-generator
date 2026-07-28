@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getResults, getTemplates, deleteResult, saveResult, getSettings } from '../../lib/db';
+import { getResults, getTemplates, deleteResult, saveResult, getSettings, sortResultsByResultNoDesc } from '../../lib/db';
 import { posterEngine } from '../../lib/posterEngine';
 import { CATEGORY_OPTIONS } from '../../data/defaults';
 import { Plus, Search, Pencil, Download, Trash2, Eye, CheckSquare, Square, X, Layers } from 'lucide-react';
@@ -33,7 +33,7 @@ export default function PublishedResults({ isExpired, clientId }) {
     ]);
     const settings = s || {};
     const loadedTemplates = t || [];
-    setResults(r || []);
+    setResults(sortResultsByResultNoDesc(r || []));
     setTemplates(loadedTemplates);
     if (loadedTemplates.length > 0) {
       setBatchTemplateId(loadedTemplates[0].id);
