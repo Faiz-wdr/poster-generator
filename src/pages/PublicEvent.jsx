@@ -13,10 +13,10 @@ function PublicResultAccordionCard({ result }) {
       style={{
         background: '#FFFFFF',
         border: '1px solid #E2E8F0',
-        borderRadius: '12px',
-        marginBottom: '12px',
+        borderRadius: '20px',
+        marginBottom: '14px',
         overflow: 'hidden',
-        boxShadow: isOpen ? '0 4px 12px rgba(15, 23, 42, 0.06)' : '0 1px 3px rgba(0,0,0,0.03)',
+        boxShadow: isOpen ? '0 10px 24px rgba(15, 23, 42, 0.06)' : '0 2px 8px rgba(0,0,0,0.02)',
         transition: 'all 0.2s ease'
       }}
     >
@@ -24,7 +24,7 @@ function PublicResultAccordionCard({ result }) {
       <div
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          padding: '16px 20px',
+          padding: '18px 24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -36,13 +36,12 @@ function PublicResultAccordionCard({ result }) {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flexGrow: 1 }}>
           {result.resultNo && (
-            <span style={{
-              background: 'var(--primary-light, #EDE9FE)',
-              color: 'var(--primary, #7C3AED)',
-              fontWeight: 800,
-              fontSize: '0.85rem',
-              padding: '4px 10px',
-              borderRadius: '8px',
+            <span className="hz-pill-badge" style={{
+              background: '#0F172A',
+              color: '#FFFFFF',
+              border: 'none',
+              fontSize: '0.78rem',
+              padding: '4px 12px',
               whiteSpace: 'nowrap',
               flexShrink: 0
             }}>
@@ -52,7 +51,7 @@ function PublicResultAccordionCard({ result }) {
           <h4 style={{
             margin: 0,
             fontSize: '1.05rem',
-            fontWeight: 700,
+            fontWeight: 800,
             color: '#0F172A',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -62,14 +61,14 @@ function PublicResultAccordionCard({ result }) {
           </h4>
         </div>
 
-        <div style={{ color: '#64748B', display: 'flex', alignItems: 'center', paddingLeft: 12, flexShrink: 0 }}>
+        <div style={{ color: '#0066FF', display: 'flex', alignItems: 'center', paddingLeft: 12, flexShrink: 0 }}>
           {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </div>
       </div>
 
       {/* Expanded Inline Body — Winner Standings */}
       {isOpen && (
-        <div style={{ padding: '16px 20px', background: '#FFFFFF' }}>
+        <div style={{ padding: '20px 24px', background: '#FFFFFF' }}>
           {winners.length === 0 ? (
             <p style={{ color: '#64748B', fontSize: '0.9rem', fontStyle: 'italic', margin: 0 }}>
               No winner details recorded yet.
@@ -87,15 +86,15 @@ function PublicResultAccordionCard({ result }) {
                 <tbody>
                   {winners.map((w, idx) => (
                     <tr key={idx} style={{ borderBottom: idx < winners.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
-                      <td style={{ padding: '10px 12px 10px 0', fontWeight: 800, color: 'var(--primary)' }}>
+                      <td style={{ padding: '12px 12px 12px 0', fontWeight: 800, color: '#0066FF' }}>
                         {w.position || `0${idx + 1}`}
                       </td>
-                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0F172A' }}>
+                      <td style={{ padding: '12px', fontWeight: 700, color: '#0F172A' }}>
                         {w.name}
                       </td>
-                      <td style={{ padding: '10px 0', textAlign: 'right', color: '#475569', fontWeight: 600 }}>
+                      <td style={{ padding: '12px 0', textAlign: 'right', color: '#475569', fontWeight: 600 }}>
                         {w.team ? (
-                          <span className="badge" style={{ background: '#F1F5F9', color: '#334155', border: '1px solid #CBD5E1', fontSize: '0.75rem', borderRadius: '6px' }}>
+                          <span className="hz-pill-badge" style={{ fontSize: '0.75rem', padding: '4px 12px' }}>
                             {w.team}
                           </span>
                         ) : '—'}
@@ -171,7 +170,7 @@ export default function PublicEvent({ overrideSlug }) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', fontFamily: 'var(--font-body)' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)', fontFamily: 'var(--font-body)' }}>
         <div style={{ textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
           Loading event portal…
         </div>
@@ -181,24 +180,24 @@ export default function PublicEvent({ overrideSlug }) {
 
   if (!client) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', padding: 24, textAlign: 'center' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)', padding: 24, textAlign: 'center' }}>
         <h2 style={{ fontSize: '2rem', marginBottom: 12, color: '#0F172A' }}>Event Portal Not Found</h2>
         <p style={{ color: '#64748B', marginBottom: 24, maxWidth: 420 }}>
           The event URL you are trying to access does not exist or has been removed.
         </p>
-        <Link to="/" className="btn btn-primary">Return to Homepage</Link>
+        <Link to="/" className="hz-btn-dark">Return to Homepage</Link>
       </div>
     );
   }
 
   if (client.status === 'suspended') {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', padding: 24, textAlign: 'center' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)', padding: 24, textAlign: 'center' }}>
         <h2 style={{ fontSize: '2rem', marginBottom: 12, color: '#EF4444' }}>Event Access Suspended</h2>
         <p style={{ color: '#64748B', marginBottom: 24, maxWidth: 420 }}>
           This event portal has been suspended by the administrator. Please contact support.
         </p>
-        <Link to="/" className="btn btn-primary">Return to Homepage</Link>
+        <Link to="/" className="hz-btn-dark">Return to Homepage</Link>
       </div>
     );
   }
@@ -209,8 +208,6 @@ export default function PublicEvent({ overrideSlug }) {
       r.programName?.toLowerCase().includes(q) ||
       r.winners?.some(w => w.name?.toLowerCase().includes(q));
   });
-
-
 
   // Schedule Date Groupings
   const scheduleDates = Array.from(new Set(schedule.map(s => s.date || 'Scheduled Date'))).sort();
@@ -229,14 +226,14 @@ export default function PublicEvent({ overrideSlug }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC', fontFamily: 'var(--font-body)' }}>
-      {/* Event Header */}
-      <header style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 50, padding: '14px 0' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)', fontFamily: 'var(--font-body)' }}>
+      {/* Event Header — Horizon Courts Header Style */}
+      <header style={{ background: 'rgba(244, 245, 247, 0.95)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 50, padding: '16px 0' }}>
         <div className="container nav-flex">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div className="logo-icon" style={{ background: 'var(--primary)', color: '#FFFFFF', overflow: 'hidden' }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#0F172A', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontWeight: 800 }}>
               {client.logo && (client.logo.startsWith('http') || client.logo.startsWith('data:image')) ? (
-                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                <img src={client.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 client.logo || 'E'
               )}
@@ -251,9 +248,13 @@ export default function PublicEvent({ overrideSlug }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <button onClick={() => scrollToSection('public-results-section', 'results')} style={{ background: 'none', border: 'none', fontWeight: 700, color: 'var(--primary)', fontSize: '0.95rem', cursor: 'pointer' }}>Results</button>
-            <Link to="/login" className="btn btn-outline btn-sm" style={{ padding: '6px 14px', fontSize: '0.85rem' }}>Admin Access</Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button onClick={() => scrollToSection('public-results-section', 'results')} className="hz-btn-light" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
+              Results
+            </button>
+            <Link to="/login" className="hz-btn-dark" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
+              Admin Access
+            </Link>
           </div>
         </div>
       </header>
@@ -261,46 +262,58 @@ export default function PublicEvent({ overrideSlug }) {
       {/* Main Container */}
       <main className="container" style={{ flexGrow: 1, paddingBottom: 100 }}>
 
-        {/* 1. HERO SECTION */}
-        <section id="public-hero-section" className="hero-centered" style={{
-          background: '#FFFFFF',
-          padding: '48px 24px', margin: '24px 0 32px', border: '1px solid #E2E8F0', borderRadius: '16px'
-        }}>
-          <div className="hero-content">
-            <span className="badge" style={{ marginBottom: 12, display: 'inline-flex', background: '#F1F5F9', color: '#334155', border: '1px solid #CBD5E1', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.8rem' }}>
-              Official Competition Portal
+        {/* 1. HERO SECTION — Horizon Courts Rounded Card Container */}
+        <section id="public-hero-section" style={{ margin: '24px 0 32px' }}>
+          <div className="hz-card" style={{ padding: '48px 32px', textAlign: 'center' }}>
+            <span className="hz-pill-badge" style={{ marginBottom: 16 }}>
+              ✨ Official Competition Portal
             </span>
-            <h1 style={{ color: '#0F172A', fontSize: '2.5rem', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>
+            <h1 style={{ color: '#0F172A', fontSize: '2.8rem', fontWeight: 800, textAlign: 'center', marginBottom: 12, letterSpacing: '-0.02em' }}>
               {client.organization_name}<br />{client.event_name}
             </h1>
-            <p style={{ color: '#475569', fontSize: '1rem', textAlign: 'center', maxWidth: 580, marginBottom: 20 }}>
+            <p style={{ color: '#64748B', fontSize: '1.05rem', textAlign: 'center', maxWidth: 600, margin: '0 auto 28px', lineHeight: 1.6 }}>
               Browse official program standings, team point tallies, competition schedules, and verified winner placements.
             </p>
 
-            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center', color: '#64748B', fontSize: '0.88rem', fontWeight: 600 }}>
-              {client.start_date && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span>{client.start_date} {client.end_date ? `to ${client.end_date}` : ''}</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>{results.length} Programs Announced</span>
+            {/* Stat Counters Row — Horizon Courts Style */}
+            <div style={{ display: 'flex', gap: 36, flexWrap: 'wrap', justifyContent: 'center', paddingTop: 16, borderTop: '1px solid #E2E8F0' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div className="hz-stat-num" style={{ fontSize: '2.4rem' }}>{results.length}</div>
+                <div className="hz-stat-label">Programs Announced</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div className="hz-stat-num" style={{ fontSize: '2.4rem' }}>{teamPoints.length}</div>
+                <div className="hz-stat-label">Teams Competing</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div className="hz-stat-num" style={{ fontSize: '2.4rem' }}>{schedule.length}</div>
+                <div className="hz-stat-label">Scheduled Events</div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 2. PROGRAM SEARCH BAR */}
-        <section style={{ marginBottom: 36 }}>
-          <div className="search-filter-bar" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', padding: '16px' }}>
-            <div className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
-              <Search size={18} className="search-icon" style={{ position: 'absolute', left: 14, color: '#64748B' }} />
+        {/* 2. PROGRAM SEARCH BAR — Sleek Pill Search Card */}
+        <section style={{ marginBottom: 32 }}>
+          <div className="hz-card" style={{ padding: '16px 20px', borderRadius: 9999 }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
+              <Search size={20} style={{ position: 'absolute', left: 16, color: '#0066FF' }} />
               <input
                 type="search"
                 placeholder="Search program or winner name…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                style={{ paddingLeft: 42, background: '#F8FAFC', border: '1px solid #CBD5E1', width: '100%' }}
+                style={{
+                  width: '100%',
+                  padding: '12px 20px 12px 48px',
+                  borderRadius: 9999,
+                  border: 'none',
+                  background: '#F8FAFC',
+                  fontSize: '0.98rem',
+                  fontFamily: 'var(--font-body)',
+                  color: '#0F172A',
+                  outline: 'none'
+                }}
               />
             </div>
           </div>
@@ -308,17 +321,17 @@ export default function PublicEvent({ overrideSlug }) {
 
         {/* 3. PROGRAM RESULTS SECTION */}
         <section id="public-results-section" style={{ marginBottom: 40 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Program Results</h2>
-            <span style={{ color: '#64748B', fontWeight: 600, fontSize: '0.85rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Program Results</h2>
+            <span className="hz-pill-badge">
               Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''}
             </span>
           </div>
 
           {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 48, background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', color: '#64748B' }}>
-              <p style={{ fontWeight: 600, fontSize: '1rem', marginBottom: 6, color: '#0F172A' }}>No results found.</p>
-              <p style={{ fontSize: '0.9rem' }}>Try searching another program or winner name.</p>
+            <div className="hz-card" style={{ textAlign: 'center', padding: 48, color: '#64748B' }}>
+              <p style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: 6, color: '#0F172A' }}>No results found.</p>
+              <p style={{ fontSize: '0.95rem' }}>Try searching another program or winner name.</p>
             </div>
           ) : (
             <div className="results-list-container">
@@ -331,40 +344,42 @@ export default function PublicEvent({ overrideSlug }) {
 
         {/* 4. POINTS & TEAM STANDINGS SECTION */}
         <section id="public-points-section" style={{ marginBottom: 40 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Team Points</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Team Points</h2>
             {teamPointsAfterResults > 0 && (
-              <span style={{ color: '#64748B', fontWeight: 700, fontSize: '0.88rem' }}>
+              <span className="hz-pill-badge">
                 After #{teamPointsAfterResults} Results
               </span>
             )}
           </div>
 
           {teamPoints.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 36, background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', color: '#64748B' }}>
+            <div className="hz-card" style={{ textAlign: 'center', padding: 36, color: '#64748B' }}>
               No team standings recorded yet.
             </div>
           ) : (
-            <div className="card-form" style={{ padding: 0, overflow: 'hidden', background: '#FFFFFF', border: '1px solid #E2E8F0' }}>
+            <div className="hz-card" style={{ padding: 0 }}>
               <div className="published-list-table-wrapper">
-                <table className="admin-table">
+                <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr>
-                      <th style={{ width: '60px' }}>Rank</th>
-                      <th>Team Name</th>
-                      <th style={{ width: '120px', textAlign: 'right' }}>Points</th>
+                    <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textTransform: 'uppercase', fontSize: '0.78rem', color: '#64748B' }}>
+                      <th style={{ width: '80px', padding: '16px 24px' }}>Rank</th>
+                      <th style={{ padding: '16px 24px' }}>Team Name</th>
+                      <th style={{ width: '140px', textAlign: 'right', padding: '16px 24px' }}>Points</th>
                     </tr>
                   </thead>
                   <tbody>
                     {teamPoints.map((t, idx) => (
-                      <tr key={t.name}>
-                        <td style={{ fontWeight: 800, color: 'var(--primary)' }}>
-                          #{idx + 1}
+                      <tr key={t.name} style={{ borderBottom: idx < teamPoints.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
+                        <td style={{ padding: '16px 24px', fontWeight: 800, color: '#0066FF' }}>
+                          <span className="hz-pill-badge" style={{ background: idx === 0 ? '#0F172A' : '#F1F5F9', color: idx === 0 ? '#FFFFFF' : '#0F172A', border: 'none' }}>
+                            #{idx + 1}
+                          </span>
                         </td>
-                        <td style={{ fontWeight: 700, color: '#0F172A' }}>
+                        <td style={{ padding: '16px 24px', fontWeight: 800, color: '#0F172A', fontSize: '1.05rem' }}>
                           {t.name}
                         </td>
-                        <td style={{ textAlign: 'right', fontWeight: 800, color: 'var(--primary)', fontSize: '1.05rem' }}>
+                        <td style={{ padding: '16px 24px', textAlign: 'right', fontWeight: 800, color: '#0066FF', fontSize: '1.2rem' }}>
                           {t.points}
                         </td>
                       </tr>
@@ -379,17 +394,18 @@ export default function PublicEvent({ overrideSlug }) {
         {/* 5. EVENT SCHEDULE & TIMETABLE SECTION */}
         {schedule.length > 0 && (
           <section id="public-schedule-section" style={{ marginBottom: 40 }}>
-            <div style={{ marginBottom: 14 }}>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Event Schedule & Timetable</h2>
+            <div style={{ marginBottom: 16 }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Event Schedule &amp; Timetable</h2>
             </div>
 
             {/* Schedule Date Tabs */}
-            <div className="filter-pills" style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
               {scheduleDates.map(dateStr => (
                 <button
                   key={dateStr}
-                  className={`filter-pill ${currentActiveDate === dateStr ? 'active' : ''}`}
                   onClick={() => setActiveScheduleDate(dateStr)}
+                  className={currentActiveDate === dateStr ? "hz-btn-dark" : "hz-btn-light"}
+                  style={{ padding: '8px 20px', fontSize: '0.85rem' }}
                 >
                   <span>{dateStr}</span>
                 </button>
@@ -397,28 +413,28 @@ export default function PublicEvent({ overrideSlug }) {
             </div>
 
             {/* Schedule Table */}
-            <div className="card-form" style={{ padding: 0, overflow: 'hidden', background: '#FFFFFF', border: '1px solid #E2E8F0' }}>
+            <div className="hz-card" style={{ padding: 0 }}>
               <div className="published-list-table-wrapper">
-                <table className="admin-table">
+                <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr>
-                      <th style={{ width: '220px' }}>Time Slot</th>
-                      <th>Event</th>
-                      <th style={{ width: '200px' }}>Venue</th>
+                    <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textTransform: 'uppercase', fontSize: '0.78rem', color: '#64748B' }}>
+                      <th style={{ width: '220px', padding: '16px 24px' }}>Time Slot</th>
+                      <th style={{ padding: '16px 24px' }}>Event</th>
+                      <th style={{ width: '200px', padding: '16px 24px' }}>Venue</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {activeDateItems.map(item => (
-                      <tr key={item.id}>
-                        <td style={{ fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>
+                    {activeDateItems.map((item, idx) => (
+                      <tr key={item.id} style={{ borderBottom: idx < activeDateItems.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
+                        <td style={{ padding: '16px 24px', fontWeight: 800, color: '#0066FF', whiteSpace: 'nowrap' }}>
                           {item.time}
                         </td>
-                        <td style={{ fontWeight: 700, color: '#0F172A' }}>
+                        <td style={{ padding: '16px 24px', fontWeight: 700, color: '#0F172A' }}>
                           {item.event}
                         </td>
-                        <td>
+                        <td style={{ padding: '16px 24px' }}>
                           {item.stage ? (
-                            <span className="badge" style={{ background: '#F1F5F9', color: '#334155', border: '1px solid #CBD5E1', fontSize: '0.75rem', borderRadius: '6px' }}>
+                            <span className="hz-pill-badge" style={{ fontSize: '0.75rem', padding: '4px 12px' }}>
                               {item.stage}
                             </span>
                           ) : null}
@@ -439,13 +455,13 @@ export default function PublicEvent({ overrideSlug }) {
         bottom: 0,
         left: 0,
         right: 0,
-        background: 'rgba(255, 255, 255, 0.96)',
-        backdropFilter: 'blur(12px)',
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(16px)',
         borderTop: '1px solid #E2E8F0',
         display: 'flex',
-        justify: 'space-around',
+        justifyContent: 'space-around',
         alignItems: 'center',
-        padding: '8px 0 10px',
+        padding: '10px 0 12px',
         zIndex: 999,
         boxShadow: '0 -4px 20px rgba(15, 23, 42, 0.08)'
       }}>
@@ -453,9 +469,9 @@ export default function PublicEvent({ overrideSlug }) {
           onClick={() => scrollToSection('public-hero-section', 'home')}
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px',
-            color: activeNavTab === 'home' ? 'var(--primary)' : '#64748B',
-            fontWeight: activeNavTab === 'home' ? 800 : 600, fontSize: '0.72rem'
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 16px',
+            color: activeNavTab === 'home' ? '#0066FF' : '#64748B',
+            fontWeight: activeNavTab === 'home' ? 800 : 600, fontSize: '0.75rem'
           }}
         >
           <Home size={20} />
@@ -466,9 +482,9 @@ export default function PublicEvent({ overrideSlug }) {
           onClick={() => scrollToSection('public-results-section', 'results')}
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px',
-            color: activeNavTab === 'results' ? 'var(--primary)' : '#64748B',
-            fontWeight: activeNavTab === 'results' ? 800 : 600, fontSize: '0.72rem'
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 16px',
+            color: activeNavTab === 'results' ? '#0066FF' : '#64748B',
+            fontWeight: activeNavTab === 'results' ? 800 : 600, fontSize: '0.75rem'
           }}
         >
           <Trophy size={20} />
@@ -479,9 +495,9 @@ export default function PublicEvent({ overrideSlug }) {
           onClick={() => scrollToSection('public-points-section', 'points')}
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px',
-            color: activeNavTab === 'points' ? 'var(--primary)' : '#64748B',
-            fontWeight: activeNavTab === 'points' ? 800 : 600, fontSize: '0.72rem'
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 16px',
+            color: activeNavTab === 'points' ? '#0066FF' : '#64748B',
+            fontWeight: activeNavTab === 'points' ? 800 : 600, fontSize: '0.75rem'
           }}
         >
           <Award size={20} />
@@ -492,9 +508,9 @@ export default function PublicEvent({ overrideSlug }) {
           onClick={() => scrollToSection('public-schedule-section', 'schedule')}
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px',
-            color: activeNavTab === 'schedule' ? 'var(--primary)' : '#64748B',
-            fontWeight: activeNavTab === 'schedule' ? 800 : 600, fontSize: '0.72rem'
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 16px',
+            color: activeNavTab === 'schedule' ? '#0066FF' : '#64748B',
+            fontWeight: activeNavTab === 'schedule' ? 800 : 600, fontSize: '0.75rem'
           }}
         >
           <Calendar size={20} />
@@ -503,21 +519,21 @@ export default function PublicEvent({ overrideSlug }) {
       </nav>
 
       {/* 7. FOOTER SECTION */}
-      <footer className="public-footer" style={{ paddingBottom: 60 }}>
-        <div className="container public-footer-content">
-          <div className="public-footer-brand">
-            <div className="public-footer-title">
+      <footer style={{ background: '#0F172A', color: '#94A3B8', padding: '48px 0 60px', fontSize: '0.9rem' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
+          <div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#FFFFFF', marginBottom: 4 }}>
               {client.event_name}
             </div>
-            <div className="public-footer-subtitle">
+            <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>
               {client.organization_name}
             </div>
           </div>
-          <div className="public-footer-links">
-            <Link to="/">ResultFlow</Link>
-            <Link to="/login">Admin Login</Link>
+          <div style={{ display: 'flex', gap: 20 }}>
+            <Link to="/" style={{ color: '#94A3B8', fontWeight: 600 }}>ResultFlow</Link>
+            <Link to="/login" style={{ color: '#94A3B8', fontWeight: 600 }}>Admin Login</Link>
           </div>
-          <div className="public-footer-copyright">
+          <div style={{ fontSize: '0.85rem', color: '#64748B' }}>
             © {new Date().getFullYear()} {client.organization_name}. All rights reserved.
           </div>
         </div>

@@ -1,40 +1,215 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700;800&display=swap');
 
-/* --- DESIGN SYSTEM SYSTEM --- */
+/* --- DESIGN SYSTEM SYSTEM (Horizon Courts Aesthetic) --- */
 :root {
-  --bg-page: #F8FAFC;
-  /* Clean, crisp Slate-50 background avoiding cream */
+  --bg-page: #F4F5F7;
   --bg-surface: #FFFFFF;
-  --primary: #7C3AED;
-  --primary-hover: #6D28D9;
-  --primary-light: #F5F3FF;
+  --bg-dark-card: #0F172A;
+  --bg-blue-card: #0066FF;
+  
+  --primary: #0F172A;
+  --primary-hover: #1E293B;
+  --primary-light: #F1F5F9;
+  
+  --brand-violet: #7C3AED;
+  --brand-blue: #0066FF;
   --secondary: #0EA5E9;
-  /* Sky Blue - more professional */
   --secondary-hover: #0284C7;
   --accent: #F59E0B;
   --pink-accent: #DB2777;
-  /* Deep Pink - more professional */
   --success: #10B981;
+  
   --text-primary: #0F172A;
-  /* Slate-900 - extremely professional text color */
-  --text-secondary: #475569;
-  /* Slate-600 */
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
   --border-color: #E2E8F0;
-  /* Slate-200 */
+  
   --radius-card: 28px;
-  --radius-btn: 14px;
-  --radius-input: 12px;
+  --radius-btn: 9999px;
+  --radius-pill: 9999px;
+  --radius-input: 14px;
 
-  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.03);
-  --shadow-md: 0 12px 32px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.1);
+  --shadow-sm: 0 4px 16px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 12px 32px rgba(15, 23, 42, 0.07);
+  --shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.12);
 
-  --font-title: 'Outfit', 'Cabinet Grotesk', -apple-system, sans-serif;
+  --font-title: 'Outfit', 'Plus Jakarta Sans', -apple-system, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
 
   --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- HORIZON COURTS DESIGN SYSTEM UTILITIES --- */
+.hz-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.hz-pill-badge-dark {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+.hz-btn-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 26px;
+  border-radius: 9999px;
+  background: #0F172A;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
+}
+
+.hz-btn-dark:hover {
+  background: #1E293B;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+}
+
+.hz-btn-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.hz-btn-light:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  transform: translateY(-2px);
+}
+
+.hz-btn-vibrant {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 26px;
+  border-radius: 9999px;
+  background: #0066FF;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 8px 20px rgba(0, 102, 255, 0.25);
+}
+
+.hz-btn-vibrant:hover {
+  background: #0052CC;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 102, 255, 0.35);
+}
+
+/* Bento & Card Variant Classes */
+.hz-card {
+  background: #FFFFFF;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-color);
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.hz-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.hz-card-dark {
+  background: #0F172A;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-card);
+  padding: 36px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+}
+
+.hz-card-dark h3, .hz-card-dark h4 {
+  color: #FFFFFF;
+}
+
+.hz-card-blue {
+  background: #0066FF;
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-card);
+  padding: 36px;
+  box-shadow: 0 20px 40px rgba(0, 102, 255, 0.2);
+}
+
+.hz-card-blue h3, .hz-card-blue h4 {
+  color: #FFFFFF;
+}
+
+.hz-stat-num {
+  font-family: var(--font-title);
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0F172A;
+  line-height: 1;
+}
+
+.hz-stat-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748B;
+  margin-top: 8px;
+}
+
+/* Dot Matrix Indicator Bar */
+.hz-dot-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hz-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #0066FF;
+  display: inline-block;
+}
+
+.hz-dot-muted {
+  background-color: #E2E8F0;
 }
 
 /* --- RESET & GLOBALS --- */
