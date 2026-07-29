@@ -179,9 +179,30 @@ export default function PublicEvent({ overrideSlug }) {
       // Load manual team points from settings
       const settings = await getSettings(c.id);
       if (settings) {
-        const pts = Array.isArray(settings.teamPoints) ? settings.teamPoints : [];
+        const pts = Array.isArray(settings.teamPoints) ? [...settings.teamPoints] : [];
+
+        // Merge teams configured in settings or client if not present in teamPoints
+        const configTeams = Array.isArray(settings.teams) && settings.teams.length > 0
+          ? settings.teams
+          : (Array.isArray(c.teams) ? c.teams : (Array.isArray(c.programs?.teams) ? c.programs.teams : ['AAWAZ', 'RAFTAR', 'JWALA']));
+
+        configTeams.forEach(tName => {
+          if (tName && !pts.some(p => p.name === tName)) {
+            pts.push({ name: tName, points: 0 });
+          }
+        });
+
+        // Collect teams from published results winners
+        published.forEach(res => {
+          (res.winners || []).forEach(w => {
+            if (w.team && !pts.some(p => p.name === w.team)) {
+              pts.push({ name: w.team, points: 0 });
+            }
+          });
+        });
+
         // Sort by points descending
-        setTeamPoints([...pts].sort((a, b) => b.points - a.points));
+        setTeamPoints([...pts].sort((a, b) => (Number(b.points) || 0) - (Number(a.points) || 0)));
         setTeamPointsAfterResults(settings.teamPointsAfterResults || 0);
 
         if (settings.heroLogo || settings.hero_logo) {
@@ -258,8 +279,8 @@ export default function PublicEvent({ overrideSlug }) {
     : (scheduleDates[0] || '');
   const activeDateItems = schedule.filter(s => (s.date || 'Scheduled Date') === currentActiveDate);
 
-  // Show team points section ONLY when at least one team has points > 0
-  const hasAnyTeamPoints = teamPoints.length > 0 && teamPoints.some(t => (Number(t.points) || 0) > 0);
+  // Show team points section when teams exist
+  const hasAnyTeamPoints = teamPoints.length > 0;
 
   // Scroll Helper for Navigation Bar
   const scrollToSection = (sectionId, tabName) => {
@@ -300,6 +321,11 @@ export default function PublicEvent({ overrideSlug }) {
             <button onClick={() => scrollToSection('public-results-section', 'results')} className="hz-btn-light" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
               Results
             </button>
+            {hasAnyTeamPoints && (
+              <button onClick={() => scrollToSection('public-points-section', 'points')} className="hz-btn-light" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
+                Team Points
+              </button>
+            )}
             <Link to="/login" className="hz-btn-dark" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
               Admin Access
             </Link>
@@ -580,44 +606,69 @@ export default function PublicEvent({ overrideSlug }) {
           )}
         </section>
 
-        {/* 4. POINTS & TEAM STANDINGS SECTION — Only shown when points > 0 */}
+        {/* 4. POINTS & TEAM STANDINGS SECTION */}
         {hasAnyTeamPoints && (
           <section id="public-points-section" style={{ marginBottom: 40 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Team Points</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Trophy size={24} style={{ color: '#0066FF' }} />
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Team Points &amp; Standings</h2>
+              </div>
               {teamPointsAfterResults > 0 && (
-                <span className="hz-pill-badge">
+                <span className="hz-pill-badge" style={{ background: '#0F172A', color: '#FFFFFF', border: 'none' }}>
                   After #{teamPointsAfterResults} Results
                 </span>
               )}
             </div>
 
-            <div className="hz-card" style={{ padding: 0 }}>
+            <div className="hz-card" style={{ padding: 0, overflow: 'hidden' }}>
               <div className="published-list-table-wrapper">
                 <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textTransform: 'uppercase', fontSize: '0.78rem', color: '#64748B' }}>
-                      <th style={{ width: '80px', padding: '16px 24px' }}>Rank</th>
+                    <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textTransform: 'uppercase', fontSize: '0.78rem', color: '#64748B', letterSpacing: '0.05em' }}>
+                      <th style={{ width: '90px', padding: '16px 24px' }}>Rank</th>
                       <th style={{ padding: '16px 24px' }}>Team Name</th>
-                      <th style={{ width: '140px', textAlign: 'right', padding: '16px 24px' }}>Points</th>
+                      <th style={{ width: '140px', textAlign: 'right', padding: '16px 24px' }}>Total Points</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {teamPoints.map((t, idx) => (
-                      <tr key={t.name} style={{ borderBottom: idx < teamPoints.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
-                        <td style={{ padding: '16px 24px', fontWeight: 800, color: '#0066FF' }}>
-                          <span className="hz-pill-badge" style={{ background: idx === 0 ? '#0F172A' : '#F1F5F9', color: idx === 0 ? '#FFFFFF' : '#0F172A', border: 'none' }}>
-                            #{idx + 1}
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px 24px', fontWeight: 800, color: '#0F172A', fontSize: '1.05rem' }}>
-                          {t.name}
-                        </td>
-                        <td style={{ padding: '16px 24px', textAlign: 'right', fontWeight: 800, color: '#0066FF', fontSize: '1.2rem' }}>
-                          {t.points}
-                        </td>
-                      </tr>
-                    ))}
+                    {teamPoints.map((t, idx) => {
+                      const isTop = idx === 0;
+                      const isSecond = idx === 1;
+                      const isThird = idx === 2;
+
+                      let badgeBg = '#F1F5F9';
+                      let badgeColor = '#0F172A';
+                      if (isTop) {
+                        badgeBg = '#FEF08A';
+                        badgeColor = '#854D0E';
+                      } else if (isSecond) {
+                        badgeBg = '#E2E8F0';
+                        badgeColor = '#1E293B';
+                      } else if (isThird) {
+                        badgeBg = '#FFEDD5';
+                        badgeColor = '#9A3412';
+                      }
+
+                      return (
+                        <tr key={t.name} style={{ borderBottom: idx < teamPoints.length - 1 ? '1px solid #F1F5F9' : 'none', background: isTop ? 'rgba(254, 240, 138, 0.08)' : 'transparent' }}>
+                          <td style={{ padding: '16px 24px', fontWeight: 800 }}>
+                            <span className="hz-pill-badge" style={{ background: badgeBg, color: badgeColor, border: 'none', fontSize: '0.85rem', fontWeight: 800, padding: '4px 12px' }}>
+                              #{idx + 1}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px 24px', fontWeight: 800, color: '#0F172A', fontSize: '1.05rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <span>{t.name}</span>
+                              {isTop && <Trophy size={18} style={{ color: '#EAB308' }} />}
+                            </div>
+                          </td>
+                          <td style={{ padding: '16px 24px', textAlign: 'right', fontWeight: 800, color: '#0066FF', fontSize: '1.25rem' }}>
+                            {t.points || 0} <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>PTS</span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
