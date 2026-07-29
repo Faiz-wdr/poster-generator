@@ -21,27 +21,21 @@ function isValidUUID(str) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(str || ''));
 }
 
-// ── CIRCUIT BREAKER ──────────────────────────────────────────────────────────
-// If supabase is null (invalid key detected in supabase.js), we go local immediately.
-// If supabase exists but the first query fails, we trip the circuit breaker
-// so all subsequent calls skip the network for the rest of the session.
-let _circuitBroken = false;
-let useLocal = !supabase;
-
-function tripCircuitBreaker(action, error) {
-  if (!_circuitBroken) {
-    _circuitBroken = true;
-    useLocal = true;
-    console.warn(
-      `⚡ Circuit breaker tripped on "${action}". ` +
-      `All subsequent DB calls will use localStorage for this session. ` +
-      `Error: ${error?.message || error}`
-    );
-  }
+// Clear any legacy circuit breaker flag from sessionStorage
+if (typeof sessionStorage !== 'undefined') {
+  try { sessionStorage.removeItem('arts_poster_circuit_broken'); } catch {}
 }
 
-/** Wrap a Supabase query promise with a 5-second timeout */
-const QUERY_TIMEOUT_MS = 5000;
+function isLocalMode() {
+  return !supabase;
+}
+
+function tripCircuitBreaker(action, error) {
+  console.warn(`⚡ DB query warning on "${action}": ${error?.message || error}`);
+}
+
+/** Wrap a Supabase query promise with a 10-second timeout */
+const QUERY_TIMEOUT_MS = 10000;
 function withTimeout(promise, label) {
   return Promise.race([
     promise,
@@ -135,7 +129,7 @@ function getFallbackClientId() {
 // ── CLIENTS ──────────────────────────────────────────────────────────────────
 
 export async function getClients() {
-  if (useLocal) {
+  if (isLocalMode()) {
     return getLocalClients();
   }
 
@@ -163,7 +157,7 @@ export async function getClients() {
 }
 
 export async function getClient(id) {
-  if (useLocal) {
+  if (isLocalMode()) {
     const clients = getLocalClients();
     return clients.find(c => c.id === id) || null;
   }
@@ -194,6 +188,11 @@ export async function getClient(id) {
 }
 
 export async function getClientBySlug(slug) {
+  if (isLocalMode()) {
+    const clients = getLocalClients();
+    return clients.find(c => c.slug === slug) || null;
+  }
+
   if (supabase) {
     try {
       const { data, error } = await withTimeout(
@@ -207,6 +206,7 @@ export async function getClientBySlug(slug) {
       if (data) return data;
     } catch (e) {
       console.warn("Supabase fetch client error:", e);
+      tripCircuitBreaker('getClientBySlug', e);
     }
   }
 
@@ -220,20 +220,10 @@ export async function saveClient(clientData) {
   const isNew = !clientData.id;
   const updatedClient = { ...clientData, id };
 
-  if (useLocal) {
-    const clients = getLocalClients();
-    const idx = clients.findIndex(c => c.id === id);
-    if (idx >= 0) {
-      clients[idx] = updatedClient;
-    } else {
-      clients.push(updatedClient);
-    }
-    saveLocalClients(clients);
+  // Always update local storage cache immediately so local edits are saved instantly
+  saveLocalClientFallback(updatedClient, isNew);
 
-    // If new client, seed templates and results
-    if (isNew) {
-      seedNewClientLocalData(id);
-    }
+  if (isLocalMode()) {
     return updatedClient;
   }
 
@@ -244,7 +234,6 @@ export async function saveClient(clientData) {
       event_name: clientData.event_name,
       slug: clientData.slug,
       logo: clientData.logo,
-      hero_logo: clientData.hero_logo || (clientData.programs && clientData.programs.hero_logo) || null,
       primary_color: clientData.primary_color,
       secondary_color: clientData.secondary_color,
       accent_color: clientData.accent_color,
@@ -259,10 +248,11 @@ export async function saveClient(clientData) {
 
     if (error) {
       showDbError('saving client', error);
+      tripCircuitBreaker('saveClient', error);
       if (error.code === '23505') {
         return null; // Unique constraint violation (slug taken)
       }
-      return saveLocalClientFallback(updatedClient, isNew);
+      return updatedClient;
     }
 
     if (isNew) {
@@ -273,15 +263,13 @@ export async function saveClient(clientData) {
     return updatedClient;
   } catch (e) {
     showDbError('saving client exception', e);
-    if (e && (e.code === '23505' || e.message?.includes('duplicate key'))) {
-      return null;
-    }
-    return saveLocalClientFallback(updatedClient, isNew);
+    tripCircuitBreaker('saveClient', e);
+    return updatedClient;
   }
 }
 
 export async function deleteClient(id) {
-  if (useLocal) {
+  if (isLocalMode()) {
     const clients = getLocalClients();
     const filtered = clients.filter(c => c.id !== id);
     saveLocalClients(filtered);
@@ -454,23 +442,18 @@ export function decodeProgramName(encodedName) {
   
   let resultNo = '01';
   let status = 'published';
-  let programName = encodedName;
+  let programName = String(encodedName);
 
-  // Extract [No: ...]
-  const noMatch = programName.match(/^\[No:\s*([^\]]+)\]\s*/);
-  if (noMatch) {
-    resultNo = noMatch[1];
-    programName = programName.replace(/^\[No:\s*[^\]]+\]\s*/, '');
+  let match;
+  while ((match = programName.match(/\[(No|Status):\s*([^\]]+)\]\s*/i))) {
+    const key = match[1].toLowerCase();
+    const val = match[2].trim();
+    if (key === 'no') resultNo = val;
+    if (key === 'status') status = val;
+    programName = programName.replace(match[0], '');
   }
 
-  // Extract [Status: ...]
-  const statusMatch = programName.match(/^\[Status:\s*([^\]]+)\]\s*/);
-  if (statusMatch) {
-    status = statusMatch[1];
-    programName = programName.replace(/^\[Status:\s*[^\]]+\]\s*/, '');
-  }
-
-  return { resultNo, status, programName };
+  return { resultNo, status, programName: programName.trim() };
 }
 
 // ── RESULTS ───────────────────────────────────────────────────────────────────
@@ -499,7 +482,7 @@ export function sortResultsByResultNoDesc(results) {
 
 export async function getResults(clientId) {
   const cId = clientId || getFallbackClientId();
-  if (useLocal) {
+  if (isLocalMode()) {
     return sortResultsByResultNoDesc(getLocalResults(cId));
   }
 
@@ -597,7 +580,7 @@ export async function saveResult(resultData, clientId) {
   const id = (resultData.id && isValidUUID(resultData.id)) ? resultData.id : generateUUID();
   const updatedResult = { ...resultData, id, client_id: cId };
 
-  if (useLocal) {
+  if (isLocalMode()) {
     const results = getLocalResults(cId);
     const idx = results.findIndex(r => r.id === id);
     if (idx >= 0) {
@@ -645,7 +628,7 @@ export async function saveResult(resultData, clientId) {
 }
 
 export async function deleteResult(id) {
-  if (useLocal) {
+  if (isLocalMode()) {
     const clients = getLocalClients();
     for (const client of clients) {
       const results = getLocalResults(client.id);
@@ -677,7 +660,7 @@ export async function deleteResult(id) {
 
 export async function getTemplates(clientId) {
   const cId = clientId || getFallbackClientId();
-  if (useLocal) {
+  if (isLocalMode()) {
     return getLocalTemplates(cId);
   }
 
@@ -723,7 +706,7 @@ export async function getTemplates(clientId) {
 }
 
 export async function getTemplate(id) {
-  if (useLocal) {
+  if (isLocalMode()) {
     const clients = getLocalClients();
     for (const client of clients) {
       const templates = getLocalTemplates(client.id);
@@ -758,7 +741,7 @@ export async function saveTemplate(templateData, clientId) {
   const cId = clientId || templateData.client_id || getFallbackClientId();
   const id = (templateData.id && isValidUUID(templateData.id)) ? templateData.id : generateUUID();
   const updatedTemplate = { ...templateData, id, client_id: cId };
-  if (useLocal) {
+  if (isLocalMode()) {
     const templates = getLocalTemplates(cId);
     const idx = templates.findIndex(t => t.id === id);
     if (idx >= 0) {
@@ -790,7 +773,7 @@ export async function saveTemplate(templateData, clientId) {
 }
 
 export async function deleteTemplate(id) {
-  if (useLocal) {
+  if (isLocalMode()) {
     const clients = getLocalClients();
     for (const client of clients) {
       const templates = getLocalTemplates(client.id);
@@ -821,7 +804,7 @@ export async function deleteTemplate(id) {
 // ── STORAGE ───────────────────────────────────────────────────────────────────
 
 export async function uploadTemplateBackground(file, fileName) {
-  if (useLocal) {
+  if (isLocalMode()) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
@@ -849,7 +832,7 @@ export async function uploadTemplateBackground(file, fileName) {
 }
 
 export async function uploadClientLogo(file, fileName) {
-  if (useLocal) {
+  if (isLocalMode()) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
@@ -898,35 +881,74 @@ export async function getSettings(clientId) {
     let tms = [];
     let teamPoints = [];
     let teamPointsAfterResults = 0;
+
+    let pObj = client.programs;
+    if (typeof pObj === 'string') {
+      try { pObj = JSON.parse(pObj); } catch { pObj = {}; }
+    }
+
     if (Array.isArray(client.programs)) {
       progs = client.programs;
-    } else if (client.programs && typeof client.programs === 'object') {
-      if (Array.isArray(client.programs.list)) {
-        progs = client.programs.list;
-      }
-      if (Array.isArray(client.programs.teams)) {
-        tms = client.programs.teams;
-      }
-      if (Array.isArray(client.programs.team_points)) {
-        teamPoints = client.programs.team_points;
-      }
-      if (client.programs.team_points_after_results !== undefined) {
-        teamPointsAfterResults = client.programs.team_points_after_results;
+    } else if (Array.isArray(pObj)) {
+      progs = pObj;
+      pObj = {};
+    } else if (pObj && typeof pObj === 'object') {
+      if (Array.isArray(pObj.list)) {
+        progs = pObj.list;
       }
     }
 
-    let cats = Array.isArray(client.categories) ? client.categories : [];
-    if (tms.length === 0 && Array.isArray(client.teams)) {
-      tms = client.teams;
+    let clientTeams = client.teams;
+    if (typeof clientTeams === 'string') {
+      try { clientTeams = JSON.parse(clientTeams); } catch { clientTeams = []; }
     }
+
+    if (pObj && typeof pObj === 'object') {
+      if (Array.isArray(pObj.teams)) {
+        tms = pObj.teams;
+      } else if (Array.isArray(clientTeams)) {
+        tms = clientTeams;
+      }
+
+      if (Array.isArray(pObj.team_points)) {
+        teamPoints = pObj.team_points;
+      } else if (Array.isArray(pObj.teamPoints)) {
+        teamPoints = pObj.teamPoints;
+      }
+
+      if (pObj.team_points_after_results !== undefined) {
+        teamPointsAfterResults = pObj.team_points_after_results;
+      } else if (pObj.teamPointsAfterResults !== undefined) {
+        teamPointsAfterResults = pObj.teamPointsAfterResults;
+      }
+    }
+
+    let clientTeamPoints = client.team_points || client.teamPoints;
+    if (typeof clientTeamPoints === 'string') {
+      try { clientTeamPoints = JSON.parse(clientTeamPoints); } catch {}
+    }
+    if (teamPoints.length === 0 && Array.isArray(clientTeamPoints)) {
+      teamPoints = clientTeamPoints;
+    }
+
+    if (teamPointsAfterResults === 0) {
+      const resVal = client.team_points_after_results !== undefined ? client.team_points_after_results : client.teamPointsAfterResults;
+      if (resVal !== undefined) teamPointsAfterResults = resVal;
+    }
+
+    let cats = client.categories;
+    if (typeof cats === 'string') {
+      try { cats = JSON.parse(cats); } catch { cats = []; }
+    }
+    if (!Array.isArray(cats)) cats = [];
 
     return {
       institutionName: client.event_name,
       organizationName: client.organization_name,
       eventName: client.event_name,
       logo: client.logo,
-      heroLogo: client.hero_logo || client.heroLogo || (client.programs && client.programs.hero_logo) || '',
-      hero_logo: client.hero_logo || client.heroLogo || (client.programs && client.programs.hero_logo) || '',
+      heroLogo: client.hero_logo || client.heroLogo || (pObj && pObj.hero_logo) || '',
+      hero_logo: client.hero_logo || client.heroLogo || (pObj && pObj.hero_logo) || '',
       primaryColor: client.primary_color,
       secondaryColor: client.secondary_color,
       accentColor: client.accent_color,
@@ -940,7 +962,7 @@ export async function getSettings(clientId) {
       categories: cats,
       teams: tms,
       teamPoints: teamPoints,
-      teamPointsAfterResults: teamPointsAfterResults,
+      teamPointsAfterResults: Number(teamPointsAfterResults) || 0,
     };
   }
   return { institutionName: 'Sahityotsav', primaryColor: '#7C3AED', programs: [], categories: [], teams: [], teamPoints: [], teamPointsAfterResults: 0 };
@@ -952,6 +974,9 @@ export async function saveSettings(clientId, data) {
   if (!client) return false;
 
   let programsValue = client.programs || {};
+  if (typeof programsValue === 'string') {
+    try { programsValue = JSON.parse(programsValue); } catch { programsValue = {}; }
+  }
   if (typeof programsValue !== 'object' || Array.isArray(programsValue)) {
     programsValue = { list: Array.isArray(programsValue) ? programsValue : [] };
   }
@@ -964,13 +989,20 @@ export async function saveSettings(clientId, data) {
   }
   if (data.teamPoints !== undefined) {
     programsValue.team_points = data.teamPoints;
+    programsValue.teamPoints = data.teamPoints;
   }
   if (data.teamPointsAfterResults !== undefined) {
     programsValue.team_points_after_results = data.teamPointsAfterResults;
+    programsValue.teamPointsAfterResults = data.teamPointsAfterResults;
   }
   if (data.heroLogo !== undefined || data.hero_logo !== undefined) {
     const hLogo = data.heroLogo !== undefined ? data.heroLogo : data.hero_logo;
     programsValue.hero_logo = hLogo;
+  }
+
+  let teamsValue = data.teams !== undefined ? data.teams : client.teams;
+  if (typeof teamsValue === 'string') {
+    try { teamsValue = JSON.parse(teamsValue); } catch { teamsValue = []; }
   }
 
   const updated = {
@@ -985,7 +1017,12 @@ export async function saveSettings(clientId, data) {
     slug: data.slug !== undefined ? data.slug : client.slug,
     admin_password: data.adminPassword !== undefined ? data.adminPassword : client.admin_password,
     programs: programsValue,
+    teams: Array.isArray(teamsValue) ? teamsValue : [],
     categories: data.categories !== undefined ? data.categories : client.categories,
+    team_points: data.teamPoints !== undefined ? data.teamPoints : client.team_points,
+    teamPoints: data.teamPoints !== undefined ? data.teamPoints : client.teamPoints,
+    team_points_after_results: data.teamPointsAfterResults !== undefined ? data.teamPointsAfterResults : client.team_points_after_results,
+    teamPointsAfterResults: data.teamPointsAfterResults !== undefined ? data.teamPointsAfterResults : client.teamPointsAfterResults,
   };
 
   const saved = await saveClient(updated);
@@ -996,7 +1033,7 @@ export async function saveSettings(clientId, data) {
 
 export async function resetToDefault(clientId) {
   const cId = clientId || getFallbackClientId();
-  if (useLocal) {
+  if (isLocalMode()) {
     localStorage.setItem(`arts_poster_results_${cId}`, JSON.stringify([]));
     localStorage.setItem(`arts_poster_templates_${cId}`, JSON.stringify([]));
     return true;
@@ -1080,7 +1117,7 @@ export async function deleteAllClientsPermanently() {
   localStorage.clear();
   localStorage.setItem('arts_poster_clients', JSON.stringify([]));
 
-  if (!useLocal) {
+  if (!isLocalMode()) {
     try {
       await supabase.from('results').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await supabase.from('templates').delete().neq('id', '00000000-0000-0000-0000-000000000000');
