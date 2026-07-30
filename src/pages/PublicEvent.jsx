@@ -675,7 +675,19 @@ export default function PublicEvent({ overrideSlug }) {
                         </td>
                         <td style={{ padding: '16px 24px' }}>
                           {item.stage ? (
-                            <span className="hz-pill-badge" style={{ fontSize: '0.75rem', padding: '4px 12px' }}>
+                            <span className="hz-pill-badge" style={{
+                              fontSize: '0.75rem',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              textAlign: 'center',
+                              whiteSpace: 'normal',
+                              lineHeight: '1.2',
+                              maxWidth: '150px',
+                              wordBreak: 'break-word'
+                            }}>
                               {item.stage}
                             </span>
                           ) : null}

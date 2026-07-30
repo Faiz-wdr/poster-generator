@@ -12,6 +12,7 @@ export default function RulesAndRegulations({ overrideSlug }) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRuleset, setSelectedRuleset] = useState('fuego');
 
   useEffect(() => {
     async function load() {
@@ -52,7 +53,7 @@ export default function RulesAndRegulations({ overrideSlug }) {
 
   const backLink = overrideSlug ? '/' : `/event/${client.slug}`;
 
-  const RULE_SECTIONS = [
+  const FUEGO_SECTIONS = [
     {
       id: 'general',
       category: 'General Rules',
@@ -284,6 +285,75 @@ export default function RulesAndRegulations({ overrideSlug }) {
     }
   ];
 
+  const NIVARA_SECTIONS = [
+    {
+      id: 'general-instructions',
+      category: 'General Instructions',
+      title: 'General Instructions',
+      badge: 'Nivara Arts',
+      rules: [
+        'A participant may compete in a maximum of 4 Off-Stage Individual events and 4 On-Stage Individual events. There is no restriction on participation in Group Events, subject to the event-specific rules.',
+        'All participants must report to the respective venue at least 15 minutes before the scheduled time. Failure to report on time may result in disqualification.',
+        'All participants are expected to maintain discipline, decorum, and sportsmanship throughout the festival.',
+        'Performances must not contain any content that promotes religious hatred, discrimination, or insults to communal harmony and fraternity.',
+        'All entries must be original. Plagiarism or the use of copied content may lead to disqualification.',
+        'All communication with the Programme Committee must be made only through the respective Team Leader.',
+        'The decisions of the Judges and the Programme Committee shall be final and binding in all matters relating to the competitions.',
+        'Each team is responsible for arranging its own costumes, props, musical instruments, and other materials required for the performances.',
+        'A competition will be conducted only if a minimum of two participants/teams are registered. If fewer than two participants/teams are registered, the event may be cancelled at the discretion of the Programme Committee. However, the registered participant/team shall be awarded Third Prize points for the event.',
+        'Late registrations submitted after the announced registration deadline will not be accepted.',
+        'Teams participating in the Skit competition must submit their script to the Programme Committee in advance for review.',
+        'Participants are expected to uphold the dignity and reputation of the college by demonstrating respect, fairness, and ethical conduct throughout the festival.',
+        'The Programme Committee reserves the right to amend or interpret these rules whenever necessary for the smooth conduct of the festival.'
+      ]
+    },
+    {
+      id: 'appeals',
+      category: 'Appeals',
+      title: 'Appeals',
+      badge: 'Grievances',
+      rules: [
+        'Any appeal regarding the results or conduct of a competition must be submitted in writing by the Team Leader to the Programme Committee within 30 minutes of the announcement of the results.',
+        'Appeals submitted after the stipulated time or by anyone other than the Team Leader will not be considered.',
+        'The decision of the Programme Committee shall be final.',
+        'The Committee does not consider the grievances regarding the marks awarded by the judges.',
+        'Appeal Fee: 500/-'
+      ]
+    },
+    {
+      id: 'points',
+      category: 'Points',
+      title: 'Points',
+      badge: 'Scoring',
+      rules: [
+        '●	Individual - 10 Points',
+        '●	Group (upto 3 Participants) - 15 Points',
+        '●	Group (above 3 Participants) - 20 Points',
+        '',
+        '●	Individual - 5 Points',
+        '●	Group (upto 3 Participants) - 10 Points',
+        '●	Group (above 3 Participants) - 15 Points',
+        '',
+        '●	Individual - 3 Points',
+        '●	Group (upto 3 Participants) - 5 Points',
+        '●	Group (above 3 Participants) - 10 Points'
+      ]
+    },
+    {
+      id: 'registration',
+      category: 'Registration',
+      title: 'Registration Deadlines',
+      badge: 'Deadlines',
+      rules: [
+        'Last Date For Registration:',
+        '●	26/07/2026 (Offstage)',
+        '●	26/07/2026 (Onstage)'
+      ]
+    }
+  ];
+
+  const RULE_SECTIONS = selectedRuleset === 'fuego' ? FUEGO_SECTIONS : NIVARA_SECTIONS;
+
   const filteredSections = RULE_SECTIONS.filter(sec => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return activeTab === 'all' || sec.id === activeTab;
@@ -334,14 +404,61 @@ export default function RulesAndRegulations({ overrideSlug }) {
             Rules &amp; Regulations
           </h1>
           <p style={{ color: '#64748B', fontSize: '1.05rem', maxWidth: 640, margin: '0 auto 20px', lineHeight: 1.6 }}>
-            Official guidelines, scoring criteria, and discipline policies for Fuego Athletica'26 — MLC Annual Sports Meet.
+            {selectedRuleset === 'fuego'
+              ? "Official guidelines, scoring criteria, and discipline policies for Fuego Athletica'26 — MLC Annual Sports Meet."
+              : "Official guidelines, scoring criteria, and discipline policies for Nivara — MLC Arts & Cultural Festival."}
           </p>
+
+          {/* Ruleset Selector (Nivara vs Fuego) */}
+          <div style={{
+            display: 'inline-flex',
+            background: '#F1F5F9',
+            padding: '6px',
+            borderRadius: '9999px',
+            marginBottom: '24px',
+            border: '1px solid #E2E8F0'
+          }}>
+            <button
+              onClick={() => { setSelectedRuleset('nivara'); setActiveTab('all'); setSearchQuery(''); }}
+              style={{
+                padding: '10px 24px',
+                borderRadius: '9999px',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                background: selectedRuleset === 'nivara' ? '#0F172A' : 'transparent',
+                color: selectedRuleset === 'nivara' ? '#FFFFFF' : '#475569',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Nivara
+            </button>
+            <button
+              onClick={() => { setSelectedRuleset('fuego'); setActiveTab('all'); setSearchQuery(''); }}
+              style={{
+                padding: '10px 24px',
+                borderRadius: '9999px',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                background: selectedRuleset === 'fuego' ? '#0F172A' : 'transparent',
+                color: selectedRuleset === 'fuego' ? '#FFFFFF' : '#475569',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Fuego Athletica'26
+            </button>
+          </div>
 
           {/* Search Bar */}
           <div style={{ maxWidth: 480, margin: '0 auto' }}>
             <input
               type="text"
-              placeholder="Search rules e.g. cricket, relay, fouls, points…"
+              placeholder={selectedRuleset === 'fuego'
+                ? "Search rules e.g. cricket, relay, fouls, points…"
+                : "Search rules e.g. general, appeals, points, deadlines…"}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               style={{
@@ -398,12 +515,24 @@ export default function RulesAndRegulations({ overrideSlug }) {
                 )}
 
                 {sec.rules && (
-                  <ul style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {sec.rules.map((rule, idx) => (
-                      <li key={idx} style={{ fontSize: '0.92rem', color: '#334155', lineHeight: 1.5 }}>
-                        {rule}
-                      </li>
-                    ))}
+                  <ul style={{
+                    listStyleType: selectedRuleset === 'nivara' ? 'none' : 'disc',
+                    paddingLeft: selectedRuleset === 'nivara' ? 0 : 18,
+                    margin: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8
+                  }}>
+                    {sec.rules.map((rule, idx) => {
+                      if (rule === '') {
+                        return <li key={idx} style={{ height: 8, listStyleType: 'none' }} />;
+                      }
+                      return (
+                        <li key={idx} style={{ fontSize: '0.92rem', color: '#334155', lineHeight: 1.5 }}>
+                          {rule}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
 
